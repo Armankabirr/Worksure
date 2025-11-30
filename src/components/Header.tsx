@@ -24,34 +24,34 @@ const Header = () => {
             >
               Service
             </a>
-            <div className="absolute left-0 mt-2 w-40 rounded-md bg-card shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+            <div className="absolute left-0 mt-3 w-48 rounded-lg bg-card shadow-xl border border-border/50 backdrop-blur-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out z-20 overflow-hidden">
               <a
                 href="#service-electrician"
-                className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary"
+                className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 first:rounded-t-lg last:rounded-b-lg"
               >
                 Electrician
               </a>
               <a
                 href="#service-cleaner"
-                className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary"
+                className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200"
               >
                 Cleaner
               </a>
               <a
                 href="#service-catering"
-                className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary"
+                className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200"
               >
                 Catering
               </a>
               <a
                 href="#service-babysitter"
-                className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary"
+                className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200"
               >
                 Babysitter
               </a>
               <a
                 href="#service-pet-care"
-                className="block px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-primary"
+                className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200"
               >
                 Pet Care
               </a>
