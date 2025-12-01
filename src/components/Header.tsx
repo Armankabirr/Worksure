@@ -95,7 +95,32 @@ const Header = () => {
           <Button variant="ghost" size="icon" className="hover:bg-accent">
             <ShoppingCart className="h-5 w-5" />
           </Button>
-          <Button variant="default" size="icon" className="bg-primary hover:bg-primary/90">
+
+          <div className="hidden md:flex items-center space-x-3">
+            <Button
+              variant="outline"
+              className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary"
+              type="button"
+            >
+              Login
+            </Button>
+            <Button
+              variant="default"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg"
+              type="button"
+            >
+              Sign up
+            </Button>
+          </div>
+
+          {/* Compact auth icon for small screens */}
+          <Button
+            variant="default"
+            size="icon"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground md:hidden"
+            type="button"
+            aria-label="Account"
+          >
             <User className="h-5 w-5" />
           </Button>
         </div>
