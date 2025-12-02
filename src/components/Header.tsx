@@ -1,9 +1,14 @@
-import { MouseEvent } from "react";
+import { MouseEvent, useState } from "react";
 import { ShoppingCart, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import LoginDialog from "./LoginDialog";
+import RegisterDialog from "./RegisterDialog";
 
 const Header = () => {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+
   const handleScroll = (event: MouseEvent<HTMLAnchorElement>, targetId: string) => {
     event.preventDefault();
 
@@ -11,6 +16,14 @@ const Header = () => {
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const handleSwitchToRegister = () => {
+    setRegisterOpen(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setLoginOpen(true);
   };
 
   return (
@@ -98,38 +111,47 @@ const Header = () => {
 
           <div className="hidden md:flex items-center space-x-3">
             <Button
-              asChild
               variant="outline"
               className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary"
               type="button"
+              onClick={() => setLoginOpen(true)}
             >
-              <Link to="/user/login">Login</Link>
+              Login
             </Button>
             <Button
-              asChild
               variant="default"
               className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg"
               type="button"
+              onClick={() => setRegisterOpen(true)}
             >
-              <Link to="/user/register">Sign up</Link>
+              Sign up
             </Button>
           </div>
 
           {/* Compact auth icon for small screens */}
           <Button
-            asChild
             variant="default"
             size="icon"
             className="bg-primary hover:bg-primary/90 text-primary-foreground md:hidden"
             type="button"
             aria-label="Account"
+            onClick={() => setLoginOpen(true)}
           >
-            <Link to="/user/login">
-              <User className="h-5 w-5" />
-            </Link>
+            <User className="h-5 w-5" />
           </Button>
         </div>
       </div>
+
+      <LoginDialog
+        open={loginOpen}
+        onOpenChange={setLoginOpen}
+        onSwitchToRegister={handleSwitchToRegister}
+      />
+      <RegisterDialog
+        open={registerOpen}
+        onOpenChange={setRegisterOpen}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
     </header>
   );
 };
