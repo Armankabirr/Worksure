@@ -1,5 +1,6 @@
 import { MouseEvent } from "react";
 import { ShoppingCart, User } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -37,13 +38,12 @@ const Header = () => {
               Service
             </a>
             <div className="absolute left-0 mt-3 w-48 rounded-lg bg-card shadow-xl border border-border/50 backdrop-blur-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out z-20 overflow-hidden">
-              <a
-                href="#service-electrician"
-                onClick={(event) => handleScroll(event, "service-electrician")}
+              <Link
+                to="/electrician"
                 className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 first:rounded-t-lg last:rounded-b-lg cursor-pointer"
               >
                 Electrician
-              </a>
+              </Link>
               <a
                 href="#service-cleaner"
                 onClick={(event) => handleScroll(event, "service-cleaner")}
