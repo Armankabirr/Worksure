@@ -4,6 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RegisterFormData {
   name: string;
@@ -11,6 +18,7 @@ interface RegisterFormData {
   phone: string;
   password: string;
   confirmPassword: string;
+  role: "user" | "worker" | "";
 }
 
 interface RegisterFormErrors {
@@ -20,6 +28,7 @@ interface RegisterFormErrors {
   password?: string;
   confirmPassword?: string;
   general?: string;
+  role?: string;
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,6 +42,7 @@ const UserRegister = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    role: "",
   });
 
   const [errors, setErrors] = useState<RegisterFormErrors>({});
@@ -64,6 +74,8 @@ const UserRegister = () => {
     }
 
     if (!formData.phone.trim()) newErrors.phone = "Phone is required.";
+
+    if (!formData.role) newErrors.role = "Please select a role.";
 
     if (!formData.password) newErrors.password = "Password is required.";
 
@@ -124,6 +136,28 @@ const UserRegister = () => {
             />
             {errors.name && (
               <p className="text-xs text-destructive mt-1">{errors.name}</p>
+            )}
+          </div>
+
+          <div className="space-y-1 text-left">
+            <Label>Role</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value: "user" | "worker") => {
+                setFormData((prev) => ({ ...prev, role: value }));
+                setErrors((prev) => ({ ...prev, role: undefined, general: undefined }));
+              }}
+            >
+              <SelectTrigger className={errors.role ? "border-destructive" : ""}>
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="worker">Worker</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.role && (
+              <p className="text-xs text-destructive mt-1">{errors.role}</p>
             )}
           </div>
 
