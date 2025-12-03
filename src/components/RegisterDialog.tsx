@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,8 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
 
   const [errors, setErrors] = useState<RegisterFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Reset step when dialog opens/closes
   useEffect(() => {
@@ -162,7 +165,7 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-semibold text-center">
             Create Account
@@ -174,79 +177,83 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-3 mt-3 flex-1">
           {step === 1 ? (
             <>
-              <div className="space-y-1">
-                <Label>Role</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(value: "user" | "worker") => {
-                    setFormData((prev) => ({ ...prev, role: value }));
-                    setErrors((prev) => ({ ...prev, role: undefined, general: undefined }));
-                  }}
-                >
-                  <SelectTrigger className={errors.role ? "border-destructive" : ""}>
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="worker">Worker</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.role && (
-                  <p className="text-xs text-destructive mt-1">{errors.role}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>Role</Label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value: "user" | "worker") => {
+                      setFormData((prev) => ({ ...prev, role: value }));
+                      setErrors((prev) => ({ ...prev, role: undefined, general: undefined }));
+                    }}
+                  >
+                    <SelectTrigger className={errors.role ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="worker">Worker</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.role && (
+                    <p className="text-xs text-destructive mt-1">{errors.role}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="register-name">Full Name</Label>
+                  <Input
+                    id="register-name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange("name")}
+                    className={errors.name ? "border-destructive" : ""}
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-destructive mt-1">{errors.name}</p>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="register-name">Full Name</Label>
-                <Input
-                  id="register-name"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={handleChange("name")}
-                  className={errors.name ? "border-destructive" : ""}
-                />
-                {errors.name && (
-                  <p className="text-xs text-destructive mt-1">{errors.name}</p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={handleChange("email")}
+                    className={errors.email ? "border-destructive" : ""}
+                  />
+                  {errors.email && (
+                    <p className="text-xs text-destructive mt-1">{errors.email}</p>
+                  )}
+                </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="register-email">Email</Label>
-                <Input
-                  id="register-email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleChange("email")}
-                  className={errors.email ? "border-destructive" : ""}
-                />
-                {errors.email && (
-                  <p className="text-xs text-destructive mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="register-phone">Phone Number</Label>
-                <Input
-                  id="register-phone"
-                  type="tel"
-                  placeholder="+1 234 567 8900"
-                  value={formData.phone}
-                  onChange={handleChange("phone")}
-                  className={errors.phone ? "border-destructive" : ""}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-destructive mt-1">{errors.phone}</p>
-                )}
+                <div className="space-y-1">
+                  <Label htmlFor="register-phone">Phone Number</Label>
+                  <Input
+                    id="register-phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={formData.phone}
+                    onChange={handleChange("phone")}
+                    className={errors.phone ? "border-destructive" : ""}
+                  />
+                  {errors.phone && (
+                    <p className="text-xs text-destructive mt-1">{errors.phone}</p>
+                  )}
+                </div>
               </div>
 
               <Button
                 type="button"
                 onClick={handleNext}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                className="w-full mt-1 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 Next
               </Button>
@@ -255,14 +262,24 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
             <>
               <div className="space-y-1">
                 <Label htmlFor="register-password">Password</Label>
-                <Input
-                  id="register-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange("password")}
-                  className={errors.password ? "border-destructive" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="register-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange("password")}
+                    className={errors.password ? "border-destructive pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-xs text-destructive mt-1">
                     {errors.password}
@@ -272,14 +289,24 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
 
               <div className="space-y-1">
                 <Label htmlFor="register-confirm-password">Confirm Password</Label>
-                <Input
-                  id="register-confirm-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange("confirmPassword")}
-                  className={errors.confirmPassword ? "border-destructive" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="register-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange("confirmPassword")}
+                    className={errors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-2 flex items-center text-muted-foreground hover:text-foreground"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-xs text-destructive mt-1">
                     {errors.confirmPassword}
@@ -293,7 +320,7 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <Button
                   type="button"
                   onClick={handleBack}
