@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginUser } from "@/lib/mockAuth";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginFormData {
   email: string;
@@ -38,6 +38,7 @@ const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProp
 
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
 
   const handleChange =
     (field: keyof LoginFormData) =>
@@ -78,9 +79,8 @@ const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProp
     setIsSubmitting(true);
 
     try {
-      await loginUser(formData.email.trim(), formData.password);
+      await login(formData.email.trim(), formData.password);
       onOpenChange(false);
-      // Optionally, navigate to a dashboard route here when backend/router is ready.
     } catch (error) {
       let message = "Login failed. Please try again.";
       if (error instanceof Error) {

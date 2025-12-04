@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import chefsImage from "@/assets/chefs.jpg";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const About = () => {
+  const { isAuthenticated, openLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      openLogin();
+    }
+  };
   const features = [
     "Calculation of work",
     "Lowest Budgets",
@@ -43,7 +55,11 @@ const About = () => {
             ))}
           </div>
 
-          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <Button
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            onClick={handleBookNow}
+          >
             Book Now
           </Button>
         </div>

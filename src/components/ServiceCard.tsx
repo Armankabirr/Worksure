@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface ServiceCardProps {
   image: string;
@@ -9,6 +11,17 @@ interface ServiceCardProps {
 }
 
 const ServiceCard = ({ image, title, description, alt }: ServiceCardProps) => {
+  const { isAuthenticated, openLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGetStart = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      openLogin();
+    }
+  };
+
   return (
     <div className="bg-card rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
       <div className="aspect-[4/3] overflow-hidden relative">
@@ -22,7 +35,10 @@ const ServiceCard = ({ image, title, description, alt }: ServiceCardProps) => {
       <div className="p-6 space-y-4">
         <h3 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">{title}</h3>
         <p className="text-muted-foreground leading-relaxed">{description}</p>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground group/btn w-full shadow-md hover:shadow-lg transition-all duration-300">
+        <Button
+          className="bg-primary hover:bg-primary/90 text-primary-foreground group/btn w-full shadow-md hover:shadow-lg transition-all duration-300"
+          onClick={handleGetStart}
+        >
           Get Start
           <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
         </Button>

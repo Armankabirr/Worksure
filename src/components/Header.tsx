@@ -1,13 +1,22 @@
-import { MouseEvent, useState } from "react";
+import { MouseEvent } from "react";
 import { ShoppingCart, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
+  const {
+    isAuthenticated,
+    loginOpen,
+    registerOpen,
+    openLogin,
+    openRegister,
+    closeLogin,
+    closeRegister,
+  } = useAuth();
+  const navigate = useNavigate();
 
   const handleScroll = (event: MouseEvent<HTMLAnchorElement>, targetId: string) => {
     event.preventDefault();
@@ -19,11 +28,11 @@ const Header = () => {
   };
 
   const handleSwitchToRegister = () => {
-    setRegisterOpen(true);
+    openRegister();
   };
 
   const handleSwitchToLogin = () => {
-    setLoginOpen(true);
+    openLogin();
   };
 
   return (
@@ -109,47 +118,65 @@ const Header = () => {
             <ShoppingCart className="h-5 w-5" />
           </Button>
 
-          <div className="hidden md:flex items-center space-x-3">
-            <Button
-              variant="outline"
-              className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary"
-              type="button"
-              onClick={() => setLoginOpen(true)}
-            >
-              Login
-            </Button>
-            <Button
-              variant="default"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg"
-              type="button"
-              onClick={() => setRegisterOpen(true)}
-            >
-              Sign up
-            </Button>
-          </div>
+          {isAuthenticated ? (
+            <>
+              {/* Profile icon - all screen sizes */}
+              <Button
+                variant="default"
+                size="icon"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                type="button"
+                aria-label="Profile"
+                onClick={() => navigate("/profile")}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="hidden md:flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary"
+                  type="button"
+                  onClick={openLogin}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg"
+                  type="button"
+                  onClick={openRegister}
+                >
+                  Sign up
+                </Button>
+              </div>
 
-          {/* Compact auth icon for small screens */}
-          <Button
-            variant="default"
-            size="icon"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground md:hidden"
-            type="button"
-            aria-label="Account"
-            onClick={() => setLoginOpen(true)}
-          >
-            <User className="h-5 w-5" />
-          </Button>
+              {/* Compact auth icon for small screens */}
+              <Button
+                variant="default"
+                size="icon"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground md:hidden"
+                type="button"
+                aria-label="Account"
+                onClick={openLogin}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       <LoginDialog
         open={loginOpen}
-        onOpenChange={setLoginOpen}
+        onOpenChange={(open) => (open ? openLogin() : closeLogin())}
         onSwitchToRegister={handleSwitchToRegister}
       />
       <RegisterDialog
         open={registerOpen}
-        onOpenChange={setRegisterOpen}
+        onOpenChange={(open) => (open ? openRegister() : closeRegister())}
         onSwitchToLogin={handleSwitchToLogin}
       />
     </header>

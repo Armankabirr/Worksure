@@ -1,7 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Star, Quote } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const Testimonial = () => {
+  const { isAuthenticated, openLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGetStart = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      openLogin();
+    }
+  };
   return (
     <section className="container mx-auto px-6 py-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none"></div>
@@ -13,7 +25,11 @@ const Testimonial = () => {
           <p className="text-xl text-muted-foreground leading-relaxed">
             We listened to every client of ours about their satisfaction & this is what we got from them in return.
           </p>
-          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <Button
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            onClick={handleGetStart}
+          >
             Get Start
           </Button>
         </div>

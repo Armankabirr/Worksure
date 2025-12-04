@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
 import teamIllustration from "@/assets/team-illustration.jpg";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const QualityServices = () => {
+  const { isAuthenticated, openLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const handleHireExpert = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      openLogin();
+    }
+  };
+
   return (
     <section className="container mx-auto px-6 py-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none"></div>
@@ -16,7 +29,11 @@ const QualityServices = () => {
           <p className="text-xl text-muted-foreground leading-relaxed">
             We provide comprehensive and affordable services designed to fit your needs, budget, and schedule with minimal disruption.
           </p>
-          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <Button
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            onClick={handleHireExpert}
+          >
             Hire Expert
           </Button>
         </div>
