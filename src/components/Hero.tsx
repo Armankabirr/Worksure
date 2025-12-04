@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-workspace.jpg";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const Hero = () => {
+  const { isAuthenticated, openLogin } = useAuth();
+  const navigate = useNavigate();
+
+  const handlePrimaryClick = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+    } else {
+      openLogin();
+    }
+  };
+
   return (
     <section className="container mx-auto px-6 py-20 overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -16,7 +29,11 @@ const Hero = () => {
             We provide trustworthy help using the least amount of time, energy, and budget possible.
           </p>
           <div className="flex flex-wrap gap-4 pt-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={handlePrimaryClick}
+            >
               Get Start Now
             </Button>
             <Button size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-105">

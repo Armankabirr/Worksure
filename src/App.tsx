@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Electrician from "./pages/Electrician";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
+import Profile from "./pages/Profile";
 import Preloader from "./components/Preloader";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/electrician" element={<Electrician />} />
             <Route path="/user/register" element={<UserRegister />} />
             <Route path="/user/login" element={<UserLogin />} />
+            <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
