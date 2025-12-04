@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { registerUser } from "@/lib/mockAuth";
 
 interface RegisterFormData {
   name: string;
@@ -139,22 +140,27 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
     try {
       setIsSubmitting(true);
 
-      // TODO: Replace with real API call:
-      // await axios.post("http://localhost:5000/api/user/register", formData);
-      // onOpenChange(false);
-      // onSwitchToLogin(); // Switch to login after successful registration
+      await registerUser({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        role: formData.role,
+        password: formData.password,
+      });
 
-      // Mock success for UI demonstration:
+      onOpenChange(false);
+      // After successful registration, go to login dialog.
       setTimeout(() => {
-        onOpenChange(false);
-        setTimeout(() => {
-          onSwitchToLogin();
-        }, 200);
-      }, 600);
+        onSwitchToLogin();
+      }, 200);
     } catch (error) {
+      let message = "Registration failed. Please try again.";
+      if (error instanceof Error) {
+        message = error.message;
+      }
       setErrors((prev) => ({
         ...prev,
-        general: "Registration failed. Please try again.",
+        general: message,
       }));
     } finally {
       setIsSubmitting(false);

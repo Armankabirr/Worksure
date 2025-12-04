@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginUser } from "@/lib/mockAuth";
 
 interface LoginFormData {
   email: string;
@@ -76,22 +77,22 @@ const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProp
 
     setIsSubmitting(true);
 
-    // TODO: Replace with real API call:
-    // const response = await axios.post("http://localhost:5000/api/user/login", {
-    //   email: formData.email,
-    //   password: formData.password,
-    // });
-    // localStorage.setItem("token", response.data.token);
-    // onOpenChange(false);
-    // navigate("/user/dashboard");
-
-    // Mock error for UI demonstration:
-    setTimeout(() => {
-      setErrors({
-        general: "Invalid email or password. Please try again.",
-      });
+    try {
+      await loginUser(formData.email.trim(), formData.password);
+      onOpenChange(false);
+      // Optionally, navigate to a dashboard route here when backend/router is ready.
+    } catch (error) {
+      let message = "Login failed. Please try again.";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      setErrors((prev) => ({
+        ...prev,
+        general: message,
+      }));
+    } finally {
       setIsSubmitting(false);
-    }, 600);
+    }
   };
 
   const handleSwitchToRegister = () => {
