@@ -38,6 +38,7 @@ interface RegisterFormErrors {
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^.{8,}$/;
 
 interface RegisterDialogProps {
   open: boolean;
@@ -103,7 +104,11 @@ const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: RegisterDialogP
   const validateStep2 = (): boolean => {
     const newErrors: RegisterFormErrors = {};
 
-    if (!formData.password) newErrors.password = "Password is required.";
+    if (!formData.password) {
+      newErrors.password = "Password is required.";
+    } else if (!passwordRegex.test(formData.password)) {
+      newErrors.password = "Password must be at least 8 characters.";
+    }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password.";
