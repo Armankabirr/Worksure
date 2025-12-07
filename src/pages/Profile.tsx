@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Save, X, LogOut, User, Camera } from "lucide-react";
+import { Camera, Phone, Mail, MapPin, LogOut } from "lucide-react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 /**
- * Profile page component with edit functionality.
- * Displays user information and allows editing name, bio, phone, and avatar.
+ * Profile page component matching Worksure My Account design.
+ * Displays user information with sidebar navigation.
  * Protected route - only accessible to authenticated users.
  */
 const Profile = () => {
@@ -23,6 +24,7 @@ const Profile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState("my-profile");
 
   // Form state
   const [formData, setFormData] = useState({
@@ -30,6 +32,7 @@ const Profile = () => {
     phone: "",
     bio: "",
     avatar: "",
+    address: "",
   });
 
   // Initialize form data when user loads or changes
@@ -40,6 +43,7 @@ const Profile = () => {
         phone: user.phone || "",
         bio: user.bio || "",
         avatar: user.avatar || "",
+        address: user.address || "",
       });
     }
   }, [user]);
@@ -60,6 +64,7 @@ const Profile = () => {
           phone: user.phone || "",
           bio: user.bio || "",
           avatar: user.avatar || "",
+          address: user.address || "",
         });
       }
       setError(null);
@@ -163,197 +168,323 @@ const Profile = () => {
   // Show loading/empty state
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-100 to-slate-200">
+      <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <div className="flex-1 flex items-center justify-center px-4 pt-24">
           <Card className="w-full max-w-md p-8 text-center">
             <p className="text-muted-foreground">Loading profile...</p>
           </Card>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <div className="container mx-auto max-w-2xl px-4 py-10 pt-24 flex-1">
-        <Card className="p-6 md:p-8 shadow-lg border border-border bg-card">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-foreground">User Profile</h1>
-            {!isEditing && (
-              <Button
-                onClick={handleEditToggle}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Edit2 className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            )}
+      
+      {/* Main Content */}
+      <main className="flex-1 pt-24 pb-12">
+        <div className="container mx-auto px-4 md:px-6">
+          {/* Breadcrumb */}
+          <div className="flex items-center space-x-2 mb-8 text-sm text-muted-foreground">
+            <a href="/" className="hover:text-primary">Home</a>
+            <span>/</span>
+            <span>My Account</span>
+          </div>
+
+          {/* Welcome Message */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Manage My Account</h1>
+            <p className="text-muted-foreground">
+              Welcome! <span className="text-primary font-semibold">{user.name.split(" ")[0]}</span>
+            </p>
           </div>
 
           {/* Success/Error Messages */}
           {success && (
-            <div className="mb-4 p-3 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm">
+            <div className="mb-6 p-4 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm">
               {success}
             </div>
           )}
           {error && (
-            <div className="mb-4 p-3 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-sm">
+            <div className="mb-6 p-4 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-sm">
               {error}
             </div>
           )}
 
-          {/* Profile Content */}
-          <div className="space-y-6">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary/20">
-                  {formData.avatar ? (
-                    <AvatarImage src={formData.avatar} alt={user.name} />
-                  ) : null}
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl md:text-3xl font-semibold">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-                {isEditing && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Sidebar */}
+            <aside className="md:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-border">
+                <h2 className="text-lg font-semibold text-foreground mb-6">Manage My Account</h2>
+                
+                <nav className="space-y-2">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-                    aria-label="Change avatar"
+                    onClick={() => setActiveMenu("my-profile")}
+                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
+                      activeMenu === "my-profile"
+                        ? "bg-orange-50 text-primary"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
                   >
-                    <Camera className="h-4 w-4" />
+                    <span className="text-lg">👤</span>
+                    My Profile
                   </button>
-                )}
+                </nav>
+
+                <h2 className="text-lg font-semibold text-foreground mt-8 mb-4">My Orders</h2>
+                
+                <nav className="space-y-2">
+                  <button
+                    onClick={() => setActiveMenu("my-services")}
+                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
+                      activeMenu === "my-services"
+                        ? "bg-orange-50 text-primary"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <span className="text-lg">📋</span>
+                    My Services
+                  </button>
+                  <button
+                    onClick={() => setActiveMenu("my-offers")}
+                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
+                      activeMenu === "my-offers"
+                        ? "bg-orange-50 text-primary"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <span className="text-lg">🎁</span>
+                    My Offers
+                  </button>
+                  <button
+                    onClick={() => setActiveMenu("my-wishlist")}
+                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
+                      activeMenu === "my-wishlist"
+                        ? "bg-orange-50 text-primary"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <span className="text-lg">❤️</span>
+                    My WishList
+                  </button>
+                </nav>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-              />
-              {isEditing && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Click the camera icon to change your profile picture
-                </p>
+            </aside>
+
+            {/* Main Content Area */}
+            <div className="md:col-span-3">
+              {activeMenu === "my-profile" && (
+                <Card className="bg-white border border-border p-8 shadow-sm">
+                  {/* Profile Header */}
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground mb-1">My Profile</h2>
+                      <p className="text-muted-foreground text-sm">View and manage your personal information</p>
+                    </div>
+                    {!isEditing && (
+                      <Button
+                        onClick={handleEditToggle}
+                        className="bg-primary hover:bg-primary/90 text-white gap-2"
+                      >
+                        Update Info
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Profile Content */}
+                  <div className="space-y-8">
+                    {/* Avatar and Basic Info */}
+                    <div className="flex flex-col md:flex-row gap-8">
+                      {/* Avatar Section */}
+                      <div className="flex flex-col items-center">
+                        <div className="relative">
+                          <Avatar className="h-32 w-32 border-4 border-primary/10">
+                            {formData.avatar ? (
+                              <AvatarImage src={formData.avatar} alt={user.name} />
+                            ) : null}
+                            <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-semibold">
+                              {getInitials(user.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          {isEditing && (
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+                              aria-label="Change avatar"
+                            >
+                              <Camera className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          className="hidden"
+                        />
+                        {isEditing && (
+                          <p className="text-xs text-muted-foreground text-center mt-2">
+                            Click camera icon to change
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Name and Role */}
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-foreground mb-1">{user.name}</h3>
+                        <p className="text-muted-foreground capitalize mb-6">{user.role === "user" ? "Customer" : "Service Provider"}</p>
+
+                        {/* Contact Information Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                          {/* Full Name */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-primary text-lg">👤</span>
+                              <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                            </div>
+                            {isEditing ? (
+                              <Input
+                                value={formData.name}
+                                onChange={(e) => handleInputChange("name", e.target.value)}
+                                placeholder="Enter your full name"
+                                className="border-border"
+                              />
+                            ) : (
+                              <p className="text-foreground font-semibold">{user.name}</p>
+                            )}
+                          </div>
+
+                          {/* Phone */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Phone className="h-5 w-5 text-primary" />
+                              <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                            </div>
+                            {isEditing ? (
+                              <Input
+                                type="tel"
+                                value={formData.phone}
+                                onChange={(e) => handleInputChange("phone", e.target.value)}
+                                placeholder="+1 234 567 8900"
+                                className="border-border"
+                              />
+                            ) : (
+                              <p className="text-foreground font-semibold">{user.phone}</p>
+                            )}
+                          </div>
+
+                          {/* Email */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Mail className="h-5 w-5 text-primary" />
+                              <p className="text-sm font-medium text-muted-foreground">Email Address</p>
+                            </div>
+                            <p className="text-foreground font-semibold">{user.email}</p>
+                          </div>
+
+                          {/* Address */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <MapPin className="h-5 w-5 text-primary" />
+                              <p className="text-sm font-medium text-muted-foreground">Address</p>
+                            </div>
+                            {isEditing ? (
+                              <Input
+                                value={formData.address}
+                                onChange={(e) => handleInputChange("address", e.target.value)}
+                                placeholder="Enter your address"
+                                className="border-border"
+                              />
+                            ) : (
+                              <p className="text-foreground font-semibold">
+                                {formData.address || "Not provided"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bio Section */}
+                    {isEditing && (
+                      <div className="pt-6 border-t border-border">
+                        <Label htmlFor="bio" className="text-base font-semibold mb-3 block">About You</Label>
+                        <Textarea
+                          id="bio"
+                          value={formData.bio}
+                          onChange={(e) => handleInputChange("bio", e.target.value)}
+                          placeholder="Tell us about yourself..."
+                          rows={4}
+                          className="resize-none border-border"
+                        />
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="pt-6 border-t border-border flex gap-4">
+                      {isEditing ? (
+                        <>
+                          <Button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="bg-primary hover:bg-primary/90 text-white flex-1"
+                          >
+                            {isSaving ? "Saving..." : "Save Changes"}
+                          </Button>
+                          <Button
+                            onClick={handleEditToggle}
+                            disabled={isSaving}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          onClick={handleLogout}
+                          variant="destructive"
+                          className="w-full gap-2"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {activeMenu === "my-services" && (
+                <Card className="bg-white border border-border p-8 shadow-sm">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">My Services</h2>
+                  <p className="text-muted-foreground">Coming soon...</p>
+                </Card>
+              )}
+
+              {activeMenu === "my-offers" && (
+                <Card className="bg-white border border-border p-8 shadow-sm">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">My Offers</h2>
+                  <p className="text-muted-foreground">Coming soon...</p>
+                </Card>
+              )}
+
+              {activeMenu === "my-wishlist" && (
+                <Card className="bg-white border border-border p-8 shadow-sm">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">My WishList</h2>
+                  <p className="text-muted-foreground">Coming soon...</p>
+                </Card>
               )}
             </div>
-
-            {/* User Information */}
-            <div className="space-y-4">
-              {/* Name Field */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                {isEditing ? (
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter your full name"
-                    className={error && !formData.name.trim() ? "border-destructive" : ""}
-                  />
-                ) : (
-                  <p className="text-foreground font-medium">{user.name}</p>
-                )}
-              </div>
-
-              {/* Email Field (Read-only) */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <p className="text-muted-foreground">{user.email}</p>
-                <p className="text-xs text-muted-foreground italic">
-                  Email cannot be changed
-                </p>
-              </div>
-
-              {/* Phone Field */}
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                {isEditing ? (
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="+1 234 567 8900"
-                    className={error && !formData.phone.trim() ? "border-destructive" : ""}
-                  />
-                ) : (
-                  <p className="text-foreground font-medium">{user.phone}</p>
-                )}
-              </div>
-
-              {/* Role Field (Read-only) */}
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <p className="text-foreground font-medium capitalize">{user.role}</p>
-              </div>
-
-              {/* Bio Field */}
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                {isEditing ? (
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange("bio", e.target.value)}
-                    placeholder="Tell us about yourself..."
-                    rows={4}
-                    className="resize-none"
-                  />
-                ) : (
-                  <p className="text-foreground whitespace-pre-wrap">
-                    {user.bio || (
-                      <span className="text-muted-foreground italic">
-                        No bio added yet.
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            {isEditing ? (
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                <Button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button
-                  onClick={handleEditToggle}
-                  variant="outline"
-                  disabled={isSaving}
-                  className="flex-1 gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={handleLogout}
-                  variant="destructive"
-                  className="w-full gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
-              </div>
-            )}
           </div>
-        </Card>
-      </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

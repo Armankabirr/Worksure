@@ -23,6 +23,7 @@ export interface AuthUser {
   token: string | null;
   bio?: string;
   avatar?: string;
+  address?: string;
 }
 
 interface AuthContextValue {
