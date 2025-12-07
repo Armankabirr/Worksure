@@ -1,6 +1,6 @@
-import { MouseEvent } from "react";
+import { MouseEvent, useEffect } from "react";
 import { ShoppingCart, User } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
@@ -17,6 +17,20 @@ const Header = () => {
     closeRegister,
   } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle scrolling to hash targets when location changes
+  useEffect(() => {
+    if (location.hash) {
+      const targetId = location.hash.slice(1); // Remove '#'
+      const element = document.getElementById(targetId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
 
   const handleScroll = (event: MouseEvent<HTMLAnchorElement>, targetId: string) => {
     event.preventDefault();
@@ -24,6 +38,9 @@ const Header = () => {
     const element = document.getElementById(targetId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      // If element doesn't exist on current page, navigate to home with hash
+      navigate(`/#${targetId}`);
     }
   };
 
@@ -39,7 +56,12 @@ const Header = () => {
     <header className="bg-card py-4 px-6 shadow-sm fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-primary">WorkSure</h1>
+          <Link
+            to="/"
+            className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors"
+          >
+            WorkSure
+          </Link>
         </div>
 
         <nav className="hidden md:flex items-center space-x-8">

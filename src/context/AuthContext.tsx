@@ -37,12 +37,14 @@ interface AuthContextValue {
   openRegister: () => void;
   closeLogin: () => void;
   closeRegister: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
@@ -52,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (existing && existing.token) {
       setUser(existing as AuthUser);
     }
+    setIsLoading(false);
   }, []);
 
   const handleLogin = async (email: string, password: string) => {
@@ -98,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     closeLogin: () => setLoginOpen(false),
     closeRegister: () => setRegisterOpen(false),
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

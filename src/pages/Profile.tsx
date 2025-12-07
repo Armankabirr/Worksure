@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Save, X, LogOut, User, Camera } from "lucide-react";
+import Header from "@/components/Header";
 
 /**
  * Profile page component with edit functionality.
@@ -162,17 +163,21 @@ const Profile = () => {
   // Show loading/empty state
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200 px-4">
-        <Card className="w-full max-w-md p-8 text-center">
-          <p className="text-muted-foreground">Loading profile...</p>
-        </Card>
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-100 to-slate-200">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4 pt-24">
+          <Card className="w-full max-w-md p-8 text-center">
+            <p className="text-muted-foreground">Loading profile...</p>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 px-4 py-10">
-      <div className="container mx-auto max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col">
+      <Header />
+      <div className="container mx-auto max-w-2xl px-4 py-10 pt-24 flex-1">
         <Card className="p-6 md:p-8 shadow-lg border border-border bg-card">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
