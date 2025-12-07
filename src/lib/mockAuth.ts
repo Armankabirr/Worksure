@@ -9,6 +9,7 @@ export interface MockUser {
   password: string; // plain text for mock only (never do this in real backends)
   bio?: string; // Optional bio field
   avatar?: string; // Optional avatar URL (base64 or URL)
+  address?: string; // Optional address field
 }
 
 export interface AuthResult {
@@ -21,6 +22,7 @@ export interface ProfileUpdateData {
   phone?: string;
   bio?: string;
   avatar?: string;
+  address?: string;
 }
 
 const STORAGE_KEY = "mock_users";
@@ -73,6 +75,7 @@ export async function registerUser(data: Omit<MockUser, "id">): Promise<AuthResu
       role: newUser.role,
       bio: newUser.bio,
       avatar: newUser.avatar,
+      address: newUser.address,
     },
   };
 
@@ -104,6 +107,7 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
       role: user.role,
       bio: user.bio,
       avatar: user.avatar,
+      address: user.address,
     },
   };
 
@@ -138,7 +142,7 @@ export function getCurrentUser():
  */
 export async function updateUserProfile(
   userId: string,
-  updates: Partial<Pick<MockUser, "name" | "phone" | "bio" | "avatar">>,
+  updates: Partial<Pick<MockUser, "name" | "phone" | "bio" | "avatar" | "address">>,
 ): Promise<Omit<MockUser, "password">> {
   await delay(400); // Simulate API delay
 
@@ -166,6 +170,7 @@ export async function updateUserProfile(
     role: updatedUser.role,
     bio: updatedUser.bio,
     avatar: updatedUser.avatar,
+    address: updatedUser.address,
   };
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUserData));
 

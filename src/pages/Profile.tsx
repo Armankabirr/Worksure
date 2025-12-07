@@ -140,6 +140,7 @@ const Profile = () => {
         phone: formData.phone.trim(),
         bio: formData.bio.trim() || undefined,
         avatar: formData.avatar || undefined,
+        address: formData.address.trim() || undefined,
       });
 
       setSuccess("Profile updated successfully!");
