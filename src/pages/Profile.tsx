@@ -7,7 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { Camera, Phone, Mail, MapPin, LogOut } from "lucide-react";
+import { 
+  Camera, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  LogOut, 
+  CheckCircle,
+  AlertCircle,
+  Save,
+  X,
+  Settings,
+  ShoppingBag,
+  Gift,
+  Heart
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -186,137 +200,165 @@ const Profile = () => {
       <Header />
       
       {/* Main Content */}
-      <main className="flex-1 pt-24 pb-12">
-        <div className="container mx-auto px-4 md:px-6">
+      <main className="flex-1 pt-20 pb-8 bg-gradient-to-b from-slate-50 to-white">
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
           {/* Breadcrumb */}
-          <div className="flex items-center space-x-2 mb-8 text-sm text-muted-foreground">
-            <a href="/" className="hover:text-primary">Home</a>
-            <span>/</span>
-            <span>My Account</span>
+          <div className="flex items-center space-x-2 mb-6 text-xs text-muted-foreground">
+            <a href="/" className="hover:text-primary transition-colors">Home</a>
+            <span className="text-border">/</span>
+            <span className="text-foreground font-medium">My Account</span>
           </div>
 
-          {/* Welcome Message */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Manage My Account</h1>
-            <p className="text-muted-foreground">
-              Welcome! <span className="text-primary font-semibold">{user.name.split(" ")[0]}</span>
-            </p>
+          {/* Page Header with Welcome */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Account Management</h1>
+              <p className="text-sm text-muted-foreground">Manage your profile and account settings</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Welcome back,</p>
+              <p className="text-lg font-bold text-primary">{user.name.split(" ")[0]}</p>
+            </div>
           </div>
 
-          {/* Success/Error Messages */}
+          {/* Success/Error Messages - Enhanced */}
           {success && (
-            <div className="mb-6 p-4 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm">
-              {success}
+            <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 flex items-start gap-3 animate-in slide-in-from-top text-sm">
+              <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-green-800 font-medium">{success}</p>
             </div>
           )}
           {error && (
-            <div className="mb-6 p-4 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-sm">
-              {error}
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3 animate-in slide-in-from-top text-sm">
+              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-red-800 font-medium">{error}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Sidebar */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Sidebar Navigation - Enhanced */}
             <aside className="md:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-border">
-                <h2 className="text-lg font-semibold text-foreground mb-6">Manage My Account</h2>
-                
-                <nav className="space-y-2">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 border-b border-slate-200">
+                  <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-primary" />
+                    Manage
+                  </h2>
+                </div>
+
+                <nav className="p-3 space-y-1">
                   <button
                     onClick={() => setActiveMenu("my-profile")}
-                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
                       activeMenu === "my-profile"
-                        ? "bg-orange-50 text-primary"
-                        : "text-muted-foreground hover:bg-accent"
+                        ? "bg-primary text-white shadow-md"
+                        : "text-foreground hover:bg-slate-100"
                     }`}
                   >
-                    <span className="text-lg">👤</span>
+                    <Settings className="h-4 w-4" />
                     My Profile
                   </button>
                 </nav>
 
-                <h2 className="text-lg font-semibold text-foreground mt-8 mb-4">My Orders</h2>
-                
-                <nav className="space-y-2">
-                  <button
-                    onClick={() => setActiveMenu("my-services")}
-                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
-                      activeMenu === "my-services"
-                        ? "bg-orange-50 text-primary"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
+                <div className="px-4 py-3 border-t border-slate-200">
+                  <h3 className="text-xs font-bold uppercase tracking-wide mb-2 text-muted-foreground">My Orders</h3>
+                  <nav className="space-y-1">
+                    <button
+                      onClick={() => setActiveMenu("my-services")}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
+                        activeMenu === "my-services"
+                          ? "bg-primary text-white shadow-md"
+                          : "text-foreground hover:bg-slate-100"
+                      }`}
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      My Services
+                    </button>
+                    <button
+                      onClick={() => setActiveMenu("my-offers")}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
+                        activeMenu === "my-offers"
+                          ? "bg-primary text-white shadow-md"
+                          : "text-foreground hover:bg-slate-100"
+                      }`}
+                    >
+                      <Gift className="h-4 w-4" />
+                      My Offers
+                    </button>
+                    <button
+                      onClick={() => setActiveMenu("my-wishlist")}
+                      className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
+                        activeMenu === "my-wishlist"
+                          ? "bg-primary text-white shadow-md"
+                          : "text-foreground hover:bg-slate-100"
+                      }`}
+                    >
+                      <Heart className="h-4 w-4" />
+                      My WishList
+                    </button>
+                  </nav>
+                </div>
+
+                <div className="p-3 border-t border-slate-200">
+                  <Button
+                    onClick={handleLogout}
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 text-xs"
                   >
-                    <span className="text-lg">📋</span>
-                    My Services
-                  </button>
-                  <button
-                    onClick={() => setActiveMenu("my-offers")}
-                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
-                      activeMenu === "my-offers"
-                        ? "bg-orange-50 text-primary"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
-                  >
-                    <span className="text-lg">🎁</span>
-                    My Offers
-                  </button>
-                  <button
-                    onClick={() => setActiveMenu("my-wishlist")}
-                    className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-medium transition-colors ${
-                      activeMenu === "my-wishlist"
-                        ? "bg-orange-50 text-primary"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
-                  >
-                    <span className="text-lg">❤️</span>
-                    My WishList
-                  </button>
-                </nav>
+                    <LogOut className="h-3 w-3 mr-1.5" />
+                    Logout
+                  </Button>
+                </div>
               </div>
             </aside>
 
             {/* Main Content Area */}
             <div className="md:col-span-3">
               {activeMenu === "my-profile" && (
-                <Card className="bg-white border border-border p-8 shadow-sm">
-                  {/* Profile Header */}
-                  <div className="flex justify-between items-start mb-8">
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground mb-1">My Profile</h2>
-                      <p className="text-muted-foreground text-sm">View and manage your personal information</p>
+                <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden">
+                  {/* Profile Header with Background */}
+                  <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-5 border-b border-slate-200">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h2 className="text-xl font-bold text-foreground mb-0.5">My Profile</h2>
+                        <p className="text-xs text-muted-foreground">Update and manage your personal information</p>
+                      </div>
+                      {!isEditing && (
+                        <Button
+                          onClick={handleEditToggle}
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all text-sm"
+                        >
+                          <Settings className="h-3 w-3 mr-1.5" />
+                          Edit
+                        </Button>
+                      )}
                     </div>
-                    {!isEditing && (
-                      <Button
-                        onClick={handleEditToggle}
-                        className="bg-primary hover:bg-primary/90 text-white gap-2"
-                      >
-                        Update Info
-                      </Button>
-                    )}
                   </div>
 
                   {/* Profile Content */}
-                  <div className="space-y-8">
-                    {/* Avatar and Basic Info */}
-                    <div className="flex flex-col md:flex-row gap-8">
-                      {/* Avatar Section */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative">
-                          <Avatar className="h-32 w-32 border-4 border-primary/10">
+                  <div className="p-6 space-y-6">
+                    {/* Avatar and Basic Info Section */}
+                    <div className="flex flex-col md:flex-row gap-5 pb-6 border-b border-slate-200">
+                      {/* Avatar */}
+                      <div className="flex flex-col items-center md:items-start">
+                        <div className="relative group">
+                          <Avatar className="h-28 w-28 border-4 border-primary/20 shadow-lg">
                             {formData.avatar ? (
                               <AvatarImage src={formData.avatar} alt={user.name} />
                             ) : null}
-                            <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-semibold">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-3xl font-bold">
                               {getInitials(user.name)}
                             </AvatarFallback>
                           </Avatar>
                           {isEditing && (
                             <button
                               onClick={() => fileInputRef.current?.click()}
-                              className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+                              className="absolute bottom-1 right-1 p-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-all duration-200 opacity-0 group-hover:opacity-100"
                               aria-label="Change avatar"
                             >
-                              <Camera className="h-5 w-5" />
+                              <Camera className="h-4 w-4" />
                             </button>
                           )}
                         </div>
@@ -328,81 +370,95 @@ const Profile = () => {
                           className="hidden"
                         />
                         {isEditing && (
-                          <p className="text-xs text-muted-foreground text-center mt-2">
-                            Click camera icon to change
+                          <p className="text-xs text-muted-foreground text-center mt-2 max-w-xs">
+                            Hover and click camera to change
                           </p>
                         )}
                       </div>
 
                       {/* Name and Role */}
                       <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-foreground mb-1">{user.name}</h3>
-                        <p className="text-muted-foreground capitalize mb-6">{user.role === "user" ? "Customer" : "Service Provider"}</p>
+                        <h3 className="text-xl font-bold text-foreground mb-1">{user.name}</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                          <p className="text-xs text-muted-foreground capitalize font-medium">
+                            {user.role === "user" ? "Customer" : "Service Provider"}
+                          </p>
+                        </div>
 
-                        {/* Contact Information Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        {/* Contact Information - Grid Layout */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Full Name */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-primary text-lg">👤</span>
-                              <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <Settings className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Name</p>
                             </div>
                             {isEditing ? (
                               <Input
                                 value={formData.name}
                                 onChange={(e) => handleInputChange("name", e.target.value)}
-                                placeholder="Enter your full name"
-                                className="border-border"
+                                placeholder="Full name"
+                                className="border-slate-300 bg-white text-sm h-8"
                               />
                             ) : (
-                              <p className="text-foreground font-semibold">{user.name}</p>
+                              <p className="text-foreground font-semibold text-sm">{user.name}</p>
                             )}
                           </div>
 
                           {/* Phone */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Phone className="h-5 w-5 text-primary" />
-                              <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <Phone className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Phone</p>
                             </div>
                             {isEditing ? (
                               <Input
                                 type="tel"
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange("phone", e.target.value)}
-                                placeholder="+1 234 567 8900"
-                                className="border-border"
+                                placeholder="Phone number"
+                                className="border-slate-300 bg-white text-sm h-8"
                               />
                             ) : (
-                              <p className="text-foreground font-semibold">{user.phone}</p>
+                              <p className="text-foreground font-semibold text-sm">{user.phone}</p>
                             )}
                           </div>
 
                           {/* Email */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Mail className="h-5 w-5 text-primary" />
-                              <p className="text-sm font-medium text-muted-foreground">Email Address</p>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <Mail className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Email</p>
                             </div>
-                            <p className="text-foreground font-semibold">{user.email}</p>
+                            <p className="text-foreground font-semibold text-sm">{user.email}</p>
+                            {!isEditing && <p className="text-xs text-muted-foreground mt-0.5">Read-only</p>}
                           </div>
 
                           {/* Address */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <MapPin className="h-5 w-5 text-primary" />
-                              <p className="text-sm font-medium text-muted-foreground">Address</p>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <MapPin className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Address</p>
                             </div>
                             {isEditing ? (
                               <Input
                                 value={formData.address}
                                 onChange={(e) => handleInputChange("address", e.target.value)}
-                                placeholder="Enter your address"
-                                className="border-border"
+                                placeholder="Address"
+                                className="border-slate-300 bg-white text-sm h-8"
                               />
                             ) : (
-                              <p className="text-foreground font-semibold">
-                                {formData.address || "Not provided"}
+                              <p className="text-foreground font-semibold text-sm">
+                                {formData.address || <span className="text-muted-foreground">Not provided</span>}
                               </p>
                             )}
                           </div>
@@ -410,74 +466,93 @@ const Profile = () => {
                       </div>
                     </div>
 
-                    {/* Bio Section */}
-                    {isEditing && (
-                      <div className="pt-6 border-t border-border">
-                        <Label htmlFor="bio" className="text-base font-semibold mb-3 block">About You</Label>
+                    {/* Bio Section - Full Width */}
+                    {formData.bio && (
+                      <div className="pb-6 border-b border-slate-200">
+                        <Label className="text-sm font-bold mb-2 block text-foreground">About You</Label>
+                        {isEditing ? (
+                          <Textarea
+                            id="bio"
+                            value={formData.bio}
+                            onChange={(e) => handleInputChange("bio", e.target.value)}
+                            placeholder="Tell us about yourself..."
+                            rows={3}
+                            className="resize-none border-slate-300 bg-white text-sm"
+                          />
+                        ) : (
+                          <p className="text-foreground text-sm whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            {formData.bio}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {isEditing && !formData.bio && (
+                      <div className="pb-6 border-b border-slate-200">
+                        <Label htmlFor="bio" className="text-sm font-bold mb-2 block text-foreground">About You</Label>
                         <Textarea
                           id="bio"
                           value={formData.bio}
                           onChange={(e) => handleInputChange("bio", e.target.value)}
                           placeholder="Tell us about yourself..."
-                          rows={4}
-                          className="resize-none border-border"
+                          rows={3}
+                          className="resize-none border-slate-300 bg-white text-sm"
                         />
                       </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="pt-6 border-t border-border flex gap-4">
+                    <div className="flex gap-3 justify-end">
                       {isEditing ? (
                         <>
-                          <Button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="bg-primary hover:bg-primary/90 text-white flex-1"
-                          >
-                            {isSaving ? "Saving..." : "Save Changes"}
-                          </Button>
                           <Button
                             onClick={handleEditToggle}
                             disabled={isSaving}
                             variant="outline"
-                            className="flex-1"
+                            size="sm"
+                            className="border-slate-300 gap-1.5 text-sm"
                           >
+                            <X className="h-3 w-3" />
                             Cancel
                           </Button>
+                          <Button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all text-sm"
+                          >
+                            <Save className="h-3 w-3" />
+                            {isSaving ? "Saving..." : "Save"}
+                          </Button>
                         </>
-                      ) : (
-                        <Button
-                          onClick={handleLogout}
-                          variant="destructive"
-                          className="w-full gap-2"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </Button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </Card>
               )}
 
+              {/* Placeholder Cards for Other Sections */}
               {activeMenu === "my-services" && (
-                <Card className="bg-white border border-border p-8 shadow-sm">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">My Services</h2>
-                  <p className="text-muted-foreground">Coming soon...</p>
+                <Card className="bg-white border-slate-200 shadow-sm rounded-xl p-8 text-center">
+                  <ShoppingBag className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                  <h2 className="text-lg font-bold text-foreground mb-1">My Services</h2>
+                  <p className="text-sm text-muted-foreground">Coming soon...</p>
                 </Card>
               )}
 
               {activeMenu === "my-offers" && (
-                <Card className="bg-white border border-border p-8 shadow-sm">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">My Offers</h2>
-                  <p className="text-muted-foreground">Coming soon...</p>
+                <Card className="bg-white border-slate-200 shadow-sm rounded-xl p-8 text-center">
+                  <Gift className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                  <h2 className="text-lg font-bold text-foreground mb-1">My Offers</h2>
+                  <p className="text-sm text-muted-foreground">Coming soon...</p>
                 </Card>
               )}
 
               {activeMenu === "my-wishlist" && (
-                <Card className="bg-white border border-border p-8 shadow-sm">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">My WishList</h2>
-                  <p className="text-muted-foreground">Coming soon...</p>
+                <Card className="bg-white border-slate-200 shadow-sm rounded-xl p-8 text-center">
+                  <Heart className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                  <h2 className="text-lg font-bold text-foreground mb-1">My WishList</h2>
+                  <p className="text-sm text-muted-foreground">Coming soon...</p>
                 </Card>
               )}
             </div>
