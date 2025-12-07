@@ -9,7 +9,9 @@ import {
   getCurrentUser,
   loginUser,
   logoutUser,
+  updateUserProfile,
   AuthResult,
+  ProfileUpdateData,
 } from "@/lib/mockAuth";
 
 export interface AuthUser {
@@ -19,6 +21,8 @@ export interface AuthUser {
   phone: string;
   role: string;
   token: string | null;
+  bio?: string;
+  avatar?: string;
 }
 
 interface AuthContextValue {
@@ -26,6 +30,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (updates: ProfileUpdateData) => Promise<void>;
   loginOpen: boolean;
   registerOpen: boolean;
   openLogin: () => void;
@@ -63,11 +68,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const handleUpdateProfile = async (updates: ProfileUpdateData) => {
+    if (!user) {
+      throw new Error("User must be logged in to update profile.");
+    }
+    const updatedUserData = await updateUserProfile(user.id, updates);
+    const updatedUser: AuthUser = {
+      ...updatedUserData,
+      token: user.token,
+    };
+    setUser(updatedUser);
+  };
+
   const value: AuthContextValue = {
     isAuthenticated: !!user,
     user,
     login: handleLogin,
     logout: handleLogout,
+    updateProfile: handleUpdateProfile,
     loginOpen,
     registerOpen,
     openLogin: () => {

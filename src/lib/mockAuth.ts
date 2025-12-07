@@ -7,11 +7,20 @@ export interface MockUser {
   phone: string;
   role: UserRole;
   password: string; // plain text for mock only (never do this in real backends)
+  bio?: string; // Optional bio field
+  avatar?: string; // Optional avatar URL (base64 or URL)
 }
 
 export interface AuthResult {
   token: string;
   user: Omit<MockUser, "password">;
+}
+
+export interface ProfileUpdateData {
+  name?: string;
+  phone?: string;
+  bio?: string;
+  avatar?: string;
 }
 
 const STORAGE_KEY = "mock_users";
@@ -62,6 +71,8 @@ export async function registerUser(data: Omit<MockUser, "id">): Promise<AuthResu
       email: newUser.email,
       phone: newUser.phone,
       role: newUser.role,
+      bio: newUser.bio,
+      avatar: newUser.avatar,
     },
   };
 
@@ -91,6 +102,8 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
       email: user.email,
       phone: user.phone,
       role: user.role,
+      bio: user.bio,
+      avatar: user.avatar,
     },
   };
 
@@ -117,6 +130,46 @@ export function getCurrentUser():
   } catch {
     return null;
   }
+}
+
+/**
+ * Updates the current user's profile information.
+ * Updates both the users array and the current user in localStorage.
+ */
+export async function updateUserProfile(
+  userId: string,
+  updates: Partial<Pick<MockUser, "name" | "phone" | "bio" | "avatar">>,
+): Promise<Omit<MockUser, "password">> {
+  await delay(400); // Simulate API delay
+
+  const users = loadUsers();
+  const userIndex = users.findIndex((u) => u.id === userId);
+
+  if (userIndex === -1) {
+    throw new Error("User not found.");
+  }
+
+  // Update user in the users array
+  const updatedUser: MockUser = {
+    ...users[userIndex],
+    ...updates,
+  };
+  users[userIndex] = updatedUser;
+  saveUsers(users);
+
+  // Update current user in localStorage
+  const updatedUserData: Omit<MockUser, "password"> = {
+    id: updatedUser.id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    phone: updatedUser.phone,
+    role: updatedUser.role,
+    bio: updatedUser.bio,
+    avatar: updatedUser.avatar,
+  };
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUserData));
+
+  return updatedUserData;
 }
 
 
