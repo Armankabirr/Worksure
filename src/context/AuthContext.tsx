@@ -9,7 +9,9 @@ import {
   getCurrentUser,
   loginUser,
   logoutUser,
+  updateUserProfile,
   AuthResult,
+  ProfileUpdateData,
 } from "@/lib/mockAuth";
 
 export interface AuthUser {
@@ -19,6 +21,9 @@ export interface AuthUser {
   phone: string;
   role: string;
   token: string | null;
+  bio?: string;
+  avatar?: string;
+  address?: string;
 }
 
 interface AuthContextValue {
@@ -26,18 +31,21 @@ interface AuthContextValue {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (updates: ProfileUpdateData) => Promise<void>;
   loginOpen: boolean;
   registerOpen: boolean;
   openLogin: () => void;
   openRegister: () => void;
   closeLogin: () => void;
   closeRegister: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
@@ -47,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (existing && existing.token) {
       setUser(existing as AuthUser);
     }
+    setIsLoading(false);
   }, []);
 
   const handleLogin = async (email: string, password: string) => {
@@ -63,11 +72,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const handleUpdateProfile = async (updates: ProfileUpdateData) => {
+    if (!user) {
+      throw new Error("User must be logged in to update profile.");
+    }
+    const updatedUserData = await updateUserProfile(user.id, updates);
+    const updatedUser: AuthUser = {
+      ...updatedUserData,
+      token: user.token,
+    };
+    setUser(updatedUser);
+  };
+
   const value: AuthContextValue = {
     isAuthenticated: !!user,
     user,
     login: handleLogin,
     logout: handleLogout,
+    updateProfile: handleUpdateProfile,
     loginOpen,
     registerOpen,
     openLogin: () => {
@@ -80,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     },
     closeLogin: () => setLoginOpen(false),
     closeRegister: () => setRegisterOpen(false),
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
