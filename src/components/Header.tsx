@@ -104,7 +104,7 @@ const Header = () => {
       </div>
 
       {/* Mobile menu panel */}
-      <div className={`md:hidden bg-card border-t border-border overflow-hidden transition-max-h duration-200 ${mobileOpen ? 'max-h-[400px]' : 'max-h-0'}`}>
+      <div className={`md:hidden bg-card border-t border-border overflow-hidden transition-max-h duration-200 ${mobileOpen ? 'max-h-[80vh]' : 'max-h-0'}`}>
         <div className="px-4 pt-4 pb-6 space-y-3">
           <a href="#home" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'home'); closeMobile(); }} className="block text-foreground hover:text-primary">Home</a>
 
@@ -114,6 +114,8 @@ const Header = () => {
               <Link to="/electrician" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Electrician</Link>
               <a href="#service-cleaner" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-cleaner'); closeMobile(); }} className="block text-foreground hover:text-primary">Cleaner</a>
               <a href="#service-catering" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-catering'); closeMobile(); }} className="block text-foreground hover:text-primary">Catering</a>
+              <a href="#service-babysitter" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-babysitter'); closeMobile(); }} className="block text-foreground hover:text-primary">Babysitter</a>
+              <a href="#service-pet-care" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-pet-care'); closeMobile(); }} className="block text-foreground hover:text-primary">Pet Care</a>
             </div>
           </div>
 
