@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
 import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Header = () => {
   const {
     isAuthenticated,
+    user,
     loginOpen,
     registerOpen,
     openLogin,
@@ -142,16 +144,32 @@ const Header = () => {
 
           {isAuthenticated ? (
             <>
-              {/* Profile icon - all screen sizes */}
+              {/* Profile avatar/button - shows uploaded avatar when available */}
               <Button
                 variant="default"
                 size="icon"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="p-0 rounded-full overflow-hidden"
                 type="button"
                 aria-label="Profile"
                 onClick={() => navigate("/profile")}
               >
-                <User className="h-5 w-5" />
+                {user?.avatar ? (
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage className="object-cover" src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                      {user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="h-10 w-10 flex items-center justify-center">
+                    <User className="h-5 w-5" />
+                  </div>
+                )}
               </Button>
             </>
           ) : (
