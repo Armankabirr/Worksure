@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -1003,33 +1010,65 @@ const WorkerDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="speciality">Work Speciality *</Label>
-                  <Input
-                    id="speciality"
-                    value={profileForm.speciality}
-                    onChange={(e) => setProfileForm({ ...profileForm, speciality: e.target.value })}
-                    placeholder="e.g., Electrician, Plumber"
-                  />
+                  <Select 
+                    value={profileForm.speciality} 
+                    onValueChange={(value) => setProfileForm({ ...profileForm, speciality: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select speciality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Electrician">Electrician</SelectItem>
+                      <SelectItem value="Plumber">Plumber</SelectItem>
+                      <SelectItem value="Carpenter">Carpenter</SelectItem>
+                      <SelectItem value="AC Technician">AC Technician</SelectItem>
+                      <SelectItem value="Painter">Painter</SelectItem>
+                      <SelectItem value="Mechanic">Mechanic</SelectItem>
+                      <SelectItem value="Cleaner">Cleaner</SelectItem>
+                      <SelectItem value="Gardener">Gardener</SelectItem>
+                      <SelectItem value="Security Guard">Security Guard</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="experience">Work Experience</Label>
-                  <Input
-                    id="experience"
-                    value={profileForm.experience}
-                    onChange={(e) => setProfileForm({ ...profileForm, experience: e.target.value })}
-                    placeholder="e.g., 5 years"
-                  />
+                  <Select 
+                    value={profileForm.experience} 
+                    onValueChange={(value) => setProfileForm({ ...profileForm, experience: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
+                      <SelectItem value="1-2 years">1-2 years</SelectItem>
+                      <SelectItem value="3-5 years">3-5 years</SelectItem>
+                      <SelectItem value="6-10 years">6-10 years</SelectItem>
+                      <SelectItem value="More than 10 years">More than 10 years</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="certification">Certification</Label>
-                <Input
-                  id="certification"
-                  value={profileForm.certification}
-                  onChange={(e) => setProfileForm({ ...profileForm, certification: e.target.value })}
-                  placeholder="Enter your certifications"
-                />
+                <Select 
+                  value={profileForm.certification} 
+                  onValueChange={(value) => setProfileForm({ ...profileForm, certification: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select certification status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Certified">Certified</SelectItem>
+                    <SelectItem value="Trade License">Trade License</SelectItem>
+                    <SelectItem value="Government Approved">Government Approved</SelectItem>
+                    <SelectItem value="Self-trained">Self-trained</SelectItem>
+                    <SelectItem value="None">None</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -1057,12 +1096,23 @@ const WorkerDashboard = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="availability">Availability</Label>
-                  <Input
-                    id="availability"
-                    value={profileForm.availability}
-                    onChange={(e) => setProfileForm({ ...profileForm, availability: e.target.value })}
-                    placeholder="e.g., Mon-Fri, 9AM-6PM"
-                  />
+                  <Select 
+                    value={profileForm.availability} 
+                    onValueChange={(value) => setProfileForm({ ...profileForm, availability: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full-time (Mon-Sat)">Full-time (Mon-Sat)</SelectItem>
+                      <SelectItem value="Part-time (Weekdays)">Part-time (Weekdays)</SelectItem>
+                      <SelectItem value="Part-time (Weekends)">Part-time (Weekends)</SelectItem>
+                      <SelectItem value="Flexible Hours">Flexible Hours</SelectItem>
+                      <SelectItem value="Evening Only">Evening Only</SelectItem>
+                      <SelectItem value="Morning Only">Morning Only</SelectItem>
+                      <SelectItem value="On-Demand">On-Demand</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
