@@ -290,9 +290,42 @@ const WorkerDashboard = () => {
       case "service-request":
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Service Request</h2>
-            <Card className="p-6">
-              <p className="text-gray-500">Service request content coming soon...</p>
+            <h2 className="text-2xl font-bold text-orange-500 mb-6">Service Request</h2>
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Task
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Location
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
+                          <p className="text-gray-500 text-lg font-medium">No service request available now</p>
+                          <p className="text-gray-400 text-sm mt-2">New service requests will appear here</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </Card>
           </div>
         );
