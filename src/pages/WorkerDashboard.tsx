@@ -66,6 +66,21 @@ const WorkerDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
 
+  // Saved profile data that will be displayed
+  const [savedProfile, setSavedProfile] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    nidNumber: "",
+    address: "",
+    dateOfBirth: "",
+    speciality: "",
+    experience: "",
+    certification: "",
+    serviceAreas: "",
+    hourlyRate: "",
+    availability: "",
+  });
+
   // Form states for editing
   const [profileForm, setProfileForm] = useState({
     name: user?.name || "",
@@ -115,8 +130,12 @@ const WorkerDashboard = () => {
 
     // TODO: API call to update profile
     console.log("Updating profile:", profileForm);
+    
+    // Update saved profile to display the new information
+    setSavedProfile(profileForm);
+    
     setEditProfileOpen(false);
-    // Show success message
+    alert("Profile updated successfully!");
   };
 
   const renderContent = () => {
@@ -487,11 +506,11 @@ const WorkerDashboard = () => {
 
                 {/* Profile Summary */}
                 <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{user?.name || "Worker Name"}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{savedProfile.name || user?.name || "Worker Name"}</h3>
                   <p className="text-gray-600 mb-2">{user?.email || "email@example.com"}</p>
                   <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
                     <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                      Professional Worker
+                      {savedProfile.speciality || "Professional Worker"}
                     </span>
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center">
                       <Star className="h-3 w-3 mr-1 fill-green-700" />
@@ -542,7 +561,7 @@ const WorkerDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Full Name</label>
-                    <p className="text-base text-gray-900 mt-1">{user?.name || "Not provided"}</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.name || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Email Address</label>
@@ -550,19 +569,19 @@ const WorkerDashboard = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Phone Number</label>
-                    <p className="text-base text-gray-900 mt-1">{user?.phone || "Not provided"}</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.phone || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">NID Number</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.nidNumber || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Address</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.address || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Date of Birth</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.dateOfBirth || "Not provided"}</p>
                   </div>
                 </div>
               </Card>
@@ -578,27 +597,27 @@ const WorkerDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Work Speciality</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.speciality || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Work Experience</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.experience || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Certification</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.certification || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Service Areas</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.serviceAreas || "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Hourly Rate</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.hourlyRate ? `৳${savedProfile.hourlyRate}` : "Not provided"}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Availability</label>
-                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                    <p className="text-base text-gray-900 mt-1">{savedProfile.availability || "Not provided"}</p>
                   </div>
                 </div>
               </Card>
