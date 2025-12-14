@@ -10,6 +10,7 @@ import Electrician from "./pages/Electrician";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
+import WorkerDashboard from "./pages/WorkerDashboard";
 import Preloader from "./components/Preloader";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -45,6 +46,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/worker/dashboard"
+              element={
+                <ProtectedRoute>
+                  <WorkerDashboard />
                 </ProtectedRoute>
               }
             />

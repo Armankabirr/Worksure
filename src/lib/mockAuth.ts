@@ -177,4 +177,29 @@ export async function updateUserProfile(
   return updatedUserData;
 }
 
+/**
+ * Updates the user's password after validating the current password.
+ */
+export async function updateUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await delay(400); // Simulate API delay
+
+  const users = loadUsers();
+  const userIndex = users.findIndex((u) => u.id === userId);
+
+  if (userIndex === -1) {
+    throw new Error("User not found.");
+  }
+
+  if (users[userIndex].password !== currentPassword) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  users[userIndex].password = newPassword;
+  saveUsers(users);
+}
+
 

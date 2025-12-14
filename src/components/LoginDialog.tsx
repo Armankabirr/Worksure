@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ interface LoginDialogProps {
 }
 
 const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProps) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -81,6 +83,19 @@ const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProp
     try {
       await login(formData.email.trim(), formData.password);
       onOpenChange(false);
+      
+      // Get user from localStorage to check role
+      const currentUserStr = localStorage.getItem("mock_current_user");
+      if (currentUserStr) {
+        const currentUser = JSON.parse(currentUserStr);
+        
+        // Redirect based on role
+        if (currentUser.role === "worker") {
+          navigate("/worker/dashboard");
+        } else {
+          navigate("/profile");
+        }
+      }
     } catch (error) {
       let message = "Login failed. Please try again.";
       if (error instanceof Error) {
