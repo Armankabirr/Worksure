@@ -10,6 +10,7 @@ import {
   loginUser,
   logoutUser,
   updateUserProfile,
+  updateUserPassword,
   AuthResult,
   ProfileUpdateData,
 } from "@/lib/mockAuth";
@@ -32,6 +33,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: ProfileUpdateData) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   loginOpen: boolean;
   registerOpen: boolean;
   openLogin: () => void;
@@ -84,12 +86,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(updatedUser);
   };
 
+  const handleChangePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    if (!user) {
+      throw new Error("User must be logged in to change password.");
+    }
+    await updateUserPassword(user.id, currentPassword, newPassword);
+  };
+
   const value: AuthContextValue = {
     isAuthenticated: !!user,
     user,
     login: handleLogin,
     logout: handleLogout,
     updateProfile: handleUpdateProfile,
+    changePassword: handleChangePassword,
     loginOpen,
     registerOpen,
     openLogin: () => {
