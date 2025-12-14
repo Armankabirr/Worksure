@@ -12,6 +12,10 @@ import {
   Gift,
   Bell,
   Calendar,
+  Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface ServiceInProgress {
@@ -44,6 +48,8 @@ const WorkerDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarMinimized, setSidebarMinimized] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Mock data - replace with real API calls
   const stats = {
@@ -368,96 +374,161 @@ const WorkerDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile Hamburger */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 bg-orange-500 text-white rounded-lg"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setMobileMenuOpen(false)}
+        ></div>
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-orange-500 text-white flex flex-col">
+      <div
+        className={`fixed md:static top-0 left-0 h-screen md:h-auto z-40 bg-orange-500 text-white flex flex-col transition-all duration-300 ${
+          sidebarMinimized ? "w-20" : "w-64"
+        } ${mobileMenuOpen ? "w-64" : "-translate-x-full md:translate-x-0"}`}
+      >
         {/* Logo */}
-        <div className="p-6">
-          <div className="flex items-center justify-center mb-2">
+        <div className="p-6 flex items-center justify-between">
+          <div className={`flex items-center justify-center ${sidebarMinimized ? "hidden" : ""}`}>
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
               <div className="w-8 h-8 bg-orange-500 rounded-full"></div>
             </div>
+            <h1 className="ml-3 text-xl font-bold">WorkSure</h1>
           </div>
-          <h1 className="text-center text-xl font-bold">WorkSure</h1>
+          {!sidebarMinimized && (
+            <button
+              onClick={() => setSidebarMinimized(true)}
+              className="hidden md:block p-1 hover:bg-orange-600 rounded transition-colors"
+              title="Minimize sidebar"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          )}
         </div>
+
+        {sidebarMinimized && (
+          <button
+            onClick={() => setSidebarMinimized(false)}
+            className="hidden md:flex justify-center p-2 hover:bg-orange-600 rounded transition-colors mx-2 mb-2"
+            title="Expand sidebar"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 px-4 space-y-2">
           <button
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => {
+              setActiveTab("dashboard");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === "dashboard"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Dashboard" : ""}
           >
-            <Home className="h-5 w-5 mr-3" />
-            Dashboard
+            <Home className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Dashboard</span>}
           </button>
 
           <button
-            onClick={() => setActiveTab("service-request")}
+            onClick={() => {
+              setActiveTab("service-request");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === "service-request"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Service Request" : ""}
           >
-            <ClipboardList className="h-5 w-5 mr-3" />
-            Service Request
+            <ClipboardList className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Service Request</span>}
           </button>
 
           <button
-            onClick={() => setActiveTab("service-history")}
+            onClick={() => {
+              setActiveTab("service-history");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === "service-history"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Service History" : ""}
           >
-            <History className="h-5 w-5 mr-3" />
-            Service History
+            <History className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Service History</span>}
           </button>
 
           <button
-            onClick={() => setActiveTab("account")}
+            onClick={() => {
+              setActiveTab("account");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === "account"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Account" : ""}
           >
-            <User className="h-5 w-5 mr-3" />
-            Account
+            <User className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Account</span>}
           </button>
 
           <button
-            onClick={() => setActiveTab("rating")}
+            onClick={() => {
+              setActiveTab("rating");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
               activeTab === "rating"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Rating" : ""}
           >
-            <Star className="h-5 w-5 mr-3" />
-            Rating
+            <Star className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Rating</span>}
           </button>
         </nav>
 
         {/* Features Button */}
         <div className="p-4">
           <button
-            onClick={() => setActiveTab("features")}
+            onClick={() => {
+              setActiveTab("features");
+              setMobileMenuOpen(false);
+            }}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
               activeTab === "features"
                 ? "bg-orange-700 text-white"
                 : "text-white hover:bg-orange-600"
             }`}
+            title={sidebarMinimized ? "Features" : ""}
           >
             <div className="flex items-center">
-              <Gift className="h-5 w-5 mr-3" />
-              Features
+              <Gift className="h-5 w-5 flex-shrink-0" />
+              {!sidebarMinimized && <span className="ml-3">Features</span>}
             </div>
-            <span className="px-2 py-0.5 bg-orange-700 text-xs rounded">NEW</span>
+            {!sidebarMinimized && <span className="px-2 py-0.5 bg-orange-700 text-xs rounded">NEW</span>}
           </button>
         </div>
       </div>
