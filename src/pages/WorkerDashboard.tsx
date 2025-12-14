@@ -76,7 +76,35 @@ const WorkerDashboard = () => {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Mock notifications
+  const [notifications] = useState([
+    {
+      id: 1,
+      title: "New Service Request",
+      message: "You have a new service request from Sarah Johnson for electrical work.",
+      timestamp: new Date(Date.now() - 15 * 60000),
+      read: false,
+    },
+    {
+      id: 2,
+      title: "Service Completed",
+      message: "Your service for Ahmed Hassan has been completed and rated 5 stars.",
+      timestamp: new Date(Date.now() - 2 * 3600000),
+      read: false,
+    },
+    {
+      id: 3,
+      title: "Payment Received",
+      message: "You have received ৳2,500 payment for the plumbing service.",
+      timestamp: new Date(Date.now() - 1 * 86400000),
+      read: true,
+    },
+  ]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Saved profile data that will be displayed
   const [savedProfile, setSavedProfile] = useState({
@@ -1025,9 +1053,15 @@ const WorkerDashboard = () => {
               <p className="text-sm text-gray-600">quick, reliable services</p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 text-gray-600 hover:text-gray-900">
+              <button
+                onClick={() => setNotificationsOpen(true)}
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                title="Notifications"
+              >
                 <Bell className="h-6 w-6" />
-                <span className="absolute top-0 right-0 h-2 w-2 bg-blue-500 rounded-full"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                )}
               </button>
               <Button
                 onClick={handleLogout}
@@ -1349,6 +1383,68 @@ const WorkerDashboard = () => {
               {isPasswordSaving ? "Saving..." : "Save Password"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notifications Dialog */}
+      <Dialog open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold flex items-center">
+              <Bell className="h-5 w-5 mr-2 text-orange-500" />
+              Notifications
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {notifications.length === 0 ? (
+              <div className="text-center py-8">
+                <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No notifications yet</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 rounded-lg border transition-colors ${
+                    notification.read
+                      ? "bg-gray-50 border-gray-200"
+                      : "bg-orange-50 border-orange-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                        notification.read ? "bg-gray-400" : "bg-orange-500"
+                      }`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
+                      <p className="text-gray-600 text-xs mt-1 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-2">
+                        {
+                          (() => {
+                            const now = new Date();
+                            const diff = now.getTime() - notification.timestamp.getTime();
+                            const mins = Math.floor(diff / 60000);
+                            const hours = Math.floor(diff / 3600000);
+                            const days = Math.floor(diff / 86400000);
+
+                            if (mins < 1) return "just now";
+                            if (mins < 60) return `${mins}m ago`;
+                            if (hours < 24) return `${hours}h ago`;
+                            return `${days}d ago`;
+                          })()
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
