@@ -53,59 +53,21 @@ const WorkerDashboard = () => {
 
   // Mock data - replace with real API calls
   const stats = {
-    todayAppointments: 12,
-    confirmed: 9,
-    pending: 3,
-    availableSlots: 4,
+    todayAppointments: 0,
+    confirmed: 0,
+    pending: 0,
+    availableSlots: 0,
   };
 
-  const servicesInProgress: ServiceInProgress[] = [
-    {
-      id: "1",
-      userName: "Kristin Watson",
-      avatar: "/placeholder.svg",
-      task: "Ac Repair",
-      progress: 0,
-      email: "michelle.rivera@example.com",
-      status: "Pending",
-    },
-    {
-      id: "2",
-      userName: "Cody Fisher",
-      avatar: "/placeholder.svg",
-      task: "Ac Filter Cleaning",
-      progress: 100,
-      email: "nathan.roberts@example.com",
-      status: "Done",
-    },
-    {
-      id: "3",
-      userName: "Marvin McKinney",
-      avatar: "/placeholder.svg",
-      task: "Ac installation",
-      progress: 100,
-      email: "debbie.baker@example.com",
-      status: "Done",
-    },
-  ];
+  const servicesInProgress: ServiceInProgress[] = [];
 
-  const serviceRequests: ServiceRequest[] = [
-    {
-      id: "1",
-      userName: "Leslie Alexander",
-      avatar: "/placeholder.svg",
-      task: "Ac Cooling Problem",
-      location: "Bashundhara R/A, Dhaka",
-      email: "tim.jennings@example.com",
-      status: "Pending",
-    },
-  ];
+  const serviceRequests: ServiceRequest[] = [];
 
   const upcomingDays: UpcomingDay[] = [
-    { date: "Fri, Oct 17", appointments: 8, availableSlots: 4 },
-    { date: "Sat, Oct 18", appointments: 6, availableSlots: 6 },
-    { date: "Sun, Oct 19", appointments: 10, availableSlots: 2 },
-    { date: "Mon, Oct 20", appointments: 5, availableSlots: 7 },
+    { date: "Fri, Oct 17", appointments: 0, availableSlots: 0 },
+    { date: "Sat, Oct 18", appointments: 0, availableSlots: 0 },
+    { date: "Sun, Oct 19", appointments: 0, availableSlots: 0 },
+    { date: "Mon, Oct 20", appointments: 0, availableSlots: 0 },
   ];
 
   const handleLogout = () => {
@@ -169,38 +131,46 @@ const WorkerDashboard = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {servicesInProgress.map((service) => (
-                            <tr key={service.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {service.userName}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {service.task}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {service.progress}%
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {service.email}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    service.status === "Done"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {service.status}
-                                </span>
+                          {servicesInProgress.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                No services now
                               </td>
                             </tr>
-                          ))}
+                          ) : (
+                            servicesInProgress.map((service) => (
+                              <tr key={service.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {service.userName}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {service.task}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {service.progress}%
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {service.email}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                      service.status === "Done"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
+                                    }`}
+                                  >
+                                    {service.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -236,37 +206,45 @@ const WorkerDashboard = () => {
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {serviceRequests.map((request) => (
-                            <tr key={request.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {request.userName}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {request.task}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {request.location}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {request.email}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                  {request.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <button className="text-orange-600 hover:text-orange-900">
-                                  View
-                                </button>
+                          {serviceRequests.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                No services now
                               </td>
                             </tr>
-                          ))}
+                          ) : (
+                            serviceRequests.map((request) => (
+                              <tr key={request.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {request.userName}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {request.task}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {request.location}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {request.email}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    {request.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <button className="text-orange-600 hover:text-orange-900">
+                                    View
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
