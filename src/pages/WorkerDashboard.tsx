@@ -3,6 +3,17 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Home,
   ClipboardList,
@@ -18,6 +29,7 @@ import {
   ChevronRight,
   Camera,
   Edit,
+  Save,
 } from "lucide-react";
 
 interface ServiceInProgress {
@@ -52,6 +64,22 @@ const WorkerDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+  // Form states for editing
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    nidNumber: "",
+    address: "",
+    dateOfBirth: "",
+    speciality: "",
+    experience: "",
+    certification: "",
+    serviceAreas: "",
+    hourlyRate: "",
+    availability: "",
+  });
 
   // Mock data - replace with real API calls
   const stats = {
@@ -75,6 +103,20 @@ const WorkerDashboard = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleProfileUpdate = () => {
+    // Validate NID number (should be 10 or 13 or 17 digits)
+    const nidRegex = /^(\d{10}|\d{13}|\d{17})$/;
+    if (profileForm.nidNumber && !nidRegex.test(profileForm.nidNumber)) {
+      alert("Please provide a valid NID number (10, 13, or 17 digits)");
+      return;
+    }
+
+    // TODO: API call to update profile
+    console.log("Updating profile:", profileForm);
+    setEditProfileOpen(false);
+    // Show success message
   };
 
   const renderContent = () => {
@@ -457,7 +499,10 @@ const WorkerDashboard = () => {
                     </span>
                   </div>
                   <div className="flex gap-3 justify-center md:justify-start">
-                    <Button className="bg-orange-500 hover:bg-orange-600 text-white flex items-center">
+                    <Button 
+                      onClick={() => setEditProfileOpen(true)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white flex items-center"
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Profile
                     </Button>
@@ -493,10 +538,6 @@ const WorkerDashboard = () => {
                     <User className="h-5 w-5 mr-2 text-orange-500" />
                     Personal Information
                   </h3>
-                  <Button className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -533,10 +574,6 @@ const WorkerDashboard = () => {
                     <Star className="h-5 w-5 mr-2 text-orange-500" />
                     Professional Information
                   </h3>
-                  <Button className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -606,7 +643,10 @@ const WorkerDashboard = () => {
                   Account Settings
                 </h3>
                 <div className="space-y-3">
-                  <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white justify-start">
+                  <Button 
+                    onClick={() => setEditProfileOpen(true)}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white justify-start"
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Update Profile Information
                   </Button>
@@ -843,6 +883,189 @@ const WorkerDashboard = () => {
         {/* Content Area */}
         <main className="flex-1 p-8">{renderContent()}</main>
       </div>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-orange-500 flex items-center">
+              <Edit className="h-6 w-6 mr-2" />
+              Update Profile Information
+            </DialogTitle>
+            <DialogDescription>
+              Update your personal and professional details. Email cannot be changed.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            {/* Personal Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center border-b pb-2">
+                <User className="h-5 w-5 mr-2 text-orange-500" />
+                Personal Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address (Read-only)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-gray-100 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                    placeholder="+880 1XXX-XXXXXX"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="nid">NID Number * (10, 13, or 17 digits)</Label>
+                  <Input
+                    id="nid"
+                    value={profileForm.nidNumber}
+                    onChange={(e) => setProfileForm({ ...profileForm, nidNumber: e.target.value })}
+                    placeholder="Enter valid NID number"
+                    maxLength={17}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={profileForm.dateOfBirth}
+                  onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                  placeholder="Enter your full address"
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            {/* Professional Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center border-b pb-2">
+                <Star className="h-5 w-5 mr-2 text-orange-500" />
+                Professional Information
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="speciality">Work Speciality *</Label>
+                  <Input
+                    id="speciality"
+                    value={profileForm.speciality}
+                    onChange={(e) => setProfileForm({ ...profileForm, speciality: e.target.value })}
+                    placeholder="e.g., Electrician, Plumber"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Work Experience</Label>
+                  <Input
+                    id="experience"
+                    value={profileForm.experience}
+                    onChange={(e) => setProfileForm({ ...profileForm, experience: e.target.value })}
+                    placeholder="e.g., 5 years"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="certification">Certification</Label>
+                <Input
+                  id="certification"
+                  value={profileForm.certification}
+                  onChange={(e) => setProfileForm({ ...profileForm, certification: e.target.value })}
+                  placeholder="Enter your certifications"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serviceAreas">Service Areas</Label>
+                <Textarea
+                  id="serviceAreas"
+                  value={profileForm.serviceAreas}
+                  onChange={(e) => setProfileForm({ ...profileForm, serviceAreas: e.target.value })}
+                  placeholder="e.g., Dhaka, Chittagong, Sylhet"
+                  rows={2}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="hourlyRate">Hourly Rate (৳)</Label>
+                  <Input
+                    id="hourlyRate"
+                    type="number"
+                    value={profileForm.hourlyRate}
+                    onChange={(e) => setProfileForm({ ...profileForm, hourlyRate: e.target.value })}
+                    placeholder="500"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="availability">Availability</Label>
+                  <Input
+                    id="availability"
+                    value={profileForm.availability}
+                    onChange={(e) => setProfileForm({ ...profileForm, availability: e.target.value })}
+                    placeholder="e.g., Mon-Fri, 9AM-6PM"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditProfileOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleProfileUpdate}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
