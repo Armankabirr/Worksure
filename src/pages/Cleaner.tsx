@@ -94,7 +94,7 @@ const Cleaner = () => {
               <h3 className="text-3xl font-bold text-foreground">Impressive & Clean Businesses with WorkSure Cleaning</h3>
               <p className="text-muted-foreground mt-4">Our commercial janitorial services keep offices, warehouses, and retail spaces spotless — nothing is left out.</p>
               <div className="mt-6">
-                <Button className="bg-primary text-primary-foreground">Call us today: (1800) 1700000000</Button>
+                <Button className="bg-primary text-primary-foreground">Call us today: (+880)1316037133 </Button>
               </div>
             </div>
             <div>

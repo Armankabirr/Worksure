@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Electrician from "./pages/Electrician";
 import Cleaner from "./pages/Cleaner";
+import ACDoctor from "./pages/ACDoctor";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -40,6 +41,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/electrician" element={<Electrician />} />
+            <Route path="/ac-doctor" element={<ACDoctor />} />
             <Route path="/cleaner" element={<Cleaner />} />
             <Route path="/user/register" element={<UserRegister />} />
             <Route path="/user/login" element={<UserLogin />} />
