@@ -16,6 +16,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Camera,
+  Edit,
 } from "lucide-react";
 
 interface ServiceInProgress {
@@ -81,22 +83,46 @@ const WorkerDashboard = () => {
         return (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <Card className="p-6">
-                <p className="text-sm text-muted-foreground mb-2">Today's Appointments</p>
-                <p className="text-3xl font-bold">{stats.todayAppointments}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 hover:scale-105">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.todayAppointments}</p>
+                <p className="text-xs text-gray-500 mt-2">Total bookings for today</p>
               </Card>
-              <Card className="p-6">
-                <p className="text-sm text-muted-foreground mb-2">Confirmed</p>
-                <p className="text-3xl font-bold">{stats.confirmed}</p>
+              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-green-500 hover:scale-105">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-600">Confirmed</p>
+                  <div className="bg-green-100 p-2 rounded-lg">
+                    <ClipboardList className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.confirmed}</p>
+                <p className="text-xs text-gray-500 mt-2">Ready to start</p>
               </Card>
-              <Card className="p-6">
-                <p className="text-sm text-muted-foreground mb-2">Pending</p>
-                <p className="text-3xl font-bold">{stats.pending}</p>
+              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <div className="bg-orange-100 p-2 rounded-lg">
+                    <Bell className="h-5 w-5 text-orange-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
+                <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
               </Card>
-              <Card className="p-6">
-                <p className="text-sm text-muted-foreground mb-2">Available Slots</p>
-                <p className="text-3xl font-bold">{stats.availableSlots}</p>
+              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-600">Available Slots</p>
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Star className="h-5 w-5 text-purple-600" />
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-gray-900">{stats.availableSlots}</p>
+                <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
               </Card>
             </div>
 
@@ -105,27 +131,33 @@ const WorkerDashboard = () => {
               <div className="lg:col-span-3 space-y-6">
                 {/* Service In Process */}
                 <div>
-                  <h2 className="text-2xl font-bold text-orange-500 mb-4">
-                    Service In Process (Today)
-                  </h2>
-                  <Card className="overflow-hidden">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-orange-500 flex items-center">
+                      <ClipboardList className="h-6 w-6 mr-2" />
+                      Service In Process (Today)
+                    </h2>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      {servicesInProgress.length} active
+                    </span>
+                  </div>
+                  <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               User Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Task
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Progress
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Email address
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Status
                             </th>
                           </tr>
@@ -133,8 +165,12 @@ const WorkerDashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {servicesInProgress.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                No services now
+                              <td colSpan={5} className="px-6 py-12 text-center">
+                                <div className="flex flex-col items-center justify-center">
+                                  <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
+                                  <p className="text-gray-600 text-lg font-medium">No services in progress</p>
+                                  <p className="text-gray-400 text-sm mt-2">Active services will appear here</p>
+                                </div>
                               </td>
                             </tr>
                           ) : (
@@ -179,28 +215,36 @@ const WorkerDashboard = () => {
 
                 {/* Service Request */}
                 <div>
-                  <h2 className="text-2xl font-bold text-orange-500 mb-4">Service Request</h2>
-                  <Card className="overflow-hidden">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-orange-500 flex items-center">
+                      <Bell className="h-6 w-6 mr-2" />
+                      Service Request
+                    </h2>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      {serviceRequests.length} pending
+                    </span>
+                  </div>
+                  <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               User Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Task
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Location
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Email address
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Status
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                               Actions
                             </th>
                           </tr>
@@ -208,13 +252,17 @@ const WorkerDashboard = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {serviceRequests.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                                No services now
+                              <td colSpan={6} className="px-6 py-12 text-center">
+                                <div className="flex flex-col items-center justify-center">
+                                  <Bell className="h-16 w-16 text-gray-300 mb-4" />
+                                  <p className="text-gray-600 text-lg font-medium">No service requests</p>
+                                  <p className="text-gray-400 text-sm mt-2">New requests will appear here</p>
+                                </div>
                               </td>
                             </tr>
                           ) : (
                             serviceRequests.map((request) => (
-                              <tr key={request.id}>
+                              <tr key={request.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center">
                                     <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
@@ -238,9 +286,12 @@ const WorkerDashboard = () => {
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <button className="text-orange-600 hover:text-orange-900">
-                                    View
-                                  </button>
+                                  <Button 
+                                    size="sm"
+                                    className="bg-orange-500 hover:bg-orange-600 text-white px-4"
+                                  >
+                                    View Details
+                                  </Button>
                                 </td>
                               </tr>
                             ))
@@ -254,14 +305,17 @@ const WorkerDashboard = () => {
 
               {/* Sidebar - Upcoming Days */}
               <div className="lg:col-span-1">
-                <h2 className="text-xl font-bold mb-4">Upcoming Days</h2>
-                <Card className="p-4">
+                <div className="flex items-center mb-4">
+                  <Calendar className="h-5 w-5 mr-2 text-orange-500" />
+                  <h2 className="text-xl font-bold">Upcoming Days</h2>
+                </div>
+                <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="space-y-6">
                     {upcomingDays.map((day, index) => (
-                      <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
+                      <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
                         <div className="flex items-center mb-3">
-                          <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="text-sm font-medium">{day.date}</span>
+                          <Calendar className="h-4 w-4 text-orange-500 mr-2" />
+                          <span className="text-sm font-semibold text-gray-700">{day.date}</span>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
@@ -374,23 +428,206 @@ const WorkerDashboard = () => {
       case "account":
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Account</h2>
-            <Card className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Name</label>
-                  <p className="text-lg">{user?.name}</p>
+            <h2 className="text-2xl font-bold text-orange-500 mb-6">Account Information</h2>
+            
+            {/* Profile Header Card */}
+            <Card className="p-6 mb-6">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                {/* Profile Picture */}
+                <div className="relative group">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                    {user?.name?.charAt(0).toUpperCase() || "W"}
+                  </div>
+                  <button className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors">
+                    <Camera className="h-5 w-5" />
+                  </button>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-lg">{user?.email}</p>
+
+                {/* Profile Summary */}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{user?.name || "Worker Name"}</h3>
+                  <p className="text-gray-600 mb-2">{user?.email || "email@example.com"}</p>
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                      Professional Worker
+                    </span>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center">
+                      <Star className="h-3 w-3 mr-1 fill-green-700" />
+                      0.0 Rating
+                    </span>
+                  </div>
+                  <div className="flex gap-3 justify-center md:justify-start">
+                    <Button className="bg-orange-500 hover:bg-orange-600 text-white flex items-center">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <Button className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                      View Public Profile
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Phone</label>
-                  <p className="text-lg">{user?.phone}</p>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-4 md:gap-6 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">0</p>
+                    <p className="text-xs text-gray-500">Services</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">৳0</p>
+                    <p className="text-xs text-gray-500">Earned</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">0</p>
+                    <p className="text-xs text-gray-500">Reviews</p>
+                  </div>
                 </div>
               </div>
             </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-orange-500" />
+                    Personal Information
+                  </h3>
+                  <Button className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Full Name</label>
+                    <p className="text-base text-gray-900 mt-1">{user?.name || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email Address</label>
+                    <p className="text-base text-gray-900 mt-1">{user?.email || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                    <p className="text-base text-gray-900 mt-1">{user?.phone || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">NID Number</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Address</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Date of Birth</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Professional Information */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <Star className="h-5 w-5 mr-2 text-orange-500" />
+                    Professional Information
+                  </h3>
+                  <Button className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Work Speciality</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Work Experience</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Certification</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Service Areas</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Hourly Rate</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Availability</label>
+                    <p className="text-base text-gray-900 mt-1">Not provided</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Account Statistics */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <ClipboardList className="h-5 w-5 mr-2 text-orange-500" />
+                  Account Statistics
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-500">Total Services Completed</span>
+                    <span className="text-lg font-semibold text-gray-900">0</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-500">Total Earnings</span>
+                    <span className="text-lg font-semibold text-green-600">৳ 0</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-500">Average Rating</span>
+                    <span className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
+                      0.0
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-500">Pending Services</span>
+                    <span className="text-lg font-semibold text-orange-600">0</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-medium text-gray-500">Member Since</span>
+                    <span className="text-lg font-semibold text-gray-900">2025</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Account Actions */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <User className="h-5 w-5 mr-2 text-orange-500" />
+                  Account Settings
+                </h3>
+                <div className="space-y-3">
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white justify-start">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Update Profile Information
+                  </Button>
+                  <Button className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start">
+                    <Camera className="h-4 w-4 mr-2" />
+                    Change Profile Picture
+                  </Button>
+                  <Button className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    Change Password
+                  </Button>
+                  <Button className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notification Settings
+                  </Button>
+                  <Button className="w-full bg-white border border-red-300 text-red-600 hover:bg-red-50 justify-start mt-4">
+                    Deactivate Account
+                  </Button>
+                </div>
+              </Card>
+            </div>
           </div>
         );
       case "rating":
