@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -72,6 +72,7 @@ const WorkerDashboard = () => {
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Saved profile data that will be displayed
   const [savedProfile, setSavedProfile] = useState({
@@ -86,12 +87,14 @@ const WorkerDashboard = () => {
     serviceAreas: "",
     hourlyRate: "",
     availability: "",
+    avatarUrl: "",
   });
 
   // Form states for editing
   const [profileForm, setProfileForm] = useState({
     name: user?.name || "",
     phone: user?.phone || "",
+    avatarUrl: "",
     nidNumber: "",
     address: "",
     dateOfBirth: "",
@@ -102,6 +105,25 @@ const WorkerDashboard = () => {
     hourlyRate: "",
     availability: "",
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    setProfileForm((prev) => ({
+      ...prev,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      avatarUrl: user.photoUrl || prev.avatarUrl,
+    }));
+
+    setSavedProfile((prev) => ({
+      ...prev,
+      name: user.name,
+      phone: user.phone,
+      avatarUrl: user.photoUrl || prev.avatarUrl,
+    }));
+  }, [user]);
 
   // Mock data - replace with real API calls
   const stats = {
@@ -127,6 +149,36 @@ const WorkerDashboard = () => {
     navigate("/");
   };
 
+  const handleAvatarButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file");
+      event.target.value = "";
+      return;
+    }
+
+    const maxSizeBytes = 2 * 1024 * 1024; // 2MB limit to avoid huge previews
+    if (file.size > maxSizeBytes) {
+      alert("Image size should be under 2MB");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      setProfileForm((prev) => ({ ...prev, avatarUrl: dataUrl }));
+      setSavedProfile((prev) => ({ ...prev, avatarUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleProfileUpdate = () => {
     // Validate NID number (should be 10 or 13 or 17 digits)
     const nidRegex = /^(\d{10}|\d{13}|\d{17})$/;
@@ -139,7 +191,11 @@ const WorkerDashboard = () => {
     console.log("Updating profile:", profileForm);
     
     // Update saved profile to display the new information
-    setSavedProfile(profileForm);
+    setSavedProfile((prev) => ({
+      ...prev,
+      ...profileForm,
+      avatarUrl: profileForm.avatarUrl || prev.avatarUrl,
+    }));
     
     setEditProfileOpen(false);
     alert("Profile updated successfully!");
@@ -497,16 +553,34 @@ const WorkerDashboard = () => {
         return (
           <div>
             <h2 className="text-2xl font-bold text-orange-500 mb-6">Account Information</h2>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             
             {/* Profile Header Card */}
             <Card className="p-6 mb-6">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 {/* Profile Picture */}
                 <div className="relative group">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                    {user?.name?.charAt(0).toUpperCase() || "W"}
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden">
+                    {savedProfile.avatarUrl ? (
+                      <img
+                        src={savedProfile.avatarUrl}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user?.name?.charAt(0).toUpperCase() || "W"
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors">
+                  <button
+                    onClick={handleAvatarButtonClick}
+                    className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                  >
                     <Camera className="h-5 w-5" />
                   </button>
                 </div>
@@ -676,7 +750,10 @@ const WorkerDashboard = () => {
                     <Edit className="h-4 w-4 mr-2" />
                     Update Profile Information
                   </Button>
-                  <Button className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start">
+                  <Button
+                    onClick={handleAvatarButtonClick}
+                    className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start"
+                  >
                     <Camera className="h-4 w-4 mr-2" />
                     Change Profile Picture
                   </Button>
