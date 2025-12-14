@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Electrician from "./pages/Electrician";
+import Cleaner from "./pages/Cleaner";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -39,6 +40,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/electrician" element={<Electrician />} />
+            <Route path="/cleaner" element={<Cleaner />} />
             <Route path="/user/register" element={<UserRegister />} />
             <Route path="/user/login" element={<UserLogin />} />
             <Route
