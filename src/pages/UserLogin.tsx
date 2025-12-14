@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginFormData {
   email: string;
@@ -19,6 +20,9 @@ interface LoginFormErrors {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const UserLogin = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -58,21 +62,34 @@ const UserLogin = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!validate()) return;
 
-    setIsSubmitting(true);
-
-    // Simple mock "invalid login" behaviour for UI:
-    // Replace this with a real API call later.
-    setTimeout(() => {
+    try {
+      setIsSubmitting(true);
+      await login(formData.email, formData.password);
+      
+      // Get user from localStorage to check role
+      const currentUserStr = localStorage.getItem("mock_current_user");
+      if (currentUserStr) {
+        const currentUser = JSON.parse(currentUserStr);
+        
+        // Redirect based on role
+        if (currentUser.role === "worker") {
+          navigate("/worker/dashboard");
+        } else {
+          navigate("/profile");
+        }
+      }
+    } catch (error) {
       setErrors({
-        general: "Invalid email or password. Please try again.",
+        general: error instanceof Error ? error.message : "Login failed. Please try again.",
       });
+    } finally {
       setIsSubmitting(false);
-    }, 600);
+    }
   };
 
   return (
