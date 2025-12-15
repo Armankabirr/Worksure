@@ -74,7 +74,7 @@ const Header = () => {
               <a href="#service-cleaner" onClick={(event) => handleScroll(event, "service-cleaner")} className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Cleaner</a>
               <Link to="/ac-doctor" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">AC Doctor</Link>
               <Link to="/catering" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Catering</Link>
-              <a href="#service-babysitter" onClick={(event) => handleScroll(event, "service-babysitter")} className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Babysitter</a>
+              <Link to="/babysitter" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Babysitter</Link>
               <Link to="/pet-caring" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Pet Caring</Link>
             </div>
           </div>
@@ -116,7 +116,7 @@ const Header = () => {
               <a href="#service-cleaner" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-cleaner'); closeMobile(); }} className="block text-foreground hover:text-primary">Cleaner</a>
               <Link to="/ac-doctor" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">AC Doctor</Link>
               <Link to="/catering" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Catering</Link>
-              <a href="#service-babysitter" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service-babysitter'); closeMobile(); }} className="block text-foreground hover:text-primary">Babysitter</a>
+              <Link to="/babysitter" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Babysitter</Link>
               <Link to="/pet-caring" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Pet Caring</Link>
             </div>
           </div>
