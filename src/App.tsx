@@ -10,6 +10,7 @@ import Electrician from "./pages/Electrician";
 import Cleaner from "./pages/Cleaner";
 import ACDoctor from "./pages/ACDoctor";
 import PetCaring from "./pages/PetCaring";
+import Catering from "./pages/Catering";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/ac-doctor" element={<ACDoctor />} />
             <Route path="/cleaner" element={<Cleaner />} />
             <Route path="/pet-caring" element={<PetCaring />} />
+            <Route path="/catering" element={<Catering />} />
             <Route path="/user/register" element={<UserRegister />} />
             <Route path="/user/login" element={<UserLogin />} />
             <Route
