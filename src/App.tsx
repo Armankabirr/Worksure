@@ -19,6 +19,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import Preloader from "./components/Preloader";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => {
             <Route path="/babysitter" element={<Babysitter />} />
             <Route path="/user/register" element={<UserRegister />} />
             <Route path="/user/login" element={<UserLogin />} />
+            <Route path="/search/workers" element={<Search />} />
             <Route
               path="/profile"
               element={

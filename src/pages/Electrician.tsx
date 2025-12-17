@@ -5,8 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
+import { useNavigate } from "react-router-dom";
 
 const Electrician = () => {
+
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    navigate("/search/workers?serviceType=electrician");
+  }
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <Header />
@@ -24,7 +32,7 @@ const Electrician = () => {
             professionals for your home and office.
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl">
+            <Button size="lg" onClick={handleBookNow} className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl">
               Book an Electrician
             </Button>
             <Button
