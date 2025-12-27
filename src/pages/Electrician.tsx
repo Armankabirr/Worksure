@@ -37,6 +37,8 @@ const Electrician = () => {
       description: "Troubleshooting, outlet fixes, breaker trips, and small faults.",
       price: "From $58",
       cta: "Book Now",
+      bgColor: "from-orange-500 to-orange-600",
+      image: "⚡",
     },
     {
       icon: Home,
@@ -44,6 +46,8 @@ const Electrician = () => {
       description: "New room wiring, extensions, and safe cable management.",
       price: "From $229",
       cta: "Book Now",
+      bgColor: "from-blue-500 to-blue-600",
+      image: "🏠",
     },
     {
       icon: ShieldCheck,
@@ -51,6 +55,8 @@ const Electrician = () => {
       description: "Distribution board upgrades and load balancing for safety.",
       price: "From $499",
       cta: "Book Now",
+      bgColor: "from-red-500 to-red-600",
+      image: "🛡️",
     },
     {
       icon: Sparkles,
@@ -58,6 +64,8 @@ const Electrician = () => {
       description: "Indoor, outdoor, and smart lighting with neat finishing.",
       price: "From $79",
       cta: "Book Now",
+      bgColor: "from-yellow-500 to-yellow-600",
+      image: "💡",
     },
     {
       icon: BadgeCheck,
@@ -65,6 +73,8 @@ const Electrician = () => {
       description: "Full electrical health check with clear recommendations.",
       price: "From $159",
       cta: "Book Now",
+      bgColor: "from-green-500 to-green-600",
+      image: "✅",
     },
     {
       icon: Zap,
@@ -72,6 +82,8 @@ const Electrician = () => {
       description: "Smart switches, sensors, and surge protection configured right.",
       price: "From $199",
       cta: "Book Now",
+      bgColor: "from-purple-500 to-purple-600",
+      image: "🏠",
     },
   ];
 
@@ -216,21 +228,20 @@ const Electrician = () => {
               return (
                 <Card
                   key={service.title}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up"
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden"
                   style={{ animationDelay: `${100 + index * 70}ms` }}
                 >
-                  <CardHeader className="flex flex-row items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-2xl bg-accent flex items-center justify-center text-primary shadow-sm">
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{service.title}</CardTitle>
-                        <CardDescription>{service.description}</CardDescription>
-                      </div>
-                    </div>
+                  {/* Service Image Background */}
+                  <div className={`h-40 bg-gradient-to-br ${service.bgColor} flex items-center justify-center text-6xl relative overflow-hidden`}>
+                    <div className="absolute inset-0 opacity-20 bg-grid-pattern" />
+                    <span className="text-5xl drop-shadow-lg">{service.image}</span>
+                  </div>
+
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{service.title}</CardTitle>
+                    <CardDescription>{service.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between pt-0">
+                  <CardContent className="flex items-center justify-between pt-2">
                     <span className="text-sm font-semibold text-foreground">{service.price}</span>
                     <Button variant="secondary" size="sm" className="rounded-full px-4">
                       {service.cta}
