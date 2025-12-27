@@ -172,6 +172,54 @@ All colors MUST be HSL.
   .animate-shimmer {
     animation: shimmer 2s infinite;
   }
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-fade-up {
+    opacity: 0;
+    animation: fade-up 0.8s ease forwards;
+  }
+
+  .animate-fade-in {
+    opacity: 0;
+    animation: fade-in 1s ease forwards;
+  }
+
+  .animate-float-slow {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-slower {
+    animation: float 8s ease-in-out infinite;
+  }
 }
 
 /* Hide browser's native password reveal eye icon */
