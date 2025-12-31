@@ -176,43 +176,7 @@ const Electrician = () => {
           </div>
         </section>
 
-        <section className="bg-card/60 border-y border-border/60">
-          <div className="container mx-auto px-6 py-16">
-            <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
-              <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">How It Works</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">How To Get Our Service</h2>
-              <p className="text-muted-foreground mt-3">
-                Simple steps to book trusted electricians. We handle the details so you get quick, safe, and clean work.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {howItWorks.map((step, index) => (
-                <Card
-                  key={step.title}
-                  className="relative overflow-hidden animate-fade-up"
-                  style={{ animationDelay: `${100 + index * 80}ms` }}
-                >
-                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-primary" />
-                  <CardHeader className="pb-3">
-                    <p className="text-xs font-semibold text-primary/80">Step 0{index + 1}</p>
-                    <CardTitle className="text-xl">{step.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="flex justify-center pt-10 animate-fade-up" style={{ animationDelay: "260ms" }}>
-              <Button variant="secondary" className="rounded-full px-6">
-                View Service
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-6 py-16">
+        <section className="container mx-auto px-6 py-10">
           <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
             <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Our Services</p>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Professional Electrical Services</h2>
@@ -264,26 +228,37 @@ const Electrician = () => {
         </section>
 
         <section className="bg-card/60 border-y border-border/60">
-          <div className="container mx-auto px-6 py-16 space-y-10">
-            <div className="text-center max-w-xl mx-auto animate-fade-up">
-              <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Hire Just From Home</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Hire The Best Electrician Service In Town</h2>
-              <p className="text-muted-foreground mt-3">Quick booking, transparent rates, and reliable technicians.</p>
+          <div className="container mx-auto px-6 py-16">
+            <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
+              <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">How It Works</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">How To Get Our Service</h2>
+              <p className="text-muted-foreground mt-3">
+                Simple steps to book trusted electricians. We handle the details so you get quick, safe, and clean work.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {guarantees.map((item, index) => (
+              {howItWorks.map((step, index) => (
                 <Card
-                  key={item.title}
-                  className="shadow-sm animate-fade-up"
-                  style={{ animationDelay: `${120 + index * 80}ms` }}
+                  key={step.title}
+                  className="relative overflow-hidden animate-fade-up"
+                  style={{ animationDelay: `${100 + index * 80}ms` }}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                    <CardDescription className="text-muted-foreground">{item.description}</CardDescription>
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+                  <CardHeader className="pb-3">
+                    <p className="text-xs font-semibold text-primary/80">Step 0{index + 1}</p>
+                    <CardTitle className="text-xl">{step.title}</CardTitle>
                   </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </CardContent>
                 </Card>
               ))}
+            </div>
+            <div className="flex justify-center pt-10 animate-fade-up" style={{ animationDelay: "260ms" }}>
+              <Button variant="secondary" className="rounded-full px-6">
+                View Service
+              </Button>
             </div>
           </div>
         </section>
@@ -436,7 +411,7 @@ const Electrician = () => {
               <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 Contact Us Now
               </Button>
-              <Button variant="outline" className="border-primary-foreground text-primary-foreground">
+              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 Book an Electrician
               </Button>
             </div>
