@@ -38,7 +38,7 @@ const Electrician = () => {
       price: "From $58",
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
-      image: "⚡",
+      image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop",
     },
     {
       icon: Home,
@@ -47,7 +47,7 @@ const Electrician = () => {
       price: "From $229",
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
-      image: "🏠",
+      image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
     },
     {
       icon: ShieldCheck,
@@ -56,7 +56,7 @@ const Electrician = () => {
       price: "From $499",
       cta: "Book Now",
       bgColor: "from-red-500 to-red-600",
-      image: "🛡️",
+      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
     },
     {
       icon: Sparkles,
@@ -65,7 +65,7 @@ const Electrician = () => {
       price: "From $79",
       cta: "Book Now",
       bgColor: "from-yellow-500 to-yellow-600",
-      image: "💡",
+      image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=400&h=300&fit=crop",
     },
     {
       icon: BadgeCheck,
@@ -74,7 +74,7 @@ const Electrician = () => {
       price: "From $159",
       cta: "Book Now",
       bgColor: "from-green-500 to-green-600",
-      image: "✅",
+      image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop",
     },
     {
       icon: Zap,
@@ -83,7 +83,7 @@ const Electrician = () => {
       price: "From $199",
       cta: "Book Now",
       bgColor: "from-purple-500 to-purple-600",
-      image: "🏠",
+      image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=300&fit=crop",
     },
   ];
 
@@ -232,9 +232,13 @@ const Electrician = () => {
                   style={{ animationDelay: `${100 + index * 70}ms` }}
                 >
                   {/* Service Image Background */}
-                  <div className={`h-40 bg-gradient-to-br ${service.bgColor} flex items-center justify-center text-6xl relative overflow-hidden`}>
-                    <div className="absolute inset-0 opacity-20 bg-grid-pattern" />
-                    <span className="text-5xl drop-shadow-lg">{service.image}</span>
+                  <div className="h-40 relative overflow-hidden">
+                    <img 
+                      src={service.image} 
+                      alt={service.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgColor} opacity-30`} />
                   </div>
 
                   <CardHeader className="pb-3">
