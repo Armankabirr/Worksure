@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
 import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 

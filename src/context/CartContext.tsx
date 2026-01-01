@@ -1,6 +1,5 @@
 import {
   createContext,
-  useContext,
   useEffect,
   useState,
   ReactNode,
@@ -16,7 +15,7 @@ export interface CartItem {
   quantity: number;
 }
 
-interface CartContextValue {
+export interface CartContextValue {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "id" | "quantity">) => void;
   removeFromCart: (id: string) => void;
@@ -27,6 +26,9 @@ interface CartContextValue {
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
+
+// Export context for use in useCart hook
+export { CartContext };
 
 const CART_STORAGE_KEY = "worksure_cart";
 
@@ -109,12 +111,4 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
 };

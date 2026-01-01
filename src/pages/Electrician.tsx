@@ -7,7 +7,7 @@ import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap } from "lucide-react
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "@/context/CartContext";
+import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
 const Electrician = () => {
