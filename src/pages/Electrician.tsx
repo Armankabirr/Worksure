@@ -38,7 +38,7 @@ const Electrician = () => {
       price: "From $58",
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
-      image: "⚡",
+      image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop",
     },
     {
       icon: Home,
@@ -47,7 +47,7 @@ const Electrician = () => {
       price: "From $229",
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
-      image: "🏠",
+      image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
     },
     {
       icon: ShieldCheck,
@@ -56,7 +56,7 @@ const Electrician = () => {
       price: "From $499",
       cta: "Book Now",
       bgColor: "from-red-500 to-red-600",
-      image: "🛡️",
+      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
     },
     {
       icon: Sparkles,
@@ -65,7 +65,7 @@ const Electrician = () => {
       price: "From $79",
       cta: "Book Now",
       bgColor: "from-yellow-500 to-yellow-600",
-      image: "💡",
+      image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=400&h=300&fit=crop",
     },
     {
       icon: BadgeCheck,
@@ -74,7 +74,7 @@ const Electrician = () => {
       price: "From $159",
       cta: "Book Now",
       bgColor: "from-green-500 to-green-600",
-      image: "✅",
+      image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop",
     },
     {
       icon: Zap,
@@ -83,7 +83,7 @@ const Electrician = () => {
       price: "From $199",
       cta: "Book Now",
       bgColor: "from-purple-500 to-purple-600",
-      image: "🏠",
+      image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=300&fit=crop",
     },
   ];
 
@@ -176,6 +176,57 @@ const Electrician = () => {
           </div>
         </section>
 
+        <section className="container mx-auto px-6 py-10">
+          <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
+            <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Our Services</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Professional Electrical Services</h2>
+            <p className="text-muted-foreground mt-3">
+              From repairs to complex installations, we offer comprehensive, audited services tailored for your home and
+              office.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {services.map((service, index) => {
+              const Icon = service.icon;
+              return (
+                <Card
+                  key={service.title}
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden"
+                  style={{ animationDelay: `${100 + index * 70}ms` }}
+                >
+                  {/* Service Image Background */}
+                  <div className="h-40 relative overflow-hidden">
+                    <img 
+                      src={service.image} 
+                      alt={service.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgColor} opacity-30`} />
+                  </div>
+
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{service.title}</CardTitle>
+                    <CardDescription>{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between pt-2">
+                    <span className="text-sm font-semibold text-foreground">{service.price}</span>
+                    <Button variant="secondary" size="sm" className="rounded-full px-4">
+                      {service.cta}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center pt-8 animate-fade-up" style={{ animationDelay: "520ms" }}>
+            <Button className="rounded-full" variant="outline">
+              View All Services
+            </Button>
+          </div>
+        </section>
+
         <section className="bg-card/60 border-y border-border/60">
           <div className="container mx-auto px-6 py-16">
             <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
@@ -208,78 +259,6 @@ const Electrician = () => {
               <Button variant="secondary" className="rounded-full px-6">
                 View Service
               </Button>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-6 py-16">
-          <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
-            <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Our Services</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Professional Electrical Services</h2>
-            <p className="text-muted-foreground mt-3">
-              From repairs to complex installations, we offer comprehensive, audited services tailored for your home and
-              office.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {services.map((service, index) => {
-              const Icon = service.icon;
-              return (
-                <Card
-                  key={service.title}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden"
-                  style={{ animationDelay: `${100 + index * 70}ms` }}
-                >
-                  {/* Service Image Background */}
-                  <div className={`h-40 bg-gradient-to-br ${service.bgColor} flex items-center justify-center text-6xl relative overflow-hidden`}>
-                    <div className="absolute inset-0 opacity-20 bg-grid-pattern" />
-                    <span className="text-5xl drop-shadow-lg">{service.image}</span>
-                  </div>
-
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-between pt-2">
-                    <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                    <Button variant="secondary" size="sm" className="rounded-full px-4">
-                      {service.cta}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-center pt-8 animate-fade-up" style={{ animationDelay: "520ms" }}>
-            <Button className="rounded-full" variant="outline">
-              View All Services
-            </Button>
-          </div>
-        </section>
-
-        <section className="bg-card/60 border-y border-border/60">
-          <div className="container mx-auto px-6 py-16 space-y-10">
-            <div className="text-center max-w-xl mx-auto animate-fade-up">
-              <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Hire Just From Home</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Hire The Best Electrician Service In Town</h2>
-              <p className="text-muted-foreground mt-3">Quick booking, transparent rates, and reliable technicians.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {guarantees.map((item, index) => (
-                <Card
-                  key={item.title}
-                  className="shadow-sm animate-fade-up"
-                  style={{ animationDelay: `${120 + index * 80}ms` }}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                    <CardDescription className="text-muted-foreground">{item.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
             </div>
           </div>
         </section>
@@ -432,7 +411,7 @@ const Electrician = () => {
               <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 Contact Us Now
               </Button>
-              <Button variant="outline" className="border-primary-foreground text-primary-foreground">
+              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                 Book an Electrician
               </Button>
             </div>
