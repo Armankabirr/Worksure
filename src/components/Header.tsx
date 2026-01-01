@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
 import RegisterDialog from "./RegisterDialog";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
   const {
@@ -18,6 +20,7 @@ const Header = () => {
     closeLogin,
     closeRegister,
   } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -85,7 +88,22 @@ const Header = () => {
 
         {/* Desktop: full icons (visible md+) */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="hover:bg-accent"><ShoppingCart className="h-5 w-5" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent relative"
+            onClick={() => navigate("/cart")}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {totalItems > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {totalItems}
+              </Badge>
+            )}
+          </Button>
 
           {isAuthenticated ? (
             <Button variant="default" size="icon" className="p-0 rounded-full overflow-hidden" type="button" aria-label="Profile" onClick={() => navigate("/profile")}>{user?.avatar ? (<Avatar className="h-10 w-10"><AvatarImage className="object-cover" src={user.avatar} alt={user.name} /><AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">{user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}</AvatarFallback></Avatar>) : (<div className="h-10 w-10 flex items-center justify-center"><User className="h-5 w-5" /></div>)}</Button>
@@ -99,7 +117,22 @@ const Header = () => {
 
         {/* Mobile: only cart + hamburger (no profile icon in header) */}
         <div className="flex md:hidden items-center space-x-2">
-          <Button variant="ghost" size="icon" className="hover:bg-accent"><ShoppingCart className="h-5 w-5" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent relative"
+            onClick={() => navigate("/cart")}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {totalItems > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {totalItems}
+              </Badge>
+            )}
+          </Button>
           <button onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle menu" className="p-2 rounded-md hover:bg-accent">{mobileOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
         </div>
       </div>
