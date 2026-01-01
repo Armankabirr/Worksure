@@ -7,12 +7,37 @@ import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap } from "lucide-react
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
 
 const Electrician = () => {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const handleBookNow = () => {
     navigate("/search/workers?serviceType=electrician");
+  };
+
+  const handleAddToCart = (service: typeof services[0]) => {
+    // Extract numeric price from "From $58" format
+    const priceMatch = service.price.match(/\d+/);
+    const price = priceMatch ? parseInt(priceMatch[0]) : 0;
+
+    addToCart({
+      serviceType: "electrician",
+      serviceName: service.title,
+      price: price,
+      description: service.description,
+      image: service.image,
+    });
+
+    toast.success(`${service.title} added to cart!`, {
+      description: "You can view and manage your cart items.",
+      action: {
+        label: "View Cart",
+        onClick: () => navigate("/cart"),
+      },
+    });
   };
 
   const howItWorks = [
@@ -211,8 +236,13 @@ const Electrician = () => {
                   </CardHeader>
                   <CardContent className="flex items-center justify-between pt-2">
                     <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                    <Button variant="secondary" size="sm" className="rounded-full px-4">
-                      {service.cta}
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="rounded-full px-4"
+                      onClick={() => handleAddToCart(service)}
+                    >
+                      Add to Cart
                     </Button>
                   </CardContent>
                 </Card>
