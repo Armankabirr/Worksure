@@ -20,10 +20,34 @@ import {
   Settings,
   ShoppingBag,
   Gift,
-  Heart
+  Heart,
+  Loader2
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+
+// Type definitions
+interface Address {
+  street: string;
+  city: string;
+  district: string;
+  postal_code: string;
+  lat: string;
+  lon: string;
+}
+
+interface UserData {
+  email: string;
+  phone: string;
+  full_name: string;
+  gender: string;
+  date_of_birth: string;
+  role: string;
+  profile_picture: string;
+  is_active: boolean;
+  addresses: Address[];
+}
 
 /**
  * Profile page component matching Worksure My Account design.
@@ -34,33 +58,63 @@ const Profile = () => {
   const { user, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const axiosPublic = useAxiosPublic();
+  
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingAddresses, setIsEditingAddresses] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeMenu, setActiveMenu] = useState("my-profile");
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [editingAddresses, setEditingAddresses] = useState<Address[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    gender: "",
+    date_of_birth: "",
     bio: "",
     avatar: "",
     address: "",
   });
 
-  // Initialize form data when user loads or changes
+  // Fetch user data from API
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || "",
-        phone: user.phone || "",
-        bio: user.bio || "",
-        avatar: user.avatar || "",
-        address: user.address || "",
-      });
-    }
-  }, [user]);
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const response = await axiosPublic.get(`/userRoutes/getUserData/${user.email}`);
+        const data = response.data;
+        setUserData(data);
+        setEditingAddresses(data.addresses || []);
+        
+        // Initialize form with fetched data
+        setFormData({
+          name: data.full_name || "",
+          phone: data.phone || "",
+          gender: data.gender || "",
+          date_of_birth: data.date_of_birth || "",
+          bio: "",
+          avatar: data.profile_picture || "",
+          address: data.addresses && data.addresses.length > 0 
+            ? `${data.addresses[0].street}, ${data.addresses[0].city}` 
+            : "",
+        });
+      } catch (err) {
+        console.error("Failed to fetch user data:", err);
+        setError("Failed to load user profile data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user, axiosPublic]);
 
   // Handle logout
   const handleLogout = () => {
@@ -72,19 +126,63 @@ const Profile = () => {
   const handleEditToggle = () => {
     if (isEditing) {
       // Cancel editing - reset form to original user data
-      if (user) {
+      if (userData) {
         setFormData({
-          name: user.name || "",
-          phone: user.phone || "",
-          bio: user.bio || "",
-          avatar: user.avatar || "",
-          address: user.address || "",
+          name: userData.full_name || "",
+          phone: userData.phone || "",
+          gender: userData.gender || "",
+          date_of_birth: userData.date_of_birth || "",
+          bio: "",
+          avatar: userData.profile_picture || "",
+          address: userData.addresses && userData.addresses.length > 0 
+            ? `${userData.addresses[0].street}, ${userData.addresses[0].city}` 
+            : "",
         });
       }
       setError(null);
       setSuccess(null);
     }
     setIsEditing(!isEditing);
+  };
+
+  // Handle address edit toggle
+  const handleAddressEditToggle = () => {
+    if (isEditingAddresses) {
+      // Cancel editing - reset to original addresses
+      if (userData) {
+        setEditingAddresses([...userData.addresses]);
+      }
+    }
+    setIsEditingAddresses(!isEditingAddresses);
+  };
+
+  // Handle address field change
+  const handleAddressChange = (idx: number, field: keyof Address, value: string) => {
+    const updated = [...editingAddresses];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setEditingAddresses(updated);
+  };
+
+  // Handle address save
+  const handleSaveAddresses = async () => {
+    if (!user || !userData) return;
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Here you would typically make an API call to save addresses
+      // For now, we'll update local state
+      setUserData({ ...userData, addresses: editingAddresses });
+      setSuccess("Addresses updated successfully!");
+      setIsEditingAddresses(false);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save addresses.";
+      setError(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Handle form input changes
@@ -132,7 +230,7 @@ const Profile = () => {
 
   // Handle form submission
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !userData) return;
 
     setError(null);
     setSuccess(null);
@@ -180,8 +278,35 @@ const Profile = () => {
       .slice(0, 2);
   };
 
+  // Format date of birth to show only date
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4 pt-24">
+          <Card className="w-full max-w-md p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-primary" />
+            <p className="text-muted-foreground">Loading profile...</p>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   // Show loading/empty state
-  if (!user) {
+  if (!user || !userData) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -217,7 +342,7 @@ const Profile = () => {
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Welcome back,</p>
-              <p className="text-lg font-bold text-primary">{user.name.split(" ")[0]}</p>
+              <p className="text-lg font-bold text-primary">{userData.full_name.split(" ")[0]}</p>
             </div>
           </div>
 
@@ -346,10 +471,10 @@ const Profile = () => {
                         <div className="relative group">
                           <Avatar className="h-28 w-28 border-4 border-primary/20 shadow-lg">
                             {formData.avatar ? (
-                              <AvatarImage src={formData.avatar} alt={user.name} />
+                              <AvatarImage src={formData.avatar} alt={userData.full_name} />
                             ) : null}
                             <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-3xl font-bold">
-                              {getInitials(user.name)}
+                              {userData.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                             </AvatarFallback>
                           </Avatar>
                           {isEditing && (
@@ -378,11 +503,11 @@ const Profile = () => {
 
                       {/* Name and Role */}
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-foreground mb-1">{user.name}</h3>
+                        <h3 className="text-xl font-bold text-foreground mb-1">{userData.full_name}</h3>
                         <div className="flex items-center gap-2 mb-4">
                           <div className="h-2 w-2 rounded-full bg-green-500"></div>
                           <p className="text-xs text-muted-foreground capitalize font-medium">
-                            {user.role === "user" ? "Customer" : "Service Provider"}
+                            {userData.is_active ? "Active" : "Inactive"}
                           </p>
                         </div>
 
@@ -404,7 +529,7 @@ const Profile = () => {
                                 className="border-slate-300 bg-white text-sm h-8"
                               />
                             ) : (
-                              <p className="text-foreground font-semibold text-sm">{user.name}</p>
+                              <p className="text-foreground font-semibold text-sm">{userData.full_name}</p>
                             )}
                           </div>
 
@@ -425,7 +550,7 @@ const Profile = () => {
                                 className="border-slate-300 bg-white text-sm h-8"
                               />
                             ) : (
-                              <p className="text-foreground font-semibold text-sm">{user.phone}</p>
+                              <p className="text-foreground font-semibold text-sm">{userData.phone}</p>
                             )}
                           </div>
 
@@ -437,17 +562,61 @@ const Profile = () => {
                               </div>
                               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Email</p>
                             </div>
-                            <p className="text-foreground font-semibold text-sm">{user.email}</p>
+                            <p className="text-foreground font-semibold text-sm">{userData.email}</p>
                             {!isEditing && <p className="text-xs text-muted-foreground mt-0.5">Read-only</p>}
                           </div>
 
-                          {/* Address */}
+                          {/* Gender */}
                           <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <Settings className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Gender</p>
+                            </div>
+                            {isEditing ? (
+                              <Input
+                                value={formData.gender}
+                                onChange={(e) => handleInputChange("gender", e.target.value)}
+                                placeholder="Gender"
+                                className="border-slate-300 bg-white text-sm h-8"
+                              />
+                            ) : (
+                              <p className="text-foreground font-semibold text-sm">
+                                {userData.gender || <span className="text-muted-foreground">Not provided</span>}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Date of Birth */}
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="p-1.5 bg-primary/10 rounded-lg">
+                                <Settings className="h-3 w-3 text-primary" />
+                              </div>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Date of Birth</p>
+                            </div>
+                            {isEditing ? (
+                              <Input
+                                type="date"
+                                value={formData.date_of_birth}
+                                onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
+                                className="border-slate-300 bg-white text-sm h-8"
+                              />
+                            ) : (
+                              <p className="text-foreground font-semibold text-sm">
+                                {userData.date_of_birth ? formatDate(userData.date_of_birth) : <span className="text-muted-foreground">Not provided</span>}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Address */}
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 sm:col-span-2">
                             <div className="flex items-center gap-2 mb-1.5">
                               <div className="p-1.5 bg-primary/10 rounded-lg">
                                 <MapPin className="h-3 w-3 text-primary" />
                               </div>
-                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Address</p>
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Primary Address</p>
                             </div>
                             {isEditing ? (
                               <Input
@@ -498,6 +667,115 @@ const Profile = () => {
                           rows={3}
                           className="resize-none border-slate-300 bg-white text-sm"
                         />
+                      </div>
+                    )}
+
+                    {/* Addresses Section */}
+                    {userData.addresses && (
+                      <div className="pb-6 border-b border-slate-200">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-sm font-bold text-foreground">Saved Addresses</h3>
+                          {!isEditingAddresses && (
+                            <Button
+                              onClick={handleAddressEditToggle}
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all text-sm"
+                            >
+                              <Settings className="h-3 w-3 mr-1.5" />
+                              Edit
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {(isEditingAddresses ? editingAddresses : userData.addresses).map((addr, idx) => (
+                            <div key={idx} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                              {isEditingAddresses ? (
+                                <div className="space-y-3">
+                                  <Input
+                                    placeholder="Street"
+                                    value={userData.addresses[0].street}
+                                    onChange={(e) => handleAddressChange(idx, "street", e.target.value)}
+                                    className="border-slate-300 bg-white text-sm h-8"
+                                  />
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <Input
+                                      placeholder="City"
+                                      value={userData?.addresses[0].city}
+                                      onChange={(e) => handleAddressChange(idx, "city", e.target.value)}
+                                      className="border-slate-300 bg-white text-sm h-8"
+                                    />
+                                    <Input
+                                      placeholder="District"
+                                      value={userData.addresses[0].district}
+                                      onChange={(e) => handleAddressChange(idx, "district", e.target.value)}
+                                      className="border-slate-300 bg-white text-sm h-8"
+                                    />
+                                  </div>
+                                  <Input
+                                    placeholder="Postal Code"
+                                    value={userData.addresses[0].postal_code}
+                                    onChange={(e) => handleAddressChange(idx, "postal_code", e.target.value)}
+                                    className="border-slate-300 bg-white text-sm h-8"
+                                  />
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <Input
+                                      placeholder="Latitude"
+                                      value={userData.addresses[0].lat}
+                                      onChange={(e) => handleAddressChange(idx, "lat", e.target.value)}
+                                      className="border-slate-300 bg-white text-sm h-8"
+                                    />
+                                    <Input
+                                      placeholder="Longitude"
+                                      value={userData.addresses[0].lon}
+                                      onChange={(e) => handleAddressChange(idx, "lon", e.target.value)}
+                                      className="border-slate-300 bg-white text-sm h-8"
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-start gap-3">
+                                  <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-foreground">{userData.addresses[0].street}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {userData.addresses[0].city}, {userData.addresses[0].district} {userData.addresses[0].postal_code}
+                                    </p>
+                                    {userData.addresses[0].lat && userData.addresses[0].lon && (
+                                      <p className="text-xs text-muted-foreground/60 mt-1">
+                                        Coordinates: {userData.addresses[0].lat}, {userData.addresses[0].lon}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {isEditingAddresses && (
+                          <div className="flex gap-3 justify-end mt-4">
+                            <Button
+                              onClick={handleAddressEditToggle}
+                              disabled={isSaving}
+                              variant="outline"
+                              size="sm"
+                              className="border-slate-300 gap-1.5 text-sm"
+                            >
+                              <X className="h-3 w-3" />
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSaveAddresses}
+                              disabled={isSaving}
+                              size="sm"
+                              className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all text-sm"
+                            >
+                              <Save className="h-3 w-3" />
+                              {isSaving ? "Saving..." : "Save"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )}
 
