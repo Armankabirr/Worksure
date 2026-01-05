@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap, ShoppingCart } from "lucide-react";
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
@@ -64,6 +64,7 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
       image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
     },
     {
       icon: Home,
@@ -73,15 +74,19 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
       image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "wiring-panel",
     },
     {
       icon: ShieldCheck,
-      title: "Panel Upgrades",
-      description: "Distribution board upgrades and load balancing for safety.",
-      price: "From $499",
+      title: "Safety & Compliance Services",
+      description: "Safety inspections, earthing checks, and compliance testing.",
+      price: "From $139",
       cta: "Book Now",
       bgColor: "from-red-500 to-red-600",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "safety-compliance",
     },
     {
       icon: Sparkles,
@@ -91,15 +96,19 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-yellow-500 to-yellow-600",
       image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "lighting-ambience",
     },
     {
       icon: BadgeCheck,
-      title: "Safety Inspections",
-      description: "Full electrical health check with clear recommendations.",
-      price: "From $159",
+      title: "Appliance Electrical Repair Services",
+      description: "Geyser, refrigerator, washing machine, and small appliance repairs.",
+      price: "From $59",
       cta: "Book Now",
       bgColor: "from-green-500 to-green-600",
       image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "appliance-repair",
     },
     {
       icon: Zap,
@@ -109,6 +118,8 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-purple-500 to-purple-600",
       image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "smart-surge",
     },
   ];
 
@@ -217,8 +228,9 @@ const Electrician = () => {
               return (
                 <Card
                   key={service.title}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden"
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden cursor-pointer"
                   style={{ animationDelay: `${100 + index * 70}ms` }}
+                  onClick={() => service.navigateTo && navigate(service.navigateTo)}
                 >
                   {/* Service Image Background */}
                   <div className="h-40 relative overflow-hidden">
@@ -234,16 +246,44 @@ const Electrician = () => {
                     <CardTitle className="text-lg">{service.title}</CardTitle>
                     <CardDescription>{service.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between pt-2">
-                    <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="rounded-full px-4"
-                      onClick={() => handleAddToCart(service)}
-                    >
-                      Add to Cart
-                    </Button>
+                  <CardContent className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-sm font-semibold text-foreground">{service.price}</span>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="rounded-full px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(service);
+                        }}
+                        aria-label="Add to cart"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {service.navigateTo && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(service.navigateTo as string);
+                          // Scroll to specified section after navigation
+                          setTimeout(() => {
+                            const sectionId = "scrollToSection" in service ? (service.scrollToSection as string) : "electrical-repairs";
+                            const element = document.getElementById(sectionId);
+                            if (element) {
+                              element.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }
+                          }, 100);
+                        }}
+                      >
+                        View Services
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               );
