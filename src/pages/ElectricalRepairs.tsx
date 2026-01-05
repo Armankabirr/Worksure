@@ -309,7 +309,7 @@ const ElectricalRepairs = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [modalService, setModalService] = useState<(typeof repairServices)[number] | null>(null);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [showScheduleView, setShowScheduleView] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [currentService, setCurrentService] = useState<string>("");
@@ -334,7 +334,7 @@ const ElectricalRepairs = () => {
 
   const handleSchedule = (serviceName: string) => {
     setCurrentService(serviceName);
-    setScheduleOpen(true);
+    setShowScheduleView(true);
   };
 
   const handleConfirmSchedule = () => {
@@ -344,7 +344,14 @@ const ElectricalRepairs = () => {
     }
     // Navigate to worker selection with schedule details
     navigate(`/search/workers?serviceType=electrician&service=${encodeURIComponent(currentService)}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}`);
-    setScheduleOpen(false);
+    setModalService(null);
+    setShowScheduleView(false);
+    setSelectedDate("");
+    setSelectedTime("");
+  };
+
+  const handleBackToServices = () => {
+    setShowScheduleView(false);
     setSelectedDate("");
     setSelectedTime("");
   };
@@ -558,14 +565,29 @@ const ElectricalRepairs = () => {
       </main>
       <Footer />
 
-      <Dialog open={!!modalService} onOpenChange={(open) => !open && setModalService(null)}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={!!modalService} onOpenChange={(open) => {
+        if (!open) {
+          setModalService(null);
+          setShowScheduleView(false);
+          setSelectedDate("");
+          setSelectedTime("");
+        }
+      }}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{modalService?.title || "Desktop Services"}</DialogTitle>
-            <DialogDescription>{modalService?.startFrom || "Choose a desktop service"}</DialogDescription>
+            <DialogTitle>
+              {showScheduleView ? "Select Schedule" : (modalService?.title || "Desktop Services")}
+            </DialogTitle>
+            <DialogDescription>
+              {showScheduleView 
+                ? `When would you like ${currentService || "us"} to serve you?`
+                : (modalService?.startFrom || "Choose a desktop service")
+              }
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+          {!showScheduleView ? (
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
             {modalService?.details?.map((group) => (
               <div key={group.title} className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -605,23 +627,7 @@ const ElectricalRepairs = () => {
               </div>
             ))}
           </div>
-
-          <DialogFooter className="flex items-center justify-end gap-3 flex-wrap">
-            <Button variant="outline" onClick={() => setModalService(null)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Schedule Selection Dialog */}
-      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Select Schedule</DialogTitle>
-            <DialogDescription>When would you like {currentService || "us"} to serve you?</DialogDescription>
-          </DialogHeader>
-
+        ) : (
           <div className="space-y-6 py-4">
             {/* Date Selection */}
             <div className="space-y-3">
@@ -687,15 +693,26 @@ const ElectricalRepairs = () => {
               </div>
             </div>
           </div>
+        )}
 
-          <DialogFooter>
-            <Button
-              onClick={handleConfirmSchedule}
-              disabled={!selectedDate || !selectedTime}
-              className="w-full sm:w-auto"
-            >
-              Select Location
-            </Button>
+          <DialogFooter className="flex items-center justify-between gap-3 flex-wrap">
+            {showScheduleView ? (
+              <>
+                <Button variant="outline" onClick={handleBackToServices}>
+                  Back to Services
+                </Button>
+                <Button
+                  onClick={handleConfirmSchedule}
+                  disabled={!selectedDate || !selectedTime}
+                >
+                  Select Location
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" onClick={() => setModalService(null)}>
+                Close
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
