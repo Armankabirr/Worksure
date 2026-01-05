@@ -152,14 +152,14 @@ const WorkerDashboard = () => {
       name: user.name,
       phone: user.phone,
       email: user.email,
-      avatarUrl: user.photoUrl || prev.avatarUrl,
+      avatarUrl: user.avatar || prev.avatarUrl,
     }));
 
     setSavedProfile((prev) => ({
       ...prev,
       name: user.name,
       phone: user.phone,
-      avatarUrl: user.photoUrl || prev.avatarUrl,
+      avatarUrl: user.avatar || prev.avatarUrl,
     }));
   }, [user]);
 
