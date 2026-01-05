@@ -64,6 +64,7 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
       image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
     },
     {
       icon: Home,
@@ -217,8 +218,9 @@ const Electrician = () => {
               return (
                 <Card
                   key={service.title}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden"
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden cursor-pointer"
                   style={{ animationDelay: `${100 + index * 70}ms` }}
+                  onClick={() => service.navigateTo && navigate(service.navigateTo)}
                 >
                   {/* Service Image Background */}
                   <div className="h-40 relative overflow-hidden">
@@ -240,7 +242,10 @@ const Electrician = () => {
                       variant="secondary" 
                       size="sm" 
                       className="rounded-full px-4"
-                      onClick={() => handleAddToCart(service)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(service);
+                      }}
                     >
                       Add to Cart
                     </Button>
