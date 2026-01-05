@@ -261,9 +261,16 @@ const Electrician = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(service.navigateTo as string);
+                          // Scroll to electrical-repairs section after navigation
+                          setTimeout(() => {
+                            const element = document.getElementById("electrical-repairs");
+                            if (element) {
+                              element.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }
+                          }, 100);
                         }}
                       >
-                        View Repairs
+                        View Services
                       </Button>
                     )}
                   </CardContent>

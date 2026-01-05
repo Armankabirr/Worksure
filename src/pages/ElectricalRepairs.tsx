@@ -423,7 +423,7 @@ const ElectricalRepairs = () => {
           </aside>
 
           <div className="space-y-10">
-            <section className="space-y-4">
+            <section id="electrical-repairs" className="space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Electrical Repairs</p>
