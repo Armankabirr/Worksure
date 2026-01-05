@@ -74,6 +74,8 @@ const Electrician = () => {
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
       image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
+      navigateTo: "/electrician/electrical-repairs",
+      scrollToSection: "wiring-panel",
     },
     {
       icon: ShieldCheck,
@@ -261,9 +263,10 @@ const Electrician = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(service.navigateTo as string);
-                          // Scroll to electrical-repairs section after navigation
+                          // Scroll to specified section after navigation
                           setTimeout(() => {
-                            const element = document.getElementById("electrical-repairs");
+                            const sectionId = "scrollToSection" in service ? (service.scrollToSection as string) : "electrical-repairs";
+                            const element = document.getElementById(sectionId);
                             if (element) {
                               element.scrollIntoView({ behavior: "smooth", block: "start" });
                             }
