@@ -57,11 +57,30 @@ const repairServices = [
   {
     title: "Printer Service",
     description: "Power issues, cable faults, and safe connection checks for office printers.",
-    price: "From $89",
+    price: "Starts from ৳966.63",
     duration: "Typically 60-120 mins",
     image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600&h=400&fit=crop",
     perks: ["Power & grounding checks", "Cable/port inspection", "Post-fix test print"],
     category: "smart-surge",
+    startFrom: "Starts from ৳966.63",
+    details: [
+      {
+        title: "Printer Service",
+        start: "Starts from ৳966.63",
+        items: [
+          { name: "Cutting change", price: "৳ 966.63" },
+          { name: "ink change", price: "৳ 1280.13" },
+          { name: "Roller change", price: "৳ 966.63" },
+          { name: "Motherboard repair", price: "৳ 1175.63" },
+          { name: "Printer software & driver setup", price: "৳ 1175.63" },
+        ],
+      },
+      {
+        title: "Printer Check Up",
+        start: "Starts from ৳496.38",
+        items: [{ name: "Printer Check Up", price: "৳ 496.38" }],
+      },
+    ],
   },
   {
     title: "Desktop Services",
@@ -97,11 +116,54 @@ const repairServices = [
   {
     title: "Laptop/Notebook Services",
     description: "Adapter, socket, and grounding checks to keep laptops charging safely.",
-    price: "From $79",
+    price: "Starts from ৳418",
     duration: "Typically 45-120 mins",
     image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
     perks: ["Adapter and port test", "Outlet safety check", "Cable tidy-up"],
     category: "smart-surge",
+    startFrom: "Starts from ৳418",
+    details: [
+      {
+        title: "Laptop/Notebook Software Solutions",
+        start: "Starts from ৳418",
+        items: [
+          { name: "Windows / Operating System & Application / Software Installation", price: "৳ 836" },
+          { name: "Driver Installation & Application Installation", price: "৳ 836" },
+          { name: "BIOS Configuring Updating", price: "৳ 1123.38" },
+          { name: "Windows Installation", price: "৳ 574.75" },
+          { name: "Software or Application Installation", price: "৳ 574.75" },
+          { name: "Data Recovery", price: "৳ 1593.63" },
+          { name: "Diagnosis", price: "৳ 418" },
+        ],
+      },
+      {
+        title: "Laptop/Notebook Hardware Solutions",
+        start: "Starts from ৳418",
+        items: [
+          { name: "Motherboard Installation", price: "৳ 1071.13" },
+          { name: "Motherboard Repair", price: "৳ 1071.13" },
+          { name: "HDD or SSD Installation or Replacement", price: "৳ 522.5" },
+          { name: "Keyboard Replacement", price: "৳ 653.13" },
+          { name: "Display Replacement", price: "৳ 966.63" },
+          { name: "Problem Identification & Full Cleaning", price: "৳ 757.63" },
+          { name: "Diagnosis", price: "৳ 418" },
+        ],
+      },
+      {
+        title: "Laptop/Notebook Software Checkup",
+        start: "Starts from ৳653.13",
+        items: [
+          { name: "Laptop/Notebook Software Checkup", price: "৳ 653.13" },
+        ],
+      },
+      {
+        title: "Laptop/Notebook Hardware Checkup",
+        start: "Starts from ৳653.13",
+        items: [
+          { name: "Laptop/Notebook Hardware Checkup", price: "৳ 653.13" },
+        ],
+      },
+    ],
   },
   {
     title: "CCTV Camera Service",
@@ -514,7 +576,7 @@ const ElectricalRepairs = () => {
                                 variant="outline"
                                 className="flex-1"
                                 onClick={() => {
-                                  if (service.title === "Desktop Services" && service.details) {
+                                  if (service.details) {
                                     setModalService(service);
                                   } else {
                                     handleBookNow();
