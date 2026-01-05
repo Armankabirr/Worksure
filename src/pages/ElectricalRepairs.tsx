@@ -342,9 +342,8 @@ const ElectricalRepairs = () => {
       toast.error("Please select both date and time");
       return;
     }
-    toast.success("Schedule confirmed!", {
-      description: `${currentService} scheduled for ${selectedDate} at ${selectedTime}`,
-    });
+    // Navigate to worker selection with schedule details
+    navigate(`/search/workers?serviceType=electrician&service=${encodeURIComponent(currentService)}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}`);
     setScheduleOpen(false);
     setSelectedDate("");
     setSelectedTime("");
@@ -695,7 +694,7 @@ const ElectricalRepairs = () => {
               disabled={!selectedDate || !selectedTime}
               className="w-full sm:w-auto"
             >
-              Confirm Schedule
+              Select Location
             </Button>
           </DialogFooter>
         </DialogContent>
