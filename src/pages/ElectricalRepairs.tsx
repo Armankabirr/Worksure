@@ -309,6 +309,10 @@ const ElectricalRepairs = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [modalService, setModalService] = useState<(typeof repairServices)[number] | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [currentService, setCurrentService] = useState<string>("");
 
   const groupedServices = useMemo(() => {
     return sidebarCategories.map((cat) => ({
@@ -326,6 +330,24 @@ const ElectricalRepairs = () => {
 
   const handleBookNow = () => {
     navigate("/search/workers?serviceType=electrician&category=repairs");
+  };
+
+  const handleSchedule = (serviceName: string) => {
+    setCurrentService(serviceName);
+    setScheduleOpen(true);
+  };
+
+  const handleConfirmSchedule = () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select both date and time");
+      return;
+    }
+    toast.success("Schedule confirmed!", {
+      description: `${currentService} scheduled for ${selectedDate} at ${selectedTime}`,
+    });
+    setScheduleOpen(false);
+    setSelectedDate("");
+    setSelectedTime("");
   };
 
   const handleAddToCart = (service: (typeof repairServices)[number]) => {
@@ -566,7 +588,7 @@ const ElectricalRepairs = () => {
                           size="sm"
                           variant="outline"
                           className="flex-1"
-                          onClick={handleBookNow}
+                          onClick={() => handleSchedule(item.name)}
                         >
                           Schedule
                         </Button>
@@ -592,8 +614,96 @@ const ElectricalRepairs = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule Selection Dialog */}
+      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Select Schedule</DialogTitle>
+            <DialogDescription>When would you like {currentService || "us"} to serve you?</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Date Selection */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">Select your prefer date</p>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {Array.from({ length: 10 }, (_, i) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() + i);
+                  const day = date.getDate().toString().padStart(2, "0");
+                  const weekday = date.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
+                  const dateKey = date.toLocaleDateString("en-US");
+                  
+                  return (
+                    <button
+                      key={dateKey}
+                      onClick={() => setSelectedDate(dateKey)}
+                      className={`flex flex-col items-center justify-center min-w-[60px] h-[70px] rounded-xl border-2 transition-all ${
+                        selectedDate === dateKey
+                          ? "border-primary bg-primary text-primary-foreground shadow-lg"
+                          : "border-border hover:border-primary/50 hover:bg-accent"
+                      }`}
+                    >
+                      <span className="text-2xl font-bold">{day}</span>
+                      <span className="text-xs font-medium">{weekday}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Time Selection */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                Select your prefer time, expert will arrive by your selected time
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {[
+                  { label: "9 - 10 am", value: "9-10am" },
+                  { label: "10 - 11 am", value: "10-11am" },
+                  { label: "11 - 12 pm", value: "11-12pm" },
+                  { label: "12 - 1 pm", value: "12-1pm" },
+                  { label: "1 - 2 pm", value: "1-2pm" },
+                  { label: "2 - 3 pm", value: "2-3pm" },
+                  { label: "3 - 4 pm", value: "3-4pm" },
+                  { label: "4 - 5 pm", value: "4-5pm" },
+                  { label: "5 - 6 pm", value: "5-6pm" },
+                  { label: "6 - 7 pm", value: "6-7pm" },
+                  { label: "7 - 8 pm", value: "7-8pm" },
+                  { label: "8 - 9 pm", value: "8-9pm" },
+                ].map((slot) => (
+                  <button
+                    key={slot.value}
+                    onClick={() => setSelectedTime(slot.value)}
+                    className={`py-3 px-4 rounded-lg border-2 text-sm font-medium transition-all ${
+                      selectedTime === slot.value
+                        ? "border-primary bg-primary text-primary-foreground shadow-md"
+                        : "border-border hover:border-primary/50 hover:bg-accent text-foreground"
+                    }`}
+                  >
+                    {slot.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={handleConfirmSchedule}
+              disabled={!selectedDate || !selectedTime}
+              className="w-full sm:w-auto"
+            >
+              Confirm Schedule
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
 
 export default ElectricalRepairs;
+
