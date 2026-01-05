@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { BadgeCheck, Bolt, Home, ShieldCheck, Sparkles, Zap, ShoppingCart } from "lucide-react";
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
@@ -236,19 +236,36 @@ const Electrician = () => {
                     <CardTitle className="text-lg">{service.title}</CardTitle>
                     <CardDescription>{service.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between pt-2">
-                    <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="rounded-full px-4"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(service);
-                      }}
-                    >
-                      Add to Cart
-                    </Button>
+                  <CardContent className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-sm font-semibold text-foreground">{service.price}</span>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="rounded-full px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(service);
+                        }}
+                        aria-label="Add to cart"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {service.navigateTo && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(service.navigateTo as string);
+                        }}
+                      >
+                        View Repairs
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               );
