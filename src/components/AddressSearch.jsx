@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
+import MapLocationSelector from './MapLocationSelector';
 
 // Simple debounce hook (no deps)
 function useDebounce(value, delay) {
@@ -23,6 +24,7 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const [error, setError] = useState(null);
+  const [showMapSelector, setShowMapSelector] = useState(false);
   const countryFilter = 'bd';
   const navigate = useNavigate();
 
@@ -100,6 +102,11 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
     if (onSelect) onSelect(item);
   }
 
+  function handleMapSelect(location) {
+    handleSelect(location);
+    setShowMapSelector(false);
+  }
+
   console.log(defaultValue);
 
 
@@ -149,7 +156,7 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
         >
           <li
             role="option"
-            onClick={() => navigate('/search/queries')}
+            onClick={() => setShowMapSelector(true)}
             style={{
               padding: '10px 12px',
               cursor: 'pointer',
@@ -176,6 +183,14 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
       )}
 
       {error && <div style={{ color: 'crimson', marginTop: 6 }}>{error}</div>}
+      
+      {showMapSelector && (
+        <MapLocationSelector
+          apiKey={apiKey}
+          onSelect={handleMapSelect}
+          onClose={() => setShowMapSelector(false)}
+        />
+      )}
     </div>
   );
 }
