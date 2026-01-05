@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { Search as SearchIcon, MapPin, Star, Phone, MessageSquare } from "lucide-react";
+import { Search as SearchIcon, MapPin, Star, Phone, MessageSquare, BookImageIcon, BookAIcon } from "lucide-react";
 
 function PanTo({ lat, lon }) {
      const map = useMap();
@@ -46,7 +46,7 @@ const Search = () => {
 
      const services = [
           { value: "electrician", label: "Electrician" },
-          { value: "cleaner", label: "Cleaner" },
+          { value: "cleaning", label: "Cleaner" },
           { value: "acdoctor", label: "AC Doctor" },
           { value: "catering", label: "Catering" },
           { value: "babysitter", label: "Babysitter" },
@@ -185,7 +185,7 @@ const Search = () => {
                                    <h2 className="text-3xl font-bold text-gray-900 mb-8 pt-5">
                                         Available {services.find(s => s.value === serviceType)?.label}s
                                    </h2>
-                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                         {results.map((worker) => (
                                              <div key={worker.user_id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
                                                   {/* Card Header with Profile Picture */}
@@ -194,7 +194,7 @@ const Search = () => {
                                                             <img 
                                                                  src={worker.profile_picture} 
                                                                  alt={worker.display_name}
-                                                                 className="w-full h-full object-cover"
+                                                                 className="w-full h-full"
                                                             />
                                                        )}
                                                        {!worker.profile_picture && (
@@ -209,31 +209,30 @@ const Search = () => {
                                                   </div>
 
                                                   {/* Card Body */}
-                                                  <div className="p-6">
+                                                  <div className="p-4">
                                                        {/* Name */}
-                                                       <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                                       <h3 className="text-lg font-bold text-gray-900 mb-1">
                                                             {worker.display_name}
                                                        </h3>
 
                                                        {/* Rating */}
-                                                       <div className="flex items-center gap-2 mb-4">
+                                                       <div className="flex items-center gap-2 mb-2">
                                                             <div className="flex items-center gap-1">
-                                                                 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                                                  <span className="font-bold text-gray-900">{worker.avg_rating}</span>
                                                             </div>
                                                             <span className="text-sm text-gray-500">({worker.review_count || 0} reviews)</span>
                                                        </div>
 
                                                        {/* Base Price */}
-                                                       <div className="mb-4 pb-4 border-b border-gray-200">
-                                                            <p className="text-sm text-gray-600 mb-1">Base Price</p>
-                                                            <p className="text-2xl font-bold text-blue-600">
+                                                       <div className="mb-2 pb-2 border-b border-gray-200">
+                                                            <p className="text-sm text-gray-600 mb-1">Base Price <span className="text-xl pl-2 font-bold text-blue-600"> 
                                                                  ৳{worker.base_price}
-                                                            </p>
+                                                            </span></p>
                                                        </div>
 
                                                        {/* Distance */}
-                                                       <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
+                                                       <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
                                                             <MapPin className="w-4 h-4 text-orange-500" />
                                                             <span>{(worker.distance_m / 1000).toFixed(2)} km away</span>
                                                        </div>
@@ -242,16 +241,9 @@ const Search = () => {
                                                        <div className="flex gap-3">
                                                             <Button
                                                                  onClick={() => navigate(`/worker/${worker.user_id}`)}
-                                                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors"
+                                                                 className="flex-1 font-semibold"
                                                             >
                                                                  View Profile
-                                                            </Button>
-                                                            <Button
-                                                                 variant="outline"
-                                                                 className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-2 rounded-lg transition-colors"
-                                                            >
-                                                                 <MessageSquare className="w-4 h-4 mr-2" />
-                                                                 Chat
                                                             </Button>
                                                        </div>
                                                   </div>
