@@ -249,18 +249,6 @@ const Electrician = () => {
                   <CardContent className="flex flex-col gap-3 pt-2">
                     <div className="flex items-center justify-between w-full">
                       <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="rounded-full px-3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(service);
-                        }}
-                        aria-label="Add to cart"
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                      </Button>
                     </div>
 
                     {service.navigateTo && (

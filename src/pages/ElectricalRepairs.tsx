@@ -568,13 +568,9 @@ const ElectricalRepairs = () => {
                               ))}
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" className="flex-1" onClick={() => handleAddToCart(service)}>
-                                Add to Cart
-                              </Button>
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="flex-1"
+                                className="w-full"
                                 onClick={() => {
                                   if (service.details) {
                                     setModalService(service);
@@ -669,18 +665,10 @@ const ElectricalRepairs = () => {
                       <CardContent className="flex justify-between gap-2 pt-0">
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="flex-1"
+                          className="w-full"
                           onClick={() => handleSchedule(item.name)}
                         >
                           Schedule
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleAddCustomToCart(item.name, item.price, group.title)}
-                        >
-                          <ShoppingCart className="h-4 w-4 mr-2" /> Cart
                         </Button>
                       </CardContent>
                     </Card>
