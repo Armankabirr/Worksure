@@ -43,6 +43,43 @@ const repairServices = [
   },
 ];
 
+const sidebarCategories = [
+  "Electrical Repairs",
+  "Wiring & Panel",
+  "Lighting & Ambience",
+  "Safety & Compliance",
+  "Smart Home & Surge",
+  "Emergency Visits",
+];
+
+const quickLinks = [
+  "Outlet faults",
+  "Breaker trips",
+  "Fan not working",
+  "Light flicker",
+  "Short circuits",
+  "Loose neutral",
+];
+
+const secondaryGroups = [
+  {
+    title: "Wiring & Panel",
+    items: ["New circuit runs", "Sub-panel setup", "Earthing & bonding"],
+  },
+  {
+    title: "Lighting & Ambience",
+    items: ["LED upgrades", "Outdoor lighting", "Dimmers & scenes"],
+  },
+  {
+    title: "Safety & Compliance",
+    items: ["Load tests", "Smoke/CO install", "Compliance reports"],
+  },
+  {
+    title: "Smart & Surge",
+    items: ["Smart switches", "WiFi relays", "Surge protection"],
+  },
+];
+
 const ElectricalRepairs = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -75,98 +112,137 @@ const ElectricalRepairs = () => {
   return (
     <div className="min-h-screen bg-background pt-20">
       <Header />
-      <main className="container mx-auto px-6 py-12 space-y-12">
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div className="space-y-6">
-            <Badge className="w-fit bg-primary/10 text-primary border-primary/30">Electrical Repairs</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
-              All Electrical Repairs in One Place
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl">
-              See every repair service we offer: fast troubleshooting, safe fixes, and code-compliant workmanship.
-              Book instantly or add the exact repair to your cart.
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/5 border border-primary/20 text-primary">
-                <ShieldCheck className="h-4 w-4" /> Licensed & insured pros
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-accent/10 text-foreground border border-border/60">
-                <Clock className="h-4 w-4" /> Same-day windows
-              </span>
-              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/5 border border-primary/20 text-primary">
-                <Sparkles className="h-4 w-4" /> Clean finish guaranteed
-              </span>
+      <main className="container mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px,1fr] gap-8">
+          <aside className="rounded-2xl border border-border/70 bg-card shadow-sm h-fit">
+            <div className="px-5 py-4 border-b border-border/70">
+              <p className="text-sm font-semibold text-primary">All Services</p>
+              <p className="text-xs text-muted-foreground">Browse repair categories</p>
             </div>
-            <div className="flex gap-4 flex-wrap">
-              <Button size="lg" onClick={handleBookNow}>
-                Book a Repair
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/electrician")}>Back to Electrician</Button>
+            <div className="flex flex-col">
+              {sidebarCategories.map((item) => (
+                <button
+                  key={item}
+                  className="flex w-full items-center justify-between px-5 py-3 text-left text-sm border-l-2 border-transparent hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <span className="text-foreground">{item}</span>
+                  <span className="text-xs text-muted-foreground">View</span>
+                </button>
+              ))}
             </div>
-          </div>
-          <div className="relative overflow-hidden rounded-3xl border border-border/60 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-accent/20" />
-            <img
-              src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&h=900&fit=crop"
-              alt="Electrician repairing a circuit"
-              className="relative z-10 w-full h-full object-cover"
-            />
-          </div>
-        </section>
+          </aside>
 
-        <section className="space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">Repair Catalog</p>
-              <h2 className="text-3xl font-bold text-foreground">Choose the repair you need</h2>
-              <p className="text-muted-foreground max-w-2xl mt-2">Clear pricing, what is included, and fast booking.</p>
-            </div>
-            <Button variant="outline" className="flex items-center gap-2" onClick={handleBookNow}>
-              <PlugZap className="h-4 w-4" /> Find electricians near you
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {repairServices.map((service, index) => (
-              <Card key={service.title} className="hover:shadow-lg transition-all duration-200">
-                <div className="h-48 relative overflow-hidden">
-                  <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background/10" />
-                  <span className="absolute top-3 right-3 bg-background/90 text-sm px-3 py-1 rounded-full border border-border/60">
-                    {service.price}
-                  </span>
+          <div className="space-y-10">
+            <section className="space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Electrical Repairs</p>
+                  <h1 className="text-3xl md:text-4xl font-bold text-foreground">AC-style Repair Catalog for Electricians</h1>
+                  <p className="text-muted-foreground max-w-3xl">
+                    Choose from fast fixes to deeper diagnostics. Pricing stays transparent and every job includes a safety check.
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/20 text-primary">
+                      <ShieldCheck className="h-4 w-4" /> Licensed & insured pros
+                    </span>
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-border/60 text-foreground">
+                      <Clock className="h-4 w-4" /> Same-day windows
+                    </span>
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/20 text-primary">
+                      <Sparkles className="h-4 w-4" /> Clean finish guaranteed
+                    </span>
+                  </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" /> {service.title}
-                  </CardTitle>
-                  <CardDescription>{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" /> {service.duration}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {service.perks.map((perk) => (
-                      <Badge key={perk} variant="secondary" className="bg-muted text-foreground">
-                        {perk}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex gap-3">
-                    <Button className="flex-1" onClick={() => handleAddToCart(service)}>
-                      Add to Cart
-                    </Button>
-                    <Button className="flex-1" variant="outline" onClick={handleBookNow}>
-                      Book Now
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Transparent rates; final quote confirmed after onsite diagnosis.</p>
-                </CardContent>
-              </Card>
-            ))}
+                <div className="flex gap-3 flex-wrap">
+                  <Button size="sm" onClick={handleBookNow}>Book a Repair</Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate("/electrician")}>Back to Electrician</Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <span className="text-sm font-semibold text-foreground">All repair quick links:</span>
+                {quickLinks.map((link) => (
+                  <span
+                    key={link}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-foreground border border-border/60 text-xs"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-primary" /> {link}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {repairServices.map((service) => (
+                  <Card key={service.title} className="hover:shadow-lg transition-all duration-200 overflow-hidden">
+                    <div className="relative h-40 overflow-hidden">
+                      <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background/30" />
+                      <span className="absolute top-3 right-3 bg-background/90 text-xs px-3 py-1 rounded-full border border-border/60">
+                        {service.price}
+                      </span>
+                    </div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" /> {service.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm">{service.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-0 pb-4 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="h-4 w-4" /> {service.duration}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {service.perks.map((perk) => (
+                          <Badge key={perk} variant="secondary" className="bg-muted text-foreground text-xs">
+                            {perk}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => handleAddToCart(service)}>
+                          Add to Cart
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={handleBookNow}>
+                          Book Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">More electrical services</p>
+                  <h3 className="text-2xl font-bold text-foreground">Explore more categories</h3>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleBookNow}>
+                  <PlugZap className="h-4 w-4 mr-2" /> Find electricians near you
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {secondaryGroups.map((group) => (
+                  <Card key={group.title} className="border-border/70">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-foreground">{group.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap gap-2">
+                      {group.items.map((item) => (
+                        <Badge key={item} variant="secondary" className="bg-primary/5 text-primary border border-primary/20 text-xs">
+                          {item}
+                        </Badge>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </main>
       <Footer />
     </div>
