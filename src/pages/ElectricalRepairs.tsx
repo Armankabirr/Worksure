@@ -6,8 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
-import { Sparkles, ShieldCheck, Clock, PlugZap } from "lucide-react";
-import { useMemo, useCallback } from "react";
+import { Sparkles, ShieldCheck, Clock, PlugZap, ShoppingCart } from "lucide-react";
+import { useMemo, useCallback, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const repairServices = [
   {
@@ -63,6 +71,28 @@ const repairServices = [
     image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
     perks: ["PSU and outlet checks", "Surge/UPS guidance", "Clean cabling"],
     category: "smart-surge",
+    startFrom: "Starts from ৳418",
+    details: [
+      {
+        title: "Desktop Software Services",
+        start: "Starts from ৳418",
+        items: [
+          { name: "Operating System & Software Installation", price: "৳ 836" },
+          { name: "Data Recovery", price: "৳ 1593.63" },
+          { name: "Driver Installation & Application Installation", price: "৳ 836" },
+        ],
+      },
+      {
+        title: "Desktop Hardware Related Services",
+        start: "Starts from ৳418",
+        items: [
+          { name: "Motherboard Repair", price: "৳ 1071.13" },
+          { name: "HDD or SSD Installation or Replacement", price: "৳ 522.5" },
+          { name: "Problem Identification & Full Cleaning", price: "৳ 757.63" },
+          { name: "Power Supply Unit Installation or Replacement", price: "৳ 574.75" },
+        ],
+      },
+    ],
   },
   {
     title: "Laptop/Notebook Services",
@@ -172,6 +202,60 @@ const repairServices = [
     perks: ["Load mapping", "Changeover test", "Cable gauge check"],
     category: "smart-surge",
   },
+  {
+    title: "Geyser (Water Heater) Repair",
+    description: "Electrical checks for geyser wiring, thermostats, and safety cut-offs.",
+    price: "From $99",
+    duration: "Typically 60-150 mins",
+    image: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=600&h=400&fit=crop",
+    perks: ["Thermostat check", "Earth leakage check", "Secure connections"],
+    category: "appliance-repair",
+  },
+  {
+    title: "Refrigerator Electrical Fix",
+    description: "Diagnose electrical supply issues, relays, and safe wiring for fridges.",
+    price: "From $129",
+    duration: "Typically 90-180 mins",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+    perks: ["Outlet & plug check", "Relay/fuse check", "Surge guidance"],
+    category: "appliance-repair",
+  },
+  {
+    title: "Washing Machine Electrical Repair",
+    description: "Fix power issues, sockets, and wiring faults for top/front loaders.",
+    price: "From $119",
+    duration: "Typically 90-180 mins",
+    image: "https://images.unsplash.com/photo-1581579188871-45ea61f2a0c8?w=600&h=400&fit=crop",
+    perks: ["Outlet & plug check", "Continuity & earth test", "Cable tidy-up"],
+    category: "appliance-repair",
+  },
+  {
+    title: "Microwave Oven Electrical Service",
+    description: "Inspect power input, fuses, and safe connections for microwaves.",
+    price: "From $99",
+    duration: "Typically 60-150 mins",
+    image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=600&h=400&fit=crop",
+    perks: ["Fuse/input check", "Cord & plug check", "Grounding verify"],
+    category: "appliance-repair",
+  },
+  {
+    title: "Electric Iron & Heater Repair",
+    description: "Restore safe power to irons and room heaters; cord and switch checks.",
+    price: "From $59",
+    duration: "Typically 45-120 mins",
+    image: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=600&h=400&fit=crop",
+    perks: ["Cord replacement", "Switch test", "Earth continuity"],
+    category: "appliance-repair",
+  },
+  {
+    title: "Rice Cooker & Small Appliance Repair",
+    description: "Fix power, plugs, and internal wiring for rice cookers and small appliances.",
+    price: "From $69",
+    duration: "Typically 45-120 mins",
+    image: "https://images.unsplash.com/photo-1612874472278-5c1f9d7b4bff?w=600&h=400&fit=crop",
+    perks: ["Cord/plug check", "Fuse/thermostat check", "Test run"],
+    category: "appliance-repair",
+  },
 ];
 
 const sidebarCategories = [
@@ -180,6 +264,7 @@ const sidebarCategories = [
   { key: "lighting-ambience", label: "Lighting & Ambience" },
   { key: "safety-compliance", label: "Safety & Compliance" },
   { key: "smart-surge", label: "Smart Home & Surge" },
+  { key: "appliance-repair", label: "Appliance Electrical Repair" },
   { key: "emergency-visits", label: "Emergency Visits" },
 ];
 
@@ -213,11 +298,17 @@ const secondaryGroups = [
     key: "smart-surge",
     items: ["Smart switches", "WiFi relays", "Surge protection"],
   },
+  {
+    title: "Appliance Electrical Repair",
+    key: "appliance-repair",
+    items: ["Geyser wiring", "Fridge power fix", "Washer/Microwave checks"],
+  },
 ];
 
 const ElectricalRepairs = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [modalService, setModalService] = useState<(typeof repairServices)[number] | null>(null);
 
   const groupedServices = useMemo(() => {
     return sidebarCategories.map((cat) => ({
@@ -258,6 +349,27 @@ const ElectricalRepairs = () => {
     });
   };
 
+  const handleAddCustomToCart = (name: string, priceLabel: string, description?: string) => {
+    const priceMatch = priceLabel.match(/\d+\.?\d*/);
+    const price = priceMatch ? Math.round(parseFloat(priceMatch[0])) : 0;
+
+    addToCart({
+      serviceType: "electrician",
+      serviceName: name,
+      price,
+      description: description || "Desktop service",
+      image: modalService?.image,
+    });
+
+    toast.success(`${name} added to cart!`, {
+      description: "You can view and manage your cart items.",
+      action: {
+        label: "View Cart",
+        onClick: () => navigate("/cart"),
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <Header />
@@ -287,7 +399,7 @@ const ElectricalRepairs = () => {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Electrical Repairs</p>
-                  <h1 className="text-3xl md:text-4xl font-bold text-foreground">AC-style Repair Catalog for Electricians</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold text-foreground">Catalog for Electricians</h1>
                   <p className="text-muted-foreground max-w-3xl">
                     Choose from fast fixes to deeper diagnostics. Pricing stays transparent and every job includes a safety check.
                   </p>
@@ -369,7 +481,18 @@ const ElectricalRepairs = () => {
                               <Button size="sm" className="flex-1" onClick={() => handleAddToCart(service)}>
                                 Add to Cart
                               </Button>
-                              <Button size="sm" variant="outline" className="flex-1" onClick={handleBookNow}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => {
+                                  if (service.title === "Desktop Services" && service.details) {
+                                    setModalService(service);
+                                  } else {
+                                    handleBookNow();
+                                  }
+                                }}
+                              >
                                 Book Now
                               </Button>
                             </div>
@@ -413,6 +536,62 @@ const ElectricalRepairs = () => {
         </div>
       </main>
       <Footer />
+
+      <Dialog open={!!modalService} onOpenChange={(open) => !open && setModalService(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{modalService?.title || "Desktop Services"}</DialogTitle>
+            <DialogDescription>{modalService?.startFrom || "Choose a desktop service"}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+            {modalService?.details?.map((group) => (
+              <div key={group.title} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{group.title}</p>
+                    <p className="text-xs text-primary">{group.start}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {group.items.map((item) => (
+                    <Card key={item.name} className="border-border/70">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">{item.name}</CardTitle>
+                        <CardDescription className="text-xs text-primary">{item.price}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex justify-between gap-2 pt-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={handleBookNow}
+                        >
+                          Schedule
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleAddCustomToCart(item.name, item.price, group.title)}
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2" /> Cart
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="flex items-center justify-end gap-3 flex-wrap">
+            <Button variant="outline" onClick={() => setModalService(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
