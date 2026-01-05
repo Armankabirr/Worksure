@@ -41,6 +41,38 @@ const repairServices = [
     image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&h=400&fit=crop",
     perks: ["Circuit tracing", "Replace degraded cabling", "Detailed status report"],
   },
+  {
+    title: "Printer Service",
+    description: "Power issues, cable faults, and safe connection checks for office printers.",
+    price: "From $89",
+    duration: "Typically 60-120 mins",
+    image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600&h=400&fit=crop",
+    perks: ["Power & grounding checks", "Cable/port inspection", "Post-fix test print"],
+  },
+  {
+    title: "Desktop Services",
+    description: "Power delivery fixes, surge-safe setups, and cable management for desktops.",
+    price: "From $99",
+    duration: "Typically 60-150 mins",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
+    perks: ["PSU and outlet checks", "Surge/UPS guidance", "Clean cabling"],
+  },
+  {
+    title: "Laptop/Notebook Services",
+    description: "Adapter, socket, and grounding checks to keep laptops charging safely.",
+    price: "From $79",
+    duration: "Typically 45-120 mins",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
+    perks: ["Adapter and port test", "Outlet safety check", "Cable tidy-up"],
+  },
+  {
+    title: "CCTV Camera Service",
+    description: "Diagnose power drops, replace adapters, and tidy low-voltage runs for CCTV.",
+    price: "From $119",
+    duration: "Typically 90-180 mins",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+    perks: ["Adapter/PoE checks", "Cable continuity test", "Secure mounting"],
+  },
 ];
 
 const sidebarCategories = [
