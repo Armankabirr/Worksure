@@ -147,6 +147,10 @@ const WorkerDetail = () => {
                     address: selectedAddress.trim(),
                     description: description.trim(),
                };
+
+               console.log(orderData);
+               
+
                const response = await axiosPublic.post("/orderRoutes/createOrder", orderData);
 
                if (response.status === 200 || response.status === 201) {
