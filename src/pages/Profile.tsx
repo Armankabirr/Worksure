@@ -21,11 +21,18 @@ import {
   ShoppingBag,
   Gift,
   Heart,
-  Loader2
+  Loader2,
+  Clock,
+  DollarSign,
+  CheckCheck,
+  Briefcase,
+  Star,
+  User
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
+import { toast } from "sonner";
 
 // Type definitions
 interface Address {
@@ -49,6 +56,37 @@ interface UserData {
   addresses: Address[];
 }
 
+interface WorkerProfile {
+  display_name: string;
+  avg_rating: number;
+  total_reviews: number;
+}
+
+interface Worker {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  profile_picture: string;
+  worker_profiles: WorkerProfile;
+}
+
+interface Hiring {
+  id: string;
+  client_id: string;
+  assigned_worker_id: string;
+  selected_time: string;
+  address: string;
+  description: string;
+  status: string;
+  total_amount: number;
+  payment_completed: boolean;
+  created_at: string;
+  work_start: string;
+  work_end: string;
+  worker: Worker;
+}
+
 /**
  * Profile page component matching Worksure My Account design.
  * Displays user information with sidebar navigation.
@@ -69,6 +107,9 @@ const Profile = () => {
   const [activeMenu, setActiveMenu] = useState("my-profile");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [editingAddresses, setEditingAddresses] = useState<Address[]>([]);
+  const [hirings, setHirings] = useState<Hiring[]>([]);
+  const [isLoadingHirings, setIsLoadingHirings] = useState(false);
+  const [hiringError, setHiringError] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -115,6 +156,30 @@ const Profile = () => {
 
     fetchUserData();
   }, [user, axiosPublic]);
+
+  // Fetch user hirings from API
+  useEffect(() => {
+    const fetchHirings = async () => {
+      if (!user?.email) return;
+
+      try {
+        setIsLoadingHirings(true);
+        setHiringError(null);
+        const response = await axiosPublic.get(`orderRoutes/orders/user/${user.email}`);
+        setHirings(response.data || []);
+      } catch (err) {
+        console.error("Failed to fetch hirings:", err);
+        setHiringError("Failed to load hirings data");
+        setHirings([]);
+      } finally {
+        setIsLoadingHirings(false);
+      }
+    };
+
+    if (activeMenu === "my-hirings") {
+      fetchHirings();
+    }
+  }, [user, axiosPublic, activeMenu]);
 
   // Handle logout
   const handleLogout = () => {
@@ -289,6 +354,18 @@ const Profile = () => {
     });
   };
 
+  const cancelOrders = async (hiringId: string) => {
+    try {
+      const response = await axiosPublic.post(`/orderRoutes/cancelOrder/${hiringId}`);
+      console.log(response);
+      if (response.status === 200) {
+        toast.success("Order cancelled successfully");
+      }
+    } catch (err) {
+      console.error("Failed to cancel order:", err);
+    }
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -389,15 +466,15 @@ const Profile = () => {
                   <h3 className="text-xs font-bold uppercase tracking-wide mb-2 text-muted-foreground">My Orders</h3>
                   <nav className="space-y-1">
                     <button
-                      onClick={() => setActiveMenu("my-services")}
+                      onClick={() => setActiveMenu("my-hirings")}
                       className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
-                        activeMenu === "my-services"
+                        activeMenu === "my-hirings"
                           ? "bg-primary text-white shadow-md"
                           : "text-foreground hover:bg-slate-100"
                       }`}
                     >
-                      <ShoppingBag className="h-4 w-4" />
-                      My Services
+                      <Briefcase className="h-4 w-4" />
+                      My Hirings
                     </button>
                     <button
                       onClick={() => setActiveMenu("my-offers")}
@@ -810,11 +887,200 @@ const Profile = () => {
               )}
 
               {/* Placeholder Cards for Other Sections */}
-              {activeMenu === "my-services" && (
-                <Card className="bg-white border-slate-200 shadow-sm rounded-xl p-8 text-center">
-                  <ShoppingBag className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-                  <h2 className="text-lg font-bold text-foreground mb-1">My Services</h2>
-                  <p className="text-sm text-muted-foreground">Coming soon...</p>
+              {activeMenu === "my-hirings" && (
+                <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-5 border-b border-slate-200">
+                    <h2 className="text-xl font-bold text-foreground mb-0.5">My Hirings</h2>
+                    <p className="text-xs text-muted-foreground">View and manage your service hirings</p>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    {hiringError && (
+                      <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3 text-sm">
+                        <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-red-800 font-medium">{hiringError}</p>
+                      </div>
+                    )}
+
+                    {isLoadingHirings ? (
+                      <div className="flex flex-col items-center justify-center py-12 gap-3">
+                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                        <p className="text-sm text-muted-foreground">Loading your hirings...</p>
+                      </div>
+                    ) : hirings && hirings.length > 0 ? (
+                      <div className="space-y-4">
+                        {hirings.map((hiring) => (
+                          <div
+                            key={hiring.id}
+                            className="border border-slate-200 rounded-lg p-4 hover:border-primary/50 hover:shadow-md transition-all duration-200"
+                          >
+                            {/* Header with Status */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-foreground text-sm">{hiring.description}</h3>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Order ID: {hiring.id.slice(0, 8)}...
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    hiring.status === "completed"
+                                      ? "bg-green-100 text-green-700"
+                                      : hiring.status === "in-progress"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : hiring.status === "pending"
+                                      ? "bg-yellow-100 text-yellow-700"
+                                      : "bg-slate-100 text-slate-700"
+                                  }`}
+                                >
+                                  {hiring.status?.charAt(0).toUpperCase() + hiring.status?.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Worker Information */}
+                            {hiring.users_orders_assigned_worker_idTousers && (
+                              <div className="border-b border-slate-200 pb-4 mb-4">
+                                <div className="flex items-start gap-3">
+                                  <Avatar className="h-10 w-10 flex-shrink-0 border border-slate-200">
+                                    <AvatarImage src={hiring.users_orders_assigned_worker_idTousers.profile_picture} alt={hiring.users_orders_assigned_worker_idTousers.full_name} />
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                                      {hiring.users_orders_assigned_worker_idTousers.full_name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="font-semibold text-foreground text-sm">{hiring.users_orders_assigned_worker_idTousers.full_name}</p>
+                                      {hiring.users_orders_assigned_worker_idTousers.worker_profiles && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+                                          <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                          <span className="text-xs font-semibold text-amber-700">
+                                            {hiring.users_orders_assigned_worker_idTousers.worker_profiles.avg_rating}
+                                          </span>
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="space-y-1 text-xs text-muted-foreground">
+                                      {hiring.users_orders_assigned_worker_idTousers.worker_profiles?.display_name && (
+                                        <p>{hiring.users_orders_assigned_worker_idTousers.worker_profiles.display_name}</p>
+                                      )}
+                                      <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="flex items-center gap-1">
+                                          <Phone className="h-3 w-3" />
+                                          {hiring.users_orders_assigned_worker_idTousers.phone}
+                                        </span>
+                                        {hiring.users_orders_assigned_worker_idTousers.worker_profiles && (
+                                          <span className="flex items-center gap-1">
+                                            ({hiring.users_orders_assigned_worker_idTousers.worker_profiles.total_reviews} reviews)
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3 text-xs">
+                              {/* Address */}
+                              <div className="flex items-start gap-2 col-span-2 md:col-span-3">
+                                <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-muted-foreground text-xs">Location</p>
+                                  <p className="text-foreground font-medium">{hiring.address}</p>
+                                </div>
+                              </div>
+
+                              {/* Date/Time */}
+                              <div>
+                                <p className="text-muted-foreground text-xs mb-0.5">Scheduled Time</p>
+                                <p className="text-foreground font-medium flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(hiring.selected_time).toLocaleDateString()}
+                                </p>
+                              </div>
+
+                              {/* Amount */}
+                              <div>
+                                <p className="text-muted-foreground text-xs mb-0.5">Amount</p>
+                                <p className="text-foreground font-semibold flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  {hiring.total_amount}
+                                </p>
+                              </div>
+
+                              {/* Payment Status */}
+                              <div>
+                                <p className="text-muted-foreground text-xs mb-0.5">Payment</p>
+                                <p className={`flex items-center gap-1 font-medium ${hiring.payment_completed ? "text-green-600" : "text-yellow-600"}`}>
+                                  {hiring.payment_completed ? (
+                                    <>
+                                      <CheckCheck className="h-3 w-3" />
+                                      Completed
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="h-3 w-3" />
+                                      Pending
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Work Duration if available */}
+                            {hiring.work_start && hiring.work_end && (
+                              <div className="border-t border-slate-200 pt-3 mt-3 text-xs">
+                                <p className="text-muted-foreground mb-2">Work Duration</p>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-foreground">
+                                    {new Date(hiring.work_start).toLocaleString()}
+                                  </span>
+                                  <span className="text-muted-foreground">to</span>
+                                  <span className="font-medium text-foreground">
+                                    {new Date(hiring.work_end).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Created Date */}
+                            <div className="border-t border-slate-200 pt-3 mt-3 flex items-center justify-between">
+                              <p className="text-xs text-muted-foreground">
+                                Created: {new Date(hiring.created_at).toLocaleDateString()} at {new Date(hiring.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                              <Button
+                                onClick={() => cancelOrders(hiring.id)}
+                                size="sm"
+                                className="mt-2 bg-primary hover:bg-primary/90 text-white text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <Briefcase className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                        <h3 className="text-lg font-semibold text-foreground mb-1">No Hirings Yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">You haven't hired any services yet</p>
+                        <Button
+                          onClick={() => navigate("/")}
+                          className="bg-primary hover:bg-primary/90 text-white"
+                        >
+                          Explore Services
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </Card>
               )}
 
