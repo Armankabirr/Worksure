@@ -170,6 +170,7 @@ const Electrician = () => {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={() => navigate("/electrician/electrical-repairs")}
                   className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   View Pricing
@@ -279,7 +280,7 @@ const Electrician = () => {
           </div>
 
           <div className="flex justify-center pt-8 animate-fade-up" style={{ animationDelay: "520ms" }}>
-            <Button className="rounded-full" variant="outline">
+            <Button className="rounded-full" variant="outline" onClick={() => navigate("/electrician/electrical-repairs")}>
               View All Services
             </Button>
           </div>

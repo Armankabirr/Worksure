@@ -21,11 +21,34 @@ const repairServices = [
   {
     title: "Outlet & Switch Fixes",
     description: "Repair dead outlets, flickering lights, loose switches, and sparking points.",
-    price: "From $58",
+    price: "Starts from ৳650",
     duration: "Typically 45-90 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Parts guidance provided", "Code-compliant repairs", "Cleanup before we leave"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳650",
+    details: [
+      {
+        title: "Outlet Repairs",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Dead Outlet Repair", price: "৳ 650" },
+          { name: "Loose Outlet Replacement", price: "৳ 750" },
+          { name: "GFCI Outlet Installation", price: "৳ 950" },
+          { name: "USB Outlet Installation", price: "৳ 1100" },
+        ],
+      },
+      {
+        title: "Switch Repairs",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Light Switch Replacement", price: "৳ 700" },
+          { name: "Dimmer Switch Installation", price: "৳ 850" },
+          { name: "Three-Way Switch Repair", price: "৳ 900" },
+          { name: "Smart Switch Installation", price: "৳ 1400" },
+        ],
+      },
+    ],
   },
   {
     title: "Breaker Trips & Diagnostics",
@@ -532,9 +555,6 @@ const ElectricalRepairs = () => {
                       <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">{group.label}</p>
                       <h3 className="text-2xl font-bold text-foreground">{group.label} Services</h3>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleBookNow}>
-                      <PlugZap className="h-4 w-4 mr-2" /> Book this category
-                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
