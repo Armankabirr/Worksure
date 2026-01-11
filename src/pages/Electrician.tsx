@@ -170,6 +170,7 @@ const Electrician = () => {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={() => navigate("/electrician/electrical-repairs")}
                   className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   View Pricing

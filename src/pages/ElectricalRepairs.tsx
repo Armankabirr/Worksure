@@ -532,9 +532,6 @@ const ElectricalRepairs = () => {
                       <p className="text-xs uppercase tracking-[0.2em] text-primary font-semibold">{group.label}</p>
                       <h3 className="text-2xl font-bold text-foreground">{group.label} Services</h3>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleBookNow}>
-                      <PlugZap className="h-4 w-4 mr-2" /> Book this category
-                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
