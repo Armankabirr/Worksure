@@ -22,6 +22,7 @@ import Preloader from "./components/Preloader";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
+import WorkerDetail from "./pages/WorkerDetail";
 import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => {
               <Route path="/user/register" element={<UserRegister />} />
               <Route path="/user/login" element={<UserLogin />} />
               <Route path="/search/workers" element={<Search />} />
+              <Route path="/worker/:id" element={<WorkerDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route
                 path="/profile"

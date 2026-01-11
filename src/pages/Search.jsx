@@ -42,8 +42,6 @@ const Search = () => {
           }
      });
 
-     console.log(serviceType);
-
      const services = [
           { value: "electrician", label: "Electrician" },
           { value: "cleaning", label: "Cleaner" },
@@ -145,7 +143,7 @@ const Search = () => {
                                         <Button
                                              onClick={handleSearch}
                                              disabled={loading}
-                                             className="w-full h-[61px] bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700 text-white font-semibold text-lg rounded transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                             className="w-full h-[61px]  font-semibold text-lg rounded transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                                         >
                                              {loading ? (
                                                   <BeatLoader color="#ffffff" size={8} />
@@ -189,7 +187,7 @@ const Search = () => {
                                         {results.map((worker) => (
                                              <div key={worker.user_id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">
                                                   {/* Card Header with Profile Picture */}
-                                                  <div className="h-48 bg-gradient-to-br from-blue-500 to-orange-500 relative overflow-hidden">
+                                                  <div className="h-48 to-orange-500 relative overflow-hidden">
                                                        {worker.profile_picture && (
                                                             <img 
                                                                  src={worker.profile_picture} 
