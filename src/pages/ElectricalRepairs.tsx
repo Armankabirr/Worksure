@@ -868,12 +868,23 @@ const ElectricalRepairs = () => {
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <span className="text-sm font-semibold text-foreground">All repair quick links:</span>
                 {quickLinks.map((link) => (
-                  <span
+                  <button
                     key={link}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-foreground border border-border/60 text-xs"
+                    onClick={() => {
+                      const categoryMap: { [key: string]: string } = {
+                        "Outlet faults": "electrical-repairs",
+                        "Breaker trips": "electrical-repairs",
+                        "Fan not working": "lighting-ambience",
+                        "Light flicker": "lighting-ambience",
+                        "Short circuits": "electrical-repairs",
+                        "Loose neutral": "wiring-panel",
+                      };
+                      handleScrollTo(categoryMap[link] || "electrical-repairs");
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted hover:bg-primary/20 text-foreground border border-border/60 hover:border-primary/50 text-xs transition-all cursor-pointer"
                   >
                     <span className="h-2 w-2 rounded-full bg-primary" /> {link}
-                  </span>
+                  </button>
                 ))}
               </div>
             </section>
