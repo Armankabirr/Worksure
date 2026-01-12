@@ -530,47 +530,146 @@ const repairServices = [
   {
     title: "Refrigerator Electrical Fix",
     description: "Diagnose electrical supply issues, relays, and safe wiring for fridges.",
-    price: "From $129",
+    price: "Starts from ৳1150",
     duration: "Typically 90-180 mins",
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&h=400&fit=crop",
     perks: ["Outlet & plug check", "Relay/fuse check", "Surge guidance"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1150",
+    details: [
+      {
+        title: "Electrical Diagnosis",
+        start: "Starts from ৳1150",
+        items: [
+          { name: "Power Supply Check", price: "৳ 1150" },
+          { name: "Relay & Fuse Testing", price: "৳ 1200" },
+          { name: "Compressor Electrical Check", price: "৳ 1350" },
+        ],
+      },
+      {
+        title: "Wiring & Repair",
+        start: "Starts from ৳1250",
+        items: [
+          { name: "Outlet & Plug Repair", price: "৳ 1250" },
+          { name: "Internal Wiring Fix", price: "৳ 1400" },
+          { name: "Surge Protection Setup", price: "৳ 1300" },
+        ],
+      },
+    ],
   },
   {
     title: "Washing Machine Electrical Repair",
     description: "Fix power issues, sockets, and wiring faults for top/front loaders.",
-    price: "From $119",
+    price: "Starts from ৳1100",
     duration: "Typically 90-180 mins",
-    image: "https://images.unsplash.com/photo-1581579188871-45ea61f2a0c8?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=600&h=400&fit=crop",
     perks: ["Outlet & plug check", "Continuity & earth test", "Cable tidy-up"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1100",
+    details: [
+      {
+        title: "Power & Connection Check",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Outlet & Socket Inspection", price: "৳ 1100" },
+          { name: "Earth Continuity Testing", price: "৳ 1150" },
+          { name: "Motor Winding Check", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Wiring & Safety",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Internal Wiring Repair", price: "৳ 1200" },
+          { name: "Cable & Cord Replacement", price: "৳ 1250" },
+          { name: "Timer & Switch Repair", price: "৳ 1350" },
+        ],
+      },
+    ],
   },
   {
     title: "Microwave Oven Electrical Service",
     description: "Inspect power input, fuses, and safe connections for microwaves.",
-    price: "From $99",
+    price: "Starts from ৳950",
     duration: "Typically 60-150 mins",
-    image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=600&h=400&fit=crop",
     perks: ["Fuse/input check", "Cord & plug check", "Grounding verify"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳950",
+    details: [
+      {
+        title: "Power & Safety Check",
+        start: "Starts from ৳950",
+        items: [
+          { name: "Fuse & Input Testing", price: "৳ 950" },
+          { name: "Grounding Verification", price: "৳ 1000" },
+        ],
+      },
+      {
+        title: "Repair & Maintenance",
+        start: "Starts from ৳1050",
+        items: [
+          { name: "Cord & Plug Replacement", price: "৳ 1050" },
+          { name: "Door Switch Repair", price: "৳ 1150" },
+        ],
+      },
+    ],
   },
   {
     title: "Electric Iron & Heater Repair",
     description: "Restore safe power to irons and room heaters; cord and switch checks.",
-    price: "From $59",
+    price: "Starts from ৳600",
     duration: "Typically 45-120 mins",
-    image: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=600&h=400&fit=crop",
     perks: ["Cord replacement", "Switch test", "Earth continuity"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳600",
+    details: [
+      {
+        title: "Iron Repair",
+        start: "Starts from ৳600",
+        items: [
+          { name: "Cord Replacement", price: "৳ 600" },
+          { name: "Thermostat Repair", price: "৳ 750" },
+        ],
+      },
+      {
+        title: "Heater Repair",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Element Replacement", price: "৳ 700" },
+          { name: "Switch & Cord Repair", price: "৳ 800" },
+        ],
+      },
+    ],
   },
   {
     title: "Rice Cooker & Small Appliance Repair",
     description: "Fix power, plugs, and internal wiring for rice cookers and small appliances.",
-    price: "From $69",
+    price: "Starts from ৳700",
     duration: "Typically 45-120 mins",
-    image: "https://images.unsplash.com/photo-1612874472278-5c1f9d7b4bff?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1585515320310-259814833e62?w=600&h=400&fit=crop",
     perks: ["Cord/plug check", "Fuse/thermostat check", "Test run"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳700",
+    details: [
+      {
+        title: "Rice Cooker Services",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Thermostat Replacement", price: "৳ 700" },
+          { name: "Power Cord Repair", price: "৳ 650" },
+        ],
+      },
+      {
+        title: "Small Appliances",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Blender Motor Repair", price: "৳ 750" },
+          { name: "Toaster Element Check", price: "৳ 650" },
+        ],
+      },
+    ],
   },
 ];
 
