@@ -235,11 +235,30 @@ const repairServices = [
   {
     title: "CCTV Camera Service",
     description: "Diagnose power drops, replace adapters, and tidy low-voltage runs for CCTV.",
-    price: "From $119",
+    price: "Starts from ৳1100",
     duration: "Typically 90-180 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Adapter/PoE checks", "Cable continuity test", "Secure mounting"],
     category: "safety-compliance",
+    startFrom: "Starts from ৳1100",
+    details: [
+      {
+        title: "Power Supply Services",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Power Adapter Replacement", price: "৳ 1100" },
+          { name: "PoE Injector Installation", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Installation & Troubleshooting",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Cable Continuity Check", price: "৳ 1200" },
+          { name: "Camera Mounting & Alignment", price: "৳ 1400" },
+        ],
+      },
+    ],
   },
   {
     title: "Switch & Socket Repair/Replacement",
@@ -386,11 +405,32 @@ const repairServices = [
   {
     title: "Earthing (Grounding) Check & Repair",
     description: "Inspect and improve earthing to reduce shock risk and stabilize voltage.",
-    price: "From $139",
+    price: "Starts from ৳1400",
     duration: "Typically 90-180 mins",
     image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=400&fit=crop",
     perks: ["Earth pit inspection", "Continuity & resistance test", "Bonding check"],
     category: "safety-compliance",
+    startFrom: "Starts from ৳1400",
+    details: [
+      {
+        title: "Earthing Inspection & Testing",
+        start: "Starts from ৳1400",
+        items: [
+          { name: "Earth Pit Inspection", price: "৳ 1400" },
+          { name: "Resistance Testing", price: "৳ 1600" },
+          { name: "Continuity Check", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Earthing Repair & Installation",
+        start: "Starts from ৳1500",
+        items: [
+          { name: "Earth Pit Improvement", price: "৳ 1500" },
+          { name: "Bonding Wire Installation", price: "৳ 1700" },
+          { name: "Earth Rod Replacement", price: "৳ 1600" },
+        ],
+      },
+    ],
   },
   {
     title: "Short Circuit Fault Detection",
