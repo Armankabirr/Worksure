@@ -9,10 +9,47 @@ import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
+import { useState, useEffect, useRef } from "react";
 
 const Electrician = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [certifiedCount, setCertifiedCount] = useState(0);
+  const [jobsCount, setJobsCount] = useState(0);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          // Animate Certified Team (64+)
+          let count = 0;
+          const certInterval = setInterval(() => {
+            count++;
+            setCertifiedCount(Math.min(count, 64));
+            if (count >= 64) clearInterval(certInterval);
+          }, 30);
+
+          // Animate Jobs Completed (2649+)
+          let jobCount = 0;
+          const jobInterval = setInterval(() => {
+            jobCount += 40;
+            setJobsCount(Math.min(jobCount, 2649));
+            if (jobCount >= 2649) clearInterval(jobInterval);
+          }, 30);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (statsRef.current) {
+      observer.observe(statsRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleBookNow = () => {
     navigate("/search/workers?serviceType=electrician");
@@ -176,18 +213,18 @@ const Electrician = () => {
                   View Pricing
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-4 md:gap-6 text-sm text-muted-foreground">
+              <div className="grid grid-cols-2 gap-4 md:gap-6 text-sm text-muted-foreground" ref={statsRef}>
                 <Card className="border-none bg-card shadow-sm animate-fade-up" style={{ animationDelay: "140ms" }}>
                   <CardHeader className="pb-2">
                     <p className="text-xs font-semibold text-primary">Certified Team</p>
-                    <CardTitle className="text-3xl">64+</CardTitle>
+                    <CardTitle className="text-3xl">{certifiedCount}+</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 text-muted-foreground">Licensed electricians, verified and insured.</CardContent>
                 </Card>
                 <Card className="border-none bg-card shadow-sm animate-fade-up" style={{ animationDelay: "200ms" }}>
                   <CardHeader className="pb-2">
                     <p className="text-xs font-semibold text-primary">Jobs Completed</p>
-                    <CardTitle className="text-3xl">2,649+</CardTitle>
+                    <CardTitle className="text-3xl">{jobsCount.toLocaleString()}+</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 text-muted-foreground">Thousands of homes powered safely.</CardContent>
                 </Card>
@@ -256,7 +293,7 @@ const Electrician = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(service.navigateTo as string);
@@ -315,7 +352,7 @@ const Electrician = () => {
               ))}
             </div>
             <div className="flex justify-center pt-10 animate-fade-up" style={{ animationDelay: "260ms" }}>
-              <Button variant="secondary" className="rounded-full px-6">
+              <Button className="rounded-full px-6 bg-orange-500 hover:bg-orange-600 text-white" onClick={() => navigate("/electrician/electrical-repairs")}>
                 View Service
               </Button>
             </div>
@@ -467,10 +504,10 @@ const Electrician = () => {
               <p className="text-primary-foreground/80 mt-2">Contact us today for professional electrical services.</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+              <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={() => navigate("/")}>
                 Contact Us Now
               </Button>
-              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={handleBookNow}>
                 Book an Electrician
               </Button>
             </div>
