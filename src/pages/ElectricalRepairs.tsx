@@ -53,11 +53,34 @@ const repairServices = [
   {
     title: "Breaker Trips & Diagnostics",
     description: "Find and fix overloads, short circuits, nuisance tripping, and buzzing breakers.",
-    price: "From $79",
+    price: "Starts from ৳850",
     duration: "Typically 60-120 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Thermal and continuity checks", "Load balancing tips", "Safety-first process"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳850",
+    details: [
+      {
+        title: "Circuit Breaker Repairs",
+        start: "Starts from ৳850",
+        items: [
+          { name: "Single Pole Breaker Replacement", price: "৳ 850" },
+          { name: "Double Pole Breaker Replacement", price: "৳ 1050" },
+          { name: "GFCI Breaker Installation", price: "৳ 1300" },
+          { name: "AFCI Breaker Installation", price: "৳ 1450" },
+        ],
+      },
+      {
+        title: "Diagnostics & Troubleshooting",
+        start: "Starts from ৳950",
+        items: [
+          { name: "Circuit Overload Diagnosis", price: "৳ 950" },
+          { name: "Short Circuit Detection", price: "৳ 1200" },
+          { name: "Nuisance Trip Investigation", price: "৳ 1100" },
+          { name: "Buzzing Breaker Repair", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "Fixture & Fan Repairs",
@@ -200,11 +223,34 @@ const repairServices = [
   {
     title: "Switch & Socket Repair/Replacement",
     description: "Fix loose, burnt, or non-responsive switches and sockets with safe replacements.",
-    price: "From $59",
+    price: "Starts from ৳600",
     duration: "Typically 45-90 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Continuity test", "Tight/replace terminals", "Safety check"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳600",
+    details: [
+      {
+        title: "Socket Repair & Replacement",
+        start: "Starts from ৳600",
+        items: [
+          { name: "Standard Socket Replacement", price: "৳ 600" },
+          { name: "Burnt Socket Repair", price: "৳ 750" },
+          { name: "Loose Socket Tightening", price: "৳ 550" },
+          { name: "Waterproof Socket Installation", price: "৳ 950" },
+        ],
+      },
+      {
+        title: "Switch Repair & Replacement",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Standard Switch Replacement", price: "৳ 650" },
+          { name: "Non-Responsive Switch Repair", price: "৳ 700" },
+          { name: "Burnt Switch Replacement", price: "৳ 800" },
+          { name: "Two-Way Switch Installation", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "Light Fitting Install/Repair",
@@ -245,11 +291,34 @@ const repairServices = [
   {
     title: "Fuse Repair & Replacement",
     description: "Replace blown fuses, check holders, and verify safe circuit protection.",
-    price: "From $49",
+    price: "Starts from ৳500",
     duration: "Typically 30-60 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Rating verification", "Tight connections", "Test restore"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳500",
+    details: [
+      {
+        title: "Fuse Replacement Services",
+        start: "Starts from ৳500",
+        items: [
+          { name: "Standard Fuse Replacement", price: "৳ 500" },
+          { name: "Cartridge Fuse Replacement", price: "৳ 600" },
+          { name: "Blade Fuse Replacement", price: "৳ 550" },
+          { name: "Time-Delay Fuse Installation", price: "৳ 700" },
+        ],
+      },
+      {
+        title: "Fuse Holder & Box Services",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Fuse Holder Repair", price: "৳ 650" },
+          { name: "Fuse Box Inspection", price: "৳ 750" },
+          { name: "Fuse Box Terminal Tightening", price: "৳ 600" },
+          { name: "Circuit Protection Verification", price: "৳ 800" },
+        ],
+      },
+    ],
   },
   {
     title: "Earthing (Grounding) Check & Repair",
