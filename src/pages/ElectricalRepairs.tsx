@@ -85,11 +85,32 @@ const repairServices = [
   {
     title: "Fixture & Fan Repairs",
     description: "Repair or replace ceiling fans, pendants, chandeliers, and damp-rated fixtures.",
-    price: "From $69",
+    price: "Starts from ৳700",
     duration: "Typically 45-120 mins",
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&h=400&fit=crop",
     perks: ["Secure mounting", "Balanced fan alignment", "Post-install safety test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳700",
+    details: [
+      {
+        title: "Ceiling Fan Repairs",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Fan Motor Repair", price: "৳ 700" },
+          { name: "Fan Blade Balancing", price: "৳ 600" },
+          { name: "Fan Speed Controller Replacement", price: "৳ 850" },
+        ],
+      },
+      {
+        title: "Fixture Installation",
+        start: "Starts from ৳800",
+        items: [
+          { name: "Pendant Light Installation", price: "৳ 800" },
+          { name: "Chandelier Installation", price: "৳ 1050" },
+          { name: "Damp-Rated Fixture Installation", price: "৳ 950" },
+        ],
+      },
+    ],
   },
   {
     title: "Wiring Faults & Shorts",
@@ -255,20 +276,62 @@ const repairServices = [
   {
     title: "Light Fitting Install/Repair",
     description: "Install or fix ceiling, wall, and decorative lights with neat finish.",
-    price: "From $69",
+    price: "Starts from ৳650",
     duration: "Typically 45-120 mins",
     image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=400&fit=crop",
     perks: ["Secure mounting", "Cable dressing", "Functional test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳650",
+    details: [
+      {
+        title: "Ceiling Light Installation",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Basic Ceiling Light Install", price: "৳ 650" },
+          { name: "Flush Mount Light Install", price: "৳ 750" },
+          { name: "Recessed Light Installation", price: "৳ 900" },
+        ],
+      },
+      {
+        title: "Wall & Decorative Lights",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Wall Sconce Installation", price: "৳ 700" },
+          { name: "Picture Light Install", price: "৳ 750" },
+          { name: "LED Strip Light Installation", price: "৳ 850" },
+        ],
+      },
+    ],
   },
   {
     title: "Fan Repair & Installation (Ceiling/Exhaust)",
     description: "Balance, rewire, or install ceiling and exhaust fans for smooth, quiet runs.",
-    price: "From $79",
+    price: "Starts from ৳800",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&h=400&fit=crop",
     perks: ["Secure brackets", "Lubrication & balancing", "Speed test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳800",
+    details: [
+      {
+        title: "Ceiling Fan Installation",
+        start: "Starts from ৳800",
+        items: [
+          { name: "Standard Ceiling Fan Install", price: "৳ 800" },
+          { name: "Heavy-Duty Fan Installation", price: "৳ 1000" },
+          { name: "Smart Fan Installation", price: "৳ 1200" },
+        ],
+      },
+      {
+        title: "Exhaust Fan Services",
+        start: "Starts from ৳850",
+        items: [
+          { name: "Bathroom Exhaust Fan Install", price: "৳ 850" },
+          { name: "Kitchen Exhaust Fan Install", price: "৳ 950" },
+          { name: "Exhaust Duct Repair & Cleaning", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "MCB/RCCB Repair or Replacement",
