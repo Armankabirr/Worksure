@@ -513,7 +513,7 @@ const repairServices = [
         items: [
           { name: "Thermostat Check & Repair", price: "৳ 1000" },
           { name: "Earth Leakage Detection", price: "৳ 1100" },
-          { name: "Element Testing", price: "৳ 950" },
+          { name: "Heating Element Continuity Test", price: "৳ 950" },
         ],
       },
       {
@@ -522,7 +522,7 @@ const repairServices = [
         items: [
           { name: "Wiring Replacement", price: "৳ 1100" },
           { name: "Safety Cut-off Installation", price: "৳ 1300" },
-          { name: "Pressure Valve Check", price: "৳ 1050" },
+          { name: "Terminal Connection Tightening", price: "৳ 1050" },
         ],
       },
     ],
@@ -603,14 +603,15 @@ const repairServices = [
         items: [
           { name: "Fuse & Input Testing", price: "৳ 950" },
           { name: "Grounding Verification", price: "৳ 1000" },
+          { name: "Power Cable Inspection", price: "৳ 900" },
         ],
       },
       {
         title: "Repair & Maintenance",
         start: "Starts from ৳1050",
         items: [
-          { name: "Cord & Plug Replacement", price: "৳ 1050" },
-          { name: "Door Switch Repair", price: "৳ 1150" },
+          { name: "Power Cord Replacement", price: "৳ 1050" },
+          { name: "High-Voltage Connection Check", price: "৳ 1150" },
         ],
       },
     ],
