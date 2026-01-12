@@ -332,20 +332,58 @@ const repairServices = [
   {
     title: "Short Circuit Fault Detection",
     description: "Locate and isolate short circuits to safely restore power.",
-    price: "From $119",
+    price: "Starts from ৳1200",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=400&fit=crop",
     perks: ["Thermal/visual scan", "Isolation testing", "Safe restore"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳1200",
+    details: [
+      {
+        title: "Circuit Detection Services",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Short Circuit Locating", price: "৳ 1200" },
+          { name: "Thermal Imaging Scan", price: "৳ 1500" },
+        ],
+      },
+      {
+        title: "Restoration & Verification",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Safe Power Restoration", price: "৳ 1100" },
+          { name: "Isolation & Load Testing", price: "৳ 1400" },
+        ],
+      },
+    ],
   },
   {
     title: "Power Outage Troubleshooting",
     description: "Diagnose localized outages, identify overloads, and restore supply.",
-    price: "From $129",
+    price: "Starts from ৳1300",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&h=400&fit=crop",
     perks: ["Load balancing", "Panel checks", "Restore & verify"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳1300",
+    details: [
+      {
+        title: "Outage Diagnosis",
+        start: "Starts from ৳1300",
+        items: [
+          { name: "Localized Outage Detection", price: "৳ 1300" },
+          { name: "Load Overload Identification", price: "৳ 1400" },
+        ],
+      },
+      {
+        title: "Supply Restoration",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Panel Check & Reset", price: "৳ 1200" },
+          { name: "Power Supply Restoration", price: "৳ 1500" },
+        ],
+      },
+    ],
   },
   {
     title: "Inverter & Home UPS Connection",
