@@ -500,11 +500,32 @@ const repairServices = [
   {
     title: "Geyser (Water Heater) Repair",
     description: "Electrical checks for geyser wiring, thermostats, and safety cut-offs.",
-    price: "From $99",
+    price: "Starts from ৳1000",
     duration: "Typically 60-150 mins",
-    image: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop",
     perks: ["Thermostat check", "Earth leakage check", "Secure connections"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1000",
+    details: [
+      {
+        title: "Geyser Inspection & Testing",
+        start: "Starts from ৳1000",
+        items: [
+          { name: "Thermostat Check & Repair", price: "৳ 1000" },
+          { name: "Earth Leakage Detection", price: "৳ 1100" },
+          { name: "Element Testing", price: "৳ 950" },
+        ],
+      },
+      {
+        title: "Geyser Repair & Maintenance",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Wiring Replacement", price: "৳ 1100" },
+          { name: "Safety Cut-off Installation", price: "৳ 1300" },
+          { name: "Pressure Valve Check", price: "৳ 1050" },
+        ],
+      },
+    ],
   },
   {
     title: "Refrigerator Electrical Fix",
