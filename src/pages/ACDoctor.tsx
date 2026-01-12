@@ -86,7 +86,7 @@ const ACDoctor = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-v            {[
+            {[
               { name: 'Arman Kabir', role: 'AC Technician', image: teamImage },
               { name: 'Mahfuzur Rahman', role: 'AC Cleaner', image: mahfuzImage },
               { name: 'Tanvir Tomal', role: 'AC Service', image: teamImage },
