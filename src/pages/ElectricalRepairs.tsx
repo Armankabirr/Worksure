@@ -53,20 +53,64 @@ const repairServices = [
   {
     title: "Breaker Trips & Diagnostics",
     description: "Find and fix overloads, short circuits, nuisance tripping, and buzzing breakers.",
-    price: "From $79",
+    price: "Starts from ৳850",
     duration: "Typically 60-120 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Thermal and continuity checks", "Load balancing tips", "Safety-first process"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳850",
+    details: [
+      {
+        title: "Circuit Breaker Repairs",
+        start: "Starts from ৳850",
+        items: [
+          { name: "Single Pole Breaker Replacement", price: "৳ 850" },
+          { name: "Double Pole Breaker Replacement", price: "৳ 1050" },
+          { name: "GFCI Breaker Installation", price: "৳ 1300" },
+          { name: "AFCI Breaker Installation", price: "৳ 1450" },
+        ],
+      },
+      {
+        title: "Diagnostics & Troubleshooting",
+        start: "Starts from ৳950",
+        items: [
+          { name: "Circuit Overload Diagnosis", price: "৳ 950" },
+          { name: "Short Circuit Detection", price: "৳ 1200" },
+          { name: "Nuisance Trip Investigation", price: "৳ 1100" },
+          { name: "Buzzing Breaker Repair", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "Fixture & Fan Repairs",
     description: "Repair or replace ceiling fans, pendants, chandeliers, and damp-rated fixtures.",
-    price: "From $69",
+    price: "Starts from ৳700",
     duration: "Typically 45-120 mins",
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&h=400&fit=crop",
     perks: ["Secure mounting", "Balanced fan alignment", "Post-install safety test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳700",
+    details: [
+      {
+        title: "Ceiling Fan Repairs",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Fan Motor Repair", price: "৳ 700" },
+          { name: "Fan Blade Balancing", price: "৳ 600" },
+          { name: "Fan Speed Controller Replacement", price: "৳ 850" },
+        ],
+      },
+      {
+        title: "Fixture Installation",
+        start: "Starts from ৳800",
+        items: [
+          { name: "Pendant Light Installation", price: "৳ 800" },
+          { name: "Chandelier Installation", price: "৳ 1050" },
+          { name: "Damp-Rated Fixture Installation", price: "৳ 950" },
+        ],
+      },
+    ],
   },
   {
     title: "Wiring Faults & Shorts",
@@ -191,38 +235,122 @@ const repairServices = [
   {
     title: "CCTV Camera Service",
     description: "Diagnose power drops, replace adapters, and tidy low-voltage runs for CCTV.",
-    price: "From $119",
+    price: "Starts from ৳1100",
     duration: "Typically 90-180 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Adapter/PoE checks", "Cable continuity test", "Secure mounting"],
     category: "safety-compliance",
+    startFrom: "Starts from ৳1100",
+    details: [
+      {
+        title: "Power Supply Services",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Power Adapter Replacement", price: "৳ 1100" },
+          { name: "PoE Injector Installation", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Installation & Troubleshooting",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Cable Continuity Check", price: "৳ 1200" },
+          { name: "Camera Mounting & Alignment", price: "৳ 1400" },
+        ],
+      },
+    ],
   },
   {
     title: "Switch & Socket Repair/Replacement",
     description: "Fix loose, burnt, or non-responsive switches and sockets with safe replacements.",
-    price: "From $59",
+    price: "Starts from ৳600",
     duration: "Typically 45-90 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Continuity test", "Tight/replace terminals", "Safety check"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳600",
+    details: [
+      {
+        title: "Socket Repair & Replacement",
+        start: "Starts from ৳600",
+        items: [
+          { name: "Standard Socket Replacement", price: "৳ 600" },
+          { name: "Burnt Socket Repair", price: "৳ 750" },
+          { name: "Loose Socket Tightening", price: "৳ 550" },
+          { name: "Waterproof Socket Installation", price: "৳ 950" },
+        ],
+      },
+      {
+        title: "Switch Repair & Replacement",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Standard Switch Replacement", price: "৳ 650" },
+          { name: "Non-Responsive Switch Repair", price: "৳ 700" },
+          { name: "Burnt Switch Replacement", price: "৳ 800" },
+          { name: "Two-Way Switch Installation", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "Light Fitting Install/Repair",
     description: "Install or fix ceiling, wall, and decorative lights with neat finish.",
-    price: "From $69",
+    price: "Starts from ৳650",
     duration: "Typically 45-120 mins",
     image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=400&fit=crop",
     perks: ["Secure mounting", "Cable dressing", "Functional test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳650",
+    details: [
+      {
+        title: "Ceiling Light Installation",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Basic Ceiling Light Install", price: "৳ 650" },
+          { name: "Flush Mount Light Install", price: "৳ 750" },
+          { name: "Recessed Light Installation", price: "৳ 900" },
+        ],
+      },
+      {
+        title: "Wall & Decorative Lights",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Wall Sconce Installation", price: "৳ 700" },
+          { name: "Picture Light Install", price: "৳ 750" },
+          { name: "LED Strip Light Installation", price: "৳ 850" },
+        ],
+      },
+    ],
   },
   {
     title: "Fan Repair & Installation (Ceiling/Exhaust)",
     description: "Balance, rewire, or install ceiling and exhaust fans for smooth, quiet runs.",
-    price: "From $79",
+    price: "Starts from ৳800",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&h=400&fit=crop",
     perks: ["Secure brackets", "Lubrication & balancing", "Speed test"],
     category: "lighting-ambience",
+    startFrom: "Starts from ৳800",
+    details: [
+      {
+        title: "Ceiling Fan Installation",
+        start: "Starts from ৳800",
+        items: [
+          { name: "Standard Ceiling Fan Install", price: "৳ 800" },
+          { name: "Heavy-Duty Fan Installation", price: "৳ 1000" },
+          { name: "Smart Fan Installation", price: "৳ 1200" },
+        ],
+      },
+      {
+        title: "Exhaust Fan Services",
+        start: "Starts from ৳850",
+        items: [
+          { name: "Bathroom Exhaust Fan Install", price: "৳ 850" },
+          { name: "Kitchen Exhaust Fan Install", price: "৳ 950" },
+          { name: "Exhaust Duct Repair & Cleaning", price: "৳ 900" },
+        ],
+      },
+    ],
   },
   {
     title: "MCB/RCCB Repair or Replacement",
@@ -245,38 +373,120 @@ const repairServices = [
   {
     title: "Fuse Repair & Replacement",
     description: "Replace blown fuses, check holders, and verify safe circuit protection.",
-    price: "From $49",
+    price: "Starts from ৳500",
     duration: "Typically 30-60 mins",
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
     perks: ["Rating verification", "Tight connections", "Test restore"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳500",
+    details: [
+      {
+        title: "Fuse Replacement Services",
+        start: "Starts from ৳500",
+        items: [
+          { name: "Standard Fuse Replacement", price: "৳ 500" },
+          { name: "Cartridge Fuse Replacement", price: "৳ 600" },
+          { name: "Blade Fuse Replacement", price: "৳ 550" },
+          { name: "Time-Delay Fuse Installation", price: "৳ 700" },
+        ],
+      },
+      {
+        title: "Fuse Holder & Box Services",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Fuse Holder Repair", price: "৳ 650" },
+          { name: "Fuse Box Inspection", price: "৳ 750" },
+          { name: "Fuse Box Terminal Tightening", price: "৳ 600" },
+          { name: "Circuit Protection Verification", price: "৳ 800" },
+        ],
+      },
+    ],
   },
   {
     title: "Earthing (Grounding) Check & Repair",
     description: "Inspect and improve earthing to reduce shock risk and stabilize voltage.",
-    price: "From $139",
+    price: "Starts from ৳1400",
     duration: "Typically 90-180 mins",
     image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=400&fit=crop",
     perks: ["Earth pit inspection", "Continuity & resistance test", "Bonding check"],
     category: "safety-compliance",
+    startFrom: "Starts from ৳1400",
+    details: [
+      {
+        title: "Earthing Inspection & Testing",
+        start: "Starts from ৳1400",
+        items: [
+          { name: "Earth Pit Inspection", price: "৳ 1400" },
+          { name: "Resistance Testing", price: "৳ 1600" },
+          { name: "Continuity Check", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Earthing Repair & Installation",
+        start: "Starts from ৳1500",
+        items: [
+          { name: "Earth Pit Improvement", price: "৳ 1500" },
+          { name: "Bonding Wire Installation", price: "৳ 1700" },
+          { name: "Earth Rod Replacement", price: "৳ 1600" },
+        ],
+      },
+    ],
   },
   {
     title: "Short Circuit Fault Detection",
     description: "Locate and isolate short circuits to safely restore power.",
-    price: "From $119",
+    price: "Starts from ৳1200",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&h=400&fit=crop",
     perks: ["Thermal/visual scan", "Isolation testing", "Safe restore"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳1200",
+    details: [
+      {
+        title: "Circuit Detection Services",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Short Circuit Locating", price: "৳ 1200" },
+          { name: "Thermal Imaging Scan", price: "৳ 1500" },
+        ],
+      },
+      {
+        title: "Restoration & Verification",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Safe Power Restoration", price: "৳ 1100" },
+          { name: "Isolation & Load Testing", price: "৳ 1400" },
+        ],
+      },
+    ],
   },
   {
     title: "Power Outage Troubleshooting",
     description: "Diagnose localized outages, identify overloads, and restore supply.",
-    price: "From $129",
+    price: "Starts from ৳1300",
     duration: "Typically 60-150 mins",
     image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&h=400&fit=crop",
     perks: ["Load balancing", "Panel checks", "Restore & verify"],
     category: "electrical-repairs",
+    startFrom: "Starts from ৳1300",
+    details: [
+      {
+        title: "Outage Diagnosis",
+        start: "Starts from ৳1300",
+        items: [
+          { name: "Localized Outage Detection", price: "৳ 1300" },
+          { name: "Load Overload Identification", price: "৳ 1400" },
+        ],
+      },
+      {
+        title: "Supply Restoration",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Panel Check & Reset", price: "৳ 1200" },
+          { name: "Power Supply Restoration", price: "৳ 1500" },
+        ],
+      },
+    ],
   },
   {
     title: "Inverter & Home UPS Connection",
@@ -290,56 +500,177 @@ const repairServices = [
   {
     title: "Geyser (Water Heater) Repair",
     description: "Electrical checks for geyser wiring, thermostats, and safety cut-offs.",
-    price: "From $99",
+    price: "Starts from ৳1000",
     duration: "Typically 60-150 mins",
-    image: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&h=400&fit=crop",
     perks: ["Thermostat check", "Earth leakage check", "Secure connections"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1000",
+    details: [
+      {
+        title: "Geyser Inspection & Testing",
+        start: "Starts from ৳1000",
+        items: [
+          { name: "Thermostat Check & Repair", price: "৳ 1000" },
+          { name: "Earth Leakage Detection", price: "৳ 1100" },
+          { name: "Heating Element Continuity Test", price: "৳ 950" },
+        ],
+      },
+      {
+        title: "Geyser Repair & Maintenance",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Wiring Replacement", price: "৳ 1100" },
+          { name: "Safety Cut-off Installation", price: "৳ 1300" },
+          { name: "Terminal Connection Tightening", price: "৳ 1050" },
+        ],
+      },
+    ],
   },
   {
     title: "Refrigerator Electrical Fix",
     description: "Diagnose electrical supply issues, relays, and safe wiring for fridges.",
-    price: "From $129",
+    price: "Starts from ৳1150",
     duration: "Typically 90-180 mins",
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&h=400&fit=crop",
     perks: ["Outlet & plug check", "Relay/fuse check", "Surge guidance"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1150",
+    details: [
+      {
+        title: "Electrical Diagnosis",
+        start: "Starts from ৳1150",
+        items: [
+          { name: "Power Supply Check", price: "৳ 1150" },
+          { name: "Relay & Fuse Testing", price: "৳ 1200" },
+          { name: "Compressor Electrical Check", price: "৳ 1350" },
+        ],
+      },
+      {
+        title: "Wiring & Repair",
+        start: "Starts from ৳1250",
+        items: [
+          { name: "Outlet & Plug Repair", price: "৳ 1250" },
+          { name: "Internal Wiring Fix", price: "৳ 1400" },
+          { name: "Surge Protection Setup", price: "৳ 1300" },
+        ],
+      },
+    ],
   },
   {
     title: "Washing Machine Electrical Repair",
     description: "Fix power issues, sockets, and wiring faults for top/front loaders.",
-    price: "From $119",
+    price: "Starts from ৳1100",
     duration: "Typically 90-180 mins",
-    image: "https://images.unsplash.com/photo-1581579188871-45ea61f2a0c8?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=600&h=400&fit=crop",
     perks: ["Outlet & plug check", "Continuity & earth test", "Cable tidy-up"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳1100",
+    details: [
+      {
+        title: "Power & Connection Check",
+        start: "Starts from ৳1100",
+        items: [
+          { name: "Outlet & Socket Inspection", price: "৳ 1100" },
+          { name: "Earth Continuity Testing", price: "৳ 1150" },
+          { name: "Motor Winding Check", price: "৳ 1300" },
+        ],
+      },
+      {
+        title: "Wiring & Safety",
+        start: "Starts from ৳1200",
+        items: [
+          { name: "Internal Wiring Repair", price: "৳ 1200" },
+          { name: "Cable & Cord Replacement", price: "৳ 1250" },
+          { name: "Timer & Switch Repair", price: "৳ 1350" },
+        ],
+      },
+    ],
   },
   {
     title: "Microwave Oven Electrical Service",
     description: "Inspect power input, fuses, and safe connections for microwaves.",
-    price: "From $99",
+    price: "Starts from ৳950",
     duration: "Typically 60-150 mins",
-    image: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=600&h=400&fit=crop",
     perks: ["Fuse/input check", "Cord & plug check", "Grounding verify"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳950",
+    details: [
+      {
+        title: "Power & Safety Check",
+        start: "Starts from ৳950",
+        items: [
+          { name: "Fuse & Input Testing", price: "৳ 950" },
+          { name: "Grounding Verification", price: "৳ 1000" },
+          { name: "Power Cable Inspection", price: "৳ 900" },
+        ],
+      },
+      {
+        title: "Repair & Maintenance",
+        start: "Starts from ৳1050",
+        items: [
+          { name: "Power Cord Replacement", price: "৳ 1050" },
+          { name: "High-Voltage Connection Check", price: "৳ 1150" },
+        ],
+      },
+    ],
   },
   {
     title: "Electric Iron & Heater Repair",
     description: "Restore safe power to irons and room heaters; cord and switch checks.",
-    price: "From $59",
+    price: "Starts from ৳600",
     duration: "Typically 45-120 mins",
-    image: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=600&h=400&fit=crop",
     perks: ["Cord replacement", "Switch test", "Earth continuity"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳600",
+    details: [
+      {
+        title: "Iron Repair",
+        start: "Starts from ৳600",
+        items: [
+          { name: "Cord Replacement", price: "৳ 600" },
+          { name: "Thermostat Repair", price: "৳ 750" },
+        ],
+      },
+      {
+        title: "Heater Repair",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Element Replacement", price: "৳ 700" },
+          { name: "Switch & Cord Repair", price: "৳ 800" },
+        ],
+      },
+    ],
   },
   {
     title: "Rice Cooker & Small Appliance Repair",
     description: "Fix power, plugs, and internal wiring for rice cookers and small appliances.",
-    price: "From $69",
+    price: "Starts from ৳700",
     duration: "Typically 45-120 mins",
-    image: "https://images.unsplash.com/photo-1612874472278-5c1f9d7b4bff?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1585515320310-259814833e62?w=600&h=400&fit=crop",
     perks: ["Cord/plug check", "Fuse/thermostat check", "Test run"],
     category: "appliance-repair",
+    startFrom: "Starts from ৳700",
+    details: [
+      {
+        title: "Rice Cooker Services",
+        start: "Starts from ৳700",
+        items: [
+          { name: "Thermostat Replacement", price: "৳ 700" },
+          { name: "Power Cord Repair", price: "৳ 650" },
+        ],
+      },
+      {
+        title: "Small Appliances",
+        start: "Starts from ৳650",
+        items: [
+          { name: "Blender Motor Repair", price: "৳ 750" },
+          { name: "Toaster Element Check", price: "৳ 650" },
+        ],
+      },
+    ],
   },
 ];
 
@@ -537,12 +868,23 @@ const ElectricalRepairs = () => {
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <span className="text-sm font-semibold text-foreground">All repair quick links:</span>
                 {quickLinks.map((link) => (
-                  <span
+                  <button
                     key={link}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-foreground border border-border/60 text-xs"
+                    onClick={() => {
+                      const categoryMap: { [key: string]: string } = {
+                        "Outlet faults": "electrical-repairs",
+                        "Breaker trips": "electrical-repairs",
+                        "Fan not working": "lighting-ambience",
+                        "Light flicker": "lighting-ambience",
+                        "Short circuits": "electrical-repairs",
+                        "Loose neutral": "wiring-panel",
+                      };
+                      handleScrollTo(categoryMap[link] || "electrical-repairs");
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted hover:bg-primary/20 text-foreground border border-border/60 hover:border-primary/50 text-xs transition-all cursor-pointer"
                   >
                     <span className="h-2 w-2 rounded-full bg-primary" /> {link}
-                  </span>
+                  </button>
                 ))}
               </div>
             </section>
