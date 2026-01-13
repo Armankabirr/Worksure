@@ -25,7 +25,7 @@ function PanTo({ lat, lon }) {
 const Search = () => {
 
      const [selected, setSelected] = useState(null);
-     const [serviceType, setServiceType] = useState("");
+     const [subCategory, setSubCategory] = useState("");
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState(null);
      const [results, setResults] = useState([]);
@@ -34,6 +34,7 @@ const Search = () => {
      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
      const params = new URLSearchParams(window.location.search);
      const initialServiceType = params.get("serviceType") || "";
+     const [serviceType, setServiceType] = useState(initialServiceType ||  "");
      
      // Set initial service type from URL param
      useState(() => {
@@ -42,17 +43,94 @@ const Search = () => {
           }
      });
 
+     console.log(serviceType);
+     
+
      const services = [
-          { value: "electrician", label: "Electrician" },
-          { value: "cleaning", label: "Cleaner" },
-          { value: "acdoctor", label: "AC Doctor" },
-          { value: "catering", label: "Catering" },
-          { value: "babysitter", label: "Babysitter" },
-          { value: "petcaring", label: "Pet Caring" },
+          // Main Categories
+          { value: "electrician", label: "Electrician", isCategory: true },
+          { value: "cleaning", label: "Cleaning", isCategory: true },
+          { value: "catering", label: "Catering", isCategory: true },
+          { value: "babysitting", label: "Babysitting", isCategory: true },
+          { value: "pet-caring", label: "Pet Caring", isCategory: true },
+          { value: "plumbing", label: "Plumbing", isCategory: true },
+          { value: "carpentry", label: "Carpentry", isCategory: true },
+          { value: "pest-control", label: "Pest Control", isCategory: true },
      ];
+
+     const subCategories = {
+          electrician: [
+               { value: "home-wiring", label: "Home Wiring" },
+               { value: "refrigerator-repair", label: "Refrigerator Repair" },
+               { value: "appliance-repair", label: "Appliance Repair" },
+               { value: "ac-electrical", label: "AC Electrical" },
+               { value: "distribution-board", label: "Distribution Board" },
+               { value: "backup-power", label: "Backup Power" },
+               { value: "cctv", label: "CCTV" },
+               { value: "smart-home", label: "Smart Home" },
+               { value: "inspection", label: "Inspection" },
+          ],
+          cleaning: [
+               { value: "home-cleaning", label: "Home Cleaning" },
+               { value: "deep-cleaning", label: "Deep Cleaning" },
+               { value: "office-cleaning", label: "Office Cleaning" },
+               { value: "move-cleaning", label: "Move Cleaning" },
+               { value: "sofa-carpet", label: "Sofa & Carpet" },
+               { value: "window-cleaning", label: "Window Cleaning" },
+          ],
+          catering: [
+               { value: "home-cooking", label: "Home Cooking" },
+               { value: "event-catering", label: "Event Catering" },
+               { value: "office-catering", label: "Office Catering" },
+               { value: "snacks", label: "Snacks" },
+               { value: "special-diet", label: "Special Diet" },
+          ],
+          babysitting: [
+               { value: "hourly-babysitting", label: "Hourly Babysitting" },
+               { value: "full-day", label: "Full Day" },
+               { value: "night-care", label: "Night Care" },
+               { value: "newborn-care", label: "Newborn Care" },
+               { value: "special-needs", label: "Special Needs" },
+          ],
+          "pet-caring": [
+               { value: "pet-sitting", label: "Pet Sitting" },
+               { value: "pet-feeding", label: "Pet Feeding" },
+               { value: "pet-walking", label: "Pet Walking" },
+               { value: "pet-cleaning", label: "Pet Cleaning" },
+               { value: "medicine", label: "Medicine" },
+          ],
+          plumbing: [
+               { value: "leak-fixing", label: "Leak Fixing" },
+               { value: "bathroom-plumbing", label: "Bathroom Plumbing" },
+               { value: "pipe-installation", label: "Pipe Installation" },
+               { value: "water-tank", label: "Water Tank" },
+               { value: "drain-cleaning", label: "Drain Cleaning" },
+          ],
+          carpentry: [
+               { value: "furniture-repair", label: "Furniture Repair" },
+               { value: "furniture-install", label: "Furniture Install" },
+               { value: "door-window", label: "Door & Window" },
+               { value: "cabinet-work", label: "Cabinet Work" },
+               { value: "custom-work", label: "Custom Work" },
+          ],
+          "pest-control": [
+               { value: "cockroach-control", label: "Cockroach Control" },
+               { value: "termite-control", label: "Termite Control" },
+               { value: "mosquito-control", label: "Mosquito Control" },
+               { value: "rodent-control", label: "Rodent Control" },
+               { value: "bedbug-control", label: "Bedbug Control" },
+          ],
+     };
 
      function handleSelectPlace(place) {
           setSelected(place);
+     }
+
+     function handleServiceTypeChange(value) {
+          console.log(value);
+          
+          setServiceType(value);
+          setSubCategory(""); // Reset subcategory when main category changes
      }
 
      async function handleSearch() {
@@ -65,10 +143,13 @@ const Search = () => {
           setError(null);
 
           try {
+               // Use subcategory if selected, otherwise use main category
+               const searchCategory = subCategory || serviceType;
+               
                const queryParams = new URLSearchParams({
                     lat: selected.lat,
                     lon: selected.lon,
-                    categorySlug: serviceType,
+                    categorySlug: searchCategory,
                     radiusMeters: 5000, // 5km radius
                });
 
@@ -105,13 +186,14 @@ const Search = () => {
 
                          {/* Search Card */}
                          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 mb-10">
-                              <div className="flex w-full gap-4 flex-col md:flex-row justify-center items-end">
+                              {/* Row 1: Category and Sub Category */}
+                              <div className="flex w-full gap-4 flex-col md:flex-row justify-center items-end mb-4">
                                    {/* Service Type Select */}
-                                   <div className="flex flex-col w-full">
+                                   <div className="flex flex-col w-full md:w-1/2">
                                         <label className="text-sm font-semibold text-gray-700 mb-3">
                                              Service Type
                                         </label>
-                                        <Select value={serviceType} onValueChange={setServiceType}>
+                                        <Select value={serviceType} onValueChange={handleServiceTypeChange}>
                                              <SelectTrigger className="h-[61px] text-base">
                                                   <SelectValue placeholder="Choose a service..." />
                                              </SelectTrigger>
@@ -125,8 +207,34 @@ const Search = () => {
                                         </Select>
                                    </div>
 
+                                   {/* Sub Category Select */}
+                                   <div className="flex flex-col w-full md:w-1/2">
+                                        <label className="text-sm font-semibold text-gray-700 mb-3">
+                                             Sub Category
+                                        </label>
+                                        <Select 
+                                             value={subCategory} 
+                                             onValueChange={setSubCategory}
+                                             disabled={!serviceType || !subCategories[serviceType]?.length}
+                                        >
+                                             <SelectTrigger className="h-[61px] text-base">
+                                                  <SelectValue placeholder={serviceType ? "Choose a sub category..." : "Select service first"} />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                  {subCategories[serviceType]?.map((sub) => (
+                                                       <SelectItem key={sub.value} value={sub.value}>
+                                                            {sub.label}
+                                                       </SelectItem>
+                                                  ))}
+                                             </SelectContent>
+                                        </Select>
+                                   </div>
+                              </div>
+
+                              {/* Row 2: Location and Search Button */}
+                              <div className="flex w-full gap-4 flex-col md:flex-row justify-center items-end">
                                    {/* Address Search */}
-                                   <div className="flex flex-col w-full">
+                                   <div className="flex flex-col w-full md:flex-1">
                                         <label className="text-sm font-semibold text-gray-700 mb-3">
                                              Location
                                         </label>
@@ -181,7 +289,9 @@ const Search = () => {
                          {results.length > 0 && (
                               <div className="mt-40">
                                    <h2 className="text-3xl font-bold text-gray-900 mb-8 pt-5">
-                                        Available {services.find(s => s.value === serviceType)?.label}s
+                                        Available {subCategory 
+                                             ? subCategories[serviceType]?.find(s => s.value === subCategory)?.label 
+                                             : services.find(s => s.value === serviceType)?.label} Workers
                                    </h2>
                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                         {results.map((worker) => (

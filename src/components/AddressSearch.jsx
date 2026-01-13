@@ -107,8 +107,6 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
     setShowMapSelector(false);
   }
 
-  console.log(defaultValue);
-
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
