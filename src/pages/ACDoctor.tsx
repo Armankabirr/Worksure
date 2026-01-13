@@ -54,35 +54,35 @@ const ACDoctor = () => {
       title: "AC Cleaning & Maintenance",
       description: "Deep cleaning, filter change, and performance check for all AC brands.",
       price: "From ৳1200",
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop",
+      image: "https://images.pexels.com/photos/3768913/pexels-photo-3768913.jpeg?auto=compress&w=400&h=300&fit=crop", // Worker cleaning AC
       navigateTo: "/acdoctor/cleaning-maintenance",
     },
     {
       title: "AC Installation",
       description: "Expert installation for split, window, and cassette ACs. Includes site inspection.",
       price: "From ৳2500",
-      image: "https://images.unsplash.com/photo-1464983953574-0892a716854b?w=400&h=300&fit=crop",
+      image: "https://images.pexels.com/photos/6186121/pexels-photo-6186121.jpeg?auto=compress&w=400&h=300&fit=crop", // Worker installing AC
       navigateTo: "/acdoctor/installation",
     },
     {
       title: "AC Repair",
       description: "Quick diagnosis and repair for cooling, noise, or electrical issues.",
       price: "From ৳1800",
-      image: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=400&h=300&fit=crop",
+      image: "https://images.pexels.com/photos/3768912/pexels-photo-3768912.jpeg?auto=compress&w=400&h=300&fit=crop", // Worker repairing AC
       navigateTo: "/acdoctor/repair",
     },
     {
       title: "Gas Refilling",
       description: "Safe refrigerant top-up for all AC types, with leak check included.",
       price: "From ৳2200",
-      image: "https://images.unsplash.com/photo-1503389152951-9c3d8b6b8b73?w=400&h=300&fit=crop",
+      image: "https://images.pexels.com/photos/6186130/pexels-photo-6186130.jpeg?auto=compress&w=400&h=300&fit=crop", // Worker refilling AC gas
       navigateTo: "/acdoctor/gas-refilling",
     },
     {
       title: "Annual Maintenance Contract",
       description: "Year-round priority service, regular checkups, and discounts on repairs.",
       price: "From ৳5000",
-      image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=300&fit=crop",
+      image: "https://images.pexels.com/photos/6186131/pexels-photo-6186131.jpeg?auto=compress&w=400&h=300&fit=crop", // Worker with AC tools
       navigateTo: "/acdoctor/amc",
     },
   ];
@@ -195,7 +195,7 @@ const ACDoctor = () => {
                     alt={service.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600 opacity-20" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 opacity-20" />
                 </div>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">{service.title}</CardTitle>
@@ -205,19 +205,33 @@ const ACDoctor = () => {
                   <div className="flex items-center justify-between w-full">
                     <span className="text-sm font-semibold text-foreground">{service.price}</span>
                   </div>
-                  {service.navigateTo && (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(service.navigateTo as string);
+                        // Add to cart functionality
+                        const priceMatch = service.price.match(/\d+/);
+                        const price = priceMatch ? parseInt(priceMatch[0]) : 0;
+                        addToCart({
+                          serviceType: "ac-doctor",
+                          serviceName: service.title,
+                          price: price,
+                          description: service.description,
+                          image: service.image,
+                        });
+                        toast.success(`${service.title} added to cart!`, {
+                          description: "You can view and manage your cart items.",
+                          action: {
+                            label: "View Cart",
+                            onClick: () => navigate("/cart"),
+                          },
+                        });
                       }}
                     >
-                      View Details
+                      Book Now
                     </Button>
-                  )}
                 </CardContent>
               </Card>
             ))}
@@ -255,7 +269,7 @@ const ACDoctor = () => {
               ))}
             </div>
             <div className="flex justify-center pt-10 animate-fade-up" style={{ animationDelay: "260ms" }}>
-              <Button className="rounded-full px-6 bg-blue-500 hover:bg-blue-600 text-white" onClick={() => navigate("/acdoctor/cleaning-maintenance")}>View Service</Button>
+              <Button className="rounded-full px-6 bg-orange-500 hover:bg-orange-600 text-white" onClick={() => navigate("/acdoctor/cleaning-maintenance")}>View Service</Button>
             </div>
           </div>
         </section>
@@ -304,20 +318,28 @@ const ACDoctor = () => {
                       <li>Clean work area guarantee</li>
                     </ul>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <p className="font-semibold">Popular Jobs</p>
-                    <ul className="space-y-1 list-disc list-inside">
-                      <li>Filter cleaning</li>
-                      <li>Gas refilling</li>
-                      <li>AC installation</li>
-                    </ul>
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      size="lg"
+                      onClick={handleBookNow}
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-10 shadow-lg hover:shadow-xl transition-transform duration-200 hover:-translate-y-0.5"
+                    >
+                      Book an AC Doctor
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => navigate("/acdoctor/cleaning-maintenance")}
+                      className="border-2 border-orange-600 text-orange-700 hover:bg-orange-600 hover:text-white"
+                    >
+                      View Pricing
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
         </section>
-
         <section className="container mx-auto px-6 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
             <div className="space-y-4 animate-fade-up" style={{ animationDelay: "80ms" }}>
@@ -409,11 +431,11 @@ const ACDoctor = () => {
             </div>
           </div>
         </section>
+
       </main>
       <Footer />
-
     </div>
   );
-};
+}
 
 export default ACDoctor;
