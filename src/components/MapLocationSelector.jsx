@@ -111,10 +111,11 @@ export default function MapLocationSelector({ onSelect, onClose, apiKey, initial
       }
       
       const data = await res.json();
+      // LocationIQ returns display_name at root level, not under address
       setSelectedLocation({
         lat,
         lon,
-        display_name: data.address?.display_name || `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
+        display_name: data.display_name || `${lat.toFixed(5)}, ${lon.toFixed(5)}`,
         raw: data,
       });
     } catch (err) {
@@ -227,27 +228,7 @@ export default function MapLocationSelector({ onSelect, onClose, apiKey, initial
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-4 border-b border-slate-200 space-y-3">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search for an address..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="border-slate-300"
-            />
-            <Button
-              onClick={handleSearch}
-              disabled={loading || !searchQuery.trim()}
-              className="bg-primary hover:bg-primary/90 text-white gap-2"
-            >
-              <Search className="h-4 w-4" />
-              Search
-            </Button>
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-        </div>
+        
 
         {/* Map Container */}
         <div className="flex-1 relative overflow-hidden">

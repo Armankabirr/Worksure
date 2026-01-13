@@ -156,7 +156,10 @@ export default function AddressSearch({ onSelect, apiKey, provider = 'locationiq
         >
           <li
             role="option"
-            onClick={() => setShowMapSelector(true)}
+            onClick={() => {
+              setOpen(false);
+              setShowMapSelector(true);
+            }}
             style={{
               padding: '10px 12px',
               cursor: 'pointer',

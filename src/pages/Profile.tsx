@@ -1023,12 +1023,12 @@ const Profile = () => {
                                   {hiring.payment_completed ? (
                                     <>
                                       <CheckCheck className="h-3 w-3" />
-                                      Completed
+                                      {hiring.status}
                                     </>
                                   ) : (
                                     <>
                                       <Clock className="h-3 w-3" />
-                                      Pending
+                                      {hiring.status}
                                     </>
                                   )}
                                 </p>
