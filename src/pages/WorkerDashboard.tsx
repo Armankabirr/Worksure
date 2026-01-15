@@ -60,6 +60,23 @@ interface ServiceRequest {
   status: "Pending" | "Confirmed";
 }
 
+interface ApiServiceRequest {
+  id: string;
+  client_id?: string;
+  assigned_worker_id?: string;
+  selected_time?: string | null;
+  address?: string | null;
+  description?: string | null;
+  status?: string | null;
+  total_amount?: number | null;
+  payment_completed?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  work_start?: string | null;
+  work_end?: string | null;
+  users_orders_client_idTousers?: any;
+}
+
 interface UpcomingDay {
   date: string;
   appointments: number;
@@ -173,7 +190,42 @@ const WorkerDashboard = () => {
 
   const servicesInProgress: ServiceInProgress[] = [];
 
-  const serviceRequests: ServiceRequest[] = [];
+  const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([]);
+  const [serviceRequestsLoading, setServiceRequestsLoading] = useState(false);
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+
+  useEffect(() => {
+    async function fetchServiceRequests() {
+      setServiceRequestsLoading(true);
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/workerRoutes/hirings/requests/worker08@yopmail.com`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch requests: ${res.status}`);
+        }
+
+        const data = await res.json();
+        // Accept either data.data or data
+        const items = data?.data || data || [];
+        setServiceRequests(items);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching service requests:", err);
+        setServiceRequests([]);
+      } finally {
+        setServiceRequestsLoading(false);
+      }
+    }
+
+    fetchServiceRequests();
+  }, []);
 
   const upcomingDays: UpcomingDay[] = [
     { date: "Fri, Oct 17", appointments: 0, availableSlots: 0 },
@@ -466,28 +518,46 @@ const WorkerDashboard = () => {
                               </td>
                             </tr>
                           ) : (
-                            serviceRequests.map((request) => (
+                            serviceRequests.map((request: ApiServiceRequest) => (
                               <tr key={request.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3"></div>
+                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
+                                      {(
+                                        request.users_orders_client_idTousers?.select?.profile_picture ||
+                                        request.users_orders_client_idTousers?.profile_picture
+                                      ) ? (
+                                        <img
+                                          src={
+                                            request.users_orders_client_idTousers?.select?.profile_picture ||
+                                            request.users_orders_client_idTousers?.profile_picture
+                                          }
+                                          alt={
+                                            request.users_orders_client_idTousers?.select?.full_name ||
+                                            request.users_orders_client_idTousers?.full_name ||
+                                            "Client"
+                                          }
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : null}
+                                    </div>
                                     <div className="text-sm font-medium text-gray-900">
-                                      {request.userName}
+                                      {request.users_orders_client_idTousers?.select?.full_name || request.users_orders_client_idTousers?.full_name || "Client"}
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {request.task}
+                                  {request.description || request.selected_time || "-"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {request.location}
+                                  {request.address || "-"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {request.email}
+                                  {request.users_orders_client_idTousers?.select?.email || request.users_orders_client_idTousers?.email || "-"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                    {request.status}
+                                    {request.status || "-"}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -573,15 +643,55 @@ const WorkerDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
-                          <p className="text-gray-500 text-lg font-medium">No service request available now</p>
-                          <p className="text-gray-400 text-sm mt-2">New service requests will appear here</p>
-                        </div>
-                      </td>
-                    </tr>
+                    {serviceRequestsLoading ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-gray-500 text-lg font-medium">Loading service requests...</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : serviceRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-gray-500 text-lg font-medium">No service request available now</p>
+                            <p className="text-gray-400 text-sm mt-2">New service requests will appear here</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      serviceRequests.map((req: ApiServiceRequest) => (
+                        <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
+                                {(req.users_orders_client_idTousers?.select?.profile_picture || req.users_orders_client_idTousers?.profile_picture) ? (
+                                  <img
+                                    src={req.users_orders_client_idTousers?.select?.profile_picture || req.users_orders_client_idTousers?.profile_picture}
+                                    alt={req.users_orders_client_idTousers?.select?.full_name || req.users_orders_client_idTousers?.full_name || 'Client'}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : null}
+                              </div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {req.users_orders_client_idTousers?.select?.full_name || req.users_orders_client_idTousers?.full_name || 'Client'}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{req.description || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{req.total_amount != null ? `৳${req.total_amount}` : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{req.address || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                              {req.status || '-'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
