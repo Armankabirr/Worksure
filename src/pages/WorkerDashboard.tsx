@@ -193,6 +193,10 @@ const WorkerDashboard = () => {
   const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([]);
   const [serviceRequestsLoading, setServiceRequestsLoading] = useState(false);
 
+  const [selectedRequest, setSelectedRequest] = useState<ApiServiceRequest | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
   useEffect(() => {
@@ -226,6 +230,43 @@ const WorkerDashboard = () => {
 
     fetchServiceRequests();
   }, []);
+
+  async function updateRequestStatus(id: string, status: string) {
+    setActionLoading(true);
+    try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if ((user as any)?.token) headers["Authorization"] = `Bearer ${(user as any).token}`;
+
+      const res = await fetch(`${API_BASE_URL}/workerRoutes/hirings/requests/${id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ status }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update request: ${res.status}`);
+      }
+
+      // Update local state optimistically
+      setServiceRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+      // If the details modal is open for this request, update it too
+      setSelectedRequest((prev) => (prev && prev.id === id ? { ...prev, status } : prev));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("Error updating request status:", err);
+      alert("Failed to update request status. Please try again.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function acceptRequest(id: string) {
+    updateRequestStatus(id, "Confirmed");
+  }
+
+  function cancelRequest(id: string) {
+    updateRequestStatus(id, "Cancelled");
+  }
 
   const upcomingDays: UpcomingDay[] = [
     { date: "Fri, Oct 17", appointments: 0, availableSlots: 0 },
@@ -519,7 +560,14 @@ const WorkerDashboard = () => {
                             </tr>
                           ) : (
                             serviceRequests.map((request: ApiServiceRequest) => (
-                              <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                              <tr
+                                key={request.id}
+                                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  setSelectedRequest(request);
+                                  setDetailsOpen(true);
+                                }}
+                              >
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center">
                                     <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
@@ -560,12 +608,29 @@ const WorkerDashboard = () => {
                                     {request.status || "-"}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <Button 
+                                <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                                  <Button
                                     size="sm"
-                                    className="bg-orange-500 hover:bg-orange-600 text-white px-4"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-3"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      acceptRequest(request.id);
+                                    }}
+                                    disabled={actionLoading || request.status === "Confirmed"}
                                   >
-                                    View Details
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-red-600 border border-red-200 px-3"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      cancelRequest(request.id);
+                                    }}
+                                    disabled={actionLoading || request.status === "Cancelled"}
+                                  >
+                                    Cancel
                                   </Button>
                                 </td>
                               </tr>
@@ -664,7 +729,14 @@ const WorkerDashboard = () => {
                       </tr>
                     ) : (
                       serviceRequests.map((req: ApiServiceRequest) => (
-                        <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={req.id}
+                          className="hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => {
+                            setSelectedRequest(req);
+                            setDetailsOpen(true);
+                          }}
+                        >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
@@ -688,6 +760,31 @@ const WorkerDashboard = () => {
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
                               {req.status || '-'}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                acceptRequest(req.id);
+                              }}
+                              disabled={actionLoading || req.status === "Confirmed"}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 border border-red-200 px-3"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelRequest(req.id);
+                              }}
+                              disabled={actionLoading || req.status === "Cancelled"}
+                            >
+                              Cancel
+                            </Button>
                           </td>
                         </tr>
                       ))
@@ -1555,6 +1652,81 @@ const WorkerDashboard = () => {
               ))
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+      {/* Request Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold flex items-center text-orange-500">Service Request Details</DialogTitle>
+          </DialogHeader>
+
+          {selectedRequest ? (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
+                  {(selectedRequest.users_orders_client_idTousers?.select?.profile_picture || selectedRequest.users_orders_client_idTousers?.profile_picture) ? (
+                    <img src={selectedRequest.users_orders_client_idTousers?.select?.profile_picture || selectedRequest.users_orders_client_idTousers?.profile_picture} alt={selectedRequest.users_orders_client_idTousers?.select?.full_name || 'Client'} className="w-full h-full object-cover" />
+                  ) : null}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">{selectedRequest.users_orders_client_idTousers?.select?.full_name || selectedRequest.users_orders_client_idTousers?.full_name || 'Client'}</p>
+                  <p className="text-sm text-gray-500">{selectedRequest.users_orders_client_idTousers?.select?.email || selectedRequest.users_orders_client_idTousers?.email || '-'}</p>
+                  <p className="text-sm text-gray-500">{selectedRequest.users_orders_client_idTousers?.select?.phone || selectedRequest.users_orders_client_idTousers?.phone || '-'}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-medium text-gray-700">Description</h4>
+                <p className="text-sm text-gray-900">{selectedRequest.description || '-'}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700">Address</h4>
+                  <p className="text-sm text-gray-900">{selectedRequest.address || '-'}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700">Amount</h4>
+                  <p className="text-sm text-gray-900">{selectedRequest.total_amount != null ? `৳${selectedRequest.total_amount}` : '-'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700">Selected Time</h4>
+                  <p className="text-sm text-gray-900">{selectedRequest.selected_time || '-'}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700">Status</h4>
+                  <p className="text-sm text-gray-900">{selectedRequest.status || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="py-4 text-center text-gray-500">No request selected</div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsOpen(false)}>Close</Button>
+            <div className="flex gap-2">
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => selectedRequest && acceptRequest(selectedRequest.id)}
+                disabled={actionLoading || selectedRequest?.status === "Confirmed"}
+              >
+                Accept
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-red-600 border border-red-200"
+                onClick={() => selectedRequest && cancelRequest(selectedRequest.id)}
+                disabled={actionLoading || selectedRequest?.status === "Cancelled"}
+              >
+                Cancel
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
