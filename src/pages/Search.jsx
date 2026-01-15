@@ -134,17 +134,17 @@ const Search = () => {
      }
 
      async function handleSearch() {
-          if (!selected || !serviceType) {
-               setError("Please select both location and service type");
-               return;
-          }
+              if (!selected || !serviceType || !subCategory) {
+                  setError("Please select location, service type and sub-category");
+                  return;
+              }
 
           setLoading(true);
           setError(null);
 
           try {
                // Use subcategory if selected, otherwise use main category
-               const searchCategory = subCategory || serviceType;
+               const searchCategory = subCategory;
                
                const queryParams = new URLSearchParams({
                     lat: selected.lat,
@@ -215,7 +215,7 @@ const Search = () => {
                                         <Select 
                                              value={subCategory} 
                                              onValueChange={setSubCategory}
-                                             disabled={!serviceType || !subCategories[serviceType]?.length}
+                                             disabled={!serviceType || !subCategories[serviceType]?.length} required
                                         >
                                              <SelectTrigger className="h-[61px] text-base">
                                                   <SelectValue placeholder={serviceType ? "Choose a sub category..." : "Select service first"} />
@@ -250,7 +250,7 @@ const Search = () => {
                                    <div>
                                         <Button
                                              onClick={handleSearch}
-                                             disabled={loading}
+                                             disabled={loading || !selected || !serviceType || !subCategory}
                                              className="w-full h-[61px]  font-semibold text-lg rounded transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                                         >
                                              {loading ? (

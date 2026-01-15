@@ -207,18 +207,21 @@ const WorkerDetail = () => {
           );
      }
 
+     console.log(worker);
+     
+
      const primaryService = worker.worker_services[0];
      const primaryAddress = worker.addresses[0];
      const availability = worker.availabilities[0];
 
-     const fromTimeUTC = new Date(availability.available_from).toLocaleTimeString("en-US", {
+     const fromTimeUTC = new Date(availability?.available_from).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
           timeZone: "UTC"
      });
 
-     const toTimeUTC = new Date(availability.available_to).toLocaleTimeString("en-US", {
+     const toTimeUTC = new Date(availability?.available_to).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,

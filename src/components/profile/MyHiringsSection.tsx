@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,9 +12,76 @@ import {
   DollarSign,
   CheckCheck,
   Briefcase,
-  Star
+  Star,
+  CheckCircle,
+  XCircle,
+  PlayCircle,
+  HourglassIcon
 } from "lucide-react";
 import { Hiring } from "@/types/profile";
+
+// Status tab types
+type StatusTab = "all" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled";
+
+interface StatusTabConfig {
+  key: StatusTab;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+const statusTabs: StatusTabConfig[] = [
+  { 
+    key: "all", 
+    label: "All", 
+    icon: <Briefcase className="h-4 w-4" />,
+    color: "text-slate-700",
+    bgColor: "bg-slate-100",
+    borderColor: "border-slate-300"
+  },
+  { 
+    key: "pending", 
+    label: "Pending", 
+    icon: <HourglassIcon className="h-4 w-4" />,
+    color: "text-yellow-700",
+    bgColor: "bg-yellow-50",
+    borderColor: "border-yellow-300"
+  },
+  { 
+    key: "accepted", 
+    label: "Accepted", 
+    icon: <CheckCircle className="h-4 w-4" />,
+    color: "text-blue-700",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-300"
+  },
+  { 
+    key: "in_progress", 
+    label: "In Progress", 
+    icon: <PlayCircle className="h-4 w-4" />,
+    color: "text-purple-700",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-300"
+  },
+  { 
+    key: "completed", 
+    label: "Completed", 
+    icon: <CheckCheck className="h-4 w-4" />,
+    color: "text-green-700",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-300"
+  },
+  { 
+    key: "cancelled", 
+    label: "Cancelled", 
+    icon: <XCircle className="h-4 w-4" />,
+    color: "text-red-700",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-300"
+  },
+];
 
 interface MyHiringsSectionProps {
   hirings: Hiring[];
@@ -29,6 +97,24 @@ const MyHiringsSection = ({
   onCancelOrder 
 }: MyHiringsSectionProps) => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<StatusTab>("all");
+
+  // Filter hirings based on active tab
+  const filteredHirings = hirings.filter((hiring) => {
+    if (activeTab === "all") return true;
+    // Handle different status naming conventions (e.g., "in-progress" vs "in_progress")
+    const normalizedStatus = hiring.status?.toLowerCase().replace("-", "_");
+    return normalizedStatus === activeTab;
+  });
+
+  // Get count for each status
+  const getStatusCount = (status: StatusTab): number => {
+    if (status === "all") return hirings.length;
+    return hirings.filter((h) => {
+      const normalizedStatus = h.status?.toLowerCase().replace("-", "_");
+      return normalizedStatus === status;
+    }).length;
+  };
 
   return (
     <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden">
@@ -36,6 +122,42 @@ const MyHiringsSection = ({
       <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-5 border-b border-slate-200">
         <h2 className="text-xl font-bold text-foreground mb-0.5">My Hirings</h2>
         <p className="text-xs text-muted-foreground">View and manage your service hirings</p>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="border-b border-slate-200 bg-slate-50/50">
+        <div className="p-4">
+          <div className="flex flex-wrap gap-2">
+            {statusTabs.map((tab) => {
+              const count = getStatusCount(tab.key);
+              const isActive = activeTab === tab.key;
+              
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+                    transition-all duration-200 border
+                    ${isActive 
+                      ? `${tab.bgColor} ${tab.color} ${tab.borderColor} shadow-sm` 
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                    }
+                  `}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                  <span className={`
+                    ml-1 px-2 py-0.5 rounded-full text-xs font-semibold
+                    ${isActive ? "bg-white/60" : "bg-slate-100"}
+                  `}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Content */}
@@ -52,15 +174,28 @@ const MyHiringsSection = ({
             <Loader2 className="h-8 w-8 text-primary animate-spin" />
             <p className="text-sm text-muted-foreground">Loading your hirings...</p>
           </div>
-        ) : hirings && hirings.length > 0 ? (
+        ) : filteredHirings && filteredHirings.length > 0 ? (
           <div className="space-y-4">
-            {hirings.map((hiring) => (
+            {filteredHirings.map((hiring) => (
               <HiringCard 
                 key={hiring.id} 
                 hiring={hiring} 
                 onCancel={onCancelOrder} 
               />
             ))}
+          </div>
+        ) : hirings.length > 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Briefcase className="h-12 w-12 text-muted-foreground/40 mb-3" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">No {activeTab.replace("_", " ")} Hirings</h3>
+            <p className="text-sm text-muted-foreground mb-4">You don't have any hirings with this status</p>
+            <Button
+              onClick={() => setActiveTab("all")}
+              variant="outline"
+              className="border-slate-300"
+            >
+              View All Hirings
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
@@ -88,6 +223,36 @@ interface HiringCardProps {
 const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
   const worker = hiring.users_orders_assigned_worker_idTousers;
 
+  // Get status badge styling
+  const getStatusStyle = (status: string) => {
+    const normalizedStatus = status?.toLowerCase().replace("-", "_");
+    switch (normalizedStatus) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "accepted":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "in_progress":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "completed":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "cancelled":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  // Format status label
+  const formatStatus = (status: string) => {
+    if (!status) return "Unknown";
+    return status
+      .replace(/-/g, " ")
+      .replace(/_/g, " ")
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div className="border border-slate-200 rounded-lg p-4 hover:border-primary/50 hover:shadow-md transition-all duration-200">
       {/* Header with Status */}
@@ -100,17 +265,9 @@ const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              hiring.status === "completed"
-                ? "bg-green-100 text-green-700"
-                : hiring.status === "in-progress"
-                ? "bg-blue-100 text-blue-700"
-                : hiring.status === "pending"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-slate-100 text-slate-700"
-            }`}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(hiring.status)}`}
           >
-            {hiring.status?.charAt(0).toUpperCase() + hiring.status?.slice(1)}
+            {formatStatus(hiring.status)}
           </span>
         </div>
       </div>
