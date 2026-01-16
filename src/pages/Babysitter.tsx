@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import heroImage from "@/assets/babysitter.jpg";
+import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
 import {
   Activity,
@@ -111,7 +111,7 @@ const Babysitter = () => {
               <div className="relative rounded-[32px] bg-white/80 p-4 shadow-xl ring-1 ring-white/60">
                 <div className="absolute left-6 top-6 h-16 w-16 rounded-full bg-orange-200/60 blur-2xl" />
                 <div className="absolute right-6 bottom-6 h-16 w-16 rounded-full bg-purple-200/60 blur-2xl" />
-                <img src={heroImage} alt="Babysitter with child" className="relative h-80 w-full max-w-md rounded-3xl object-cover shadow-lg" />
+                <img src={heroImage} alt="Babysitter with child" className="relative h-96 w-full max-w-lg rounded-3xl object-cover shadow-lg" />
                 <div className="absolute -bottom-6 left-1/2 flex w-[85%] -translate-x-1/2 items-center justify-between rounded-2xl bg-white/95 px-4 py-3 shadow-md">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Sparkles className="h-4 w-4 text-orange-500" />
