@@ -98,11 +98,11 @@ const Babysitter = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button className="bg-gradient-to-r from-orange-500 to-fuchsia-500 text-white shadow-md hover:opacity-95">
+                <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">
                   <Play className="mr-2 h-4 w-4" />
                   Watch video
                 </Button>
-                <Button variant="outline" className="border-orange-200 bg-white/70 text-foreground hover:bg-orange-50">
+                <Button variant="outline" className="border-orange-300 bg-white/70 text-orange-600 hover:bg-orange-50">
                   Learn more
                 </Button>
               </div>
@@ -143,7 +143,7 @@ const Babysitter = () => {
                   </div>
                 ))}
               </div>
-              <Button className="bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white shadow-md hover:opacity-95">Schedule</Button>
+              <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">Schedule</Button>
             </div>
             <div className="relative flex justify-center md:justify-end">
               <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 p-4 shadow-md">
@@ -160,7 +160,7 @@ const Babysitter = () => {
               <p className="text-sm font-semibold text-orange-600">Popular Services</p>
               <h3 className="text-2xl font-bold text-foreground">Choose the perfect care for your family</h3>
             </div>
-            <Button variant="ghost" className="text-sm text-fuchsia-600 hover:bg-fuchsia-50">See more</Button>
+            <Button variant="ghost" className="text-sm text-orange-600 hover:bg-orange-50">See more</Button>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {popularServices.map((service) => {
@@ -177,7 +177,7 @@ const Babysitter = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Button size="sm" className="w-full bg-gradient-to-r from-orange-500 to-fuchsia-500 text-white shadow-sm hover:opacity-95">
+                    <Button size="sm" className="w-full bg-orange-500 text-white shadow-sm hover:bg-orange-600">
                       Schedule
                     </Button>
                   </CardContent>
@@ -215,7 +215,7 @@ const Babysitter = () => {
                       <div className="font-semibold text-foreground">${sitter.price}</div>
                       <p className="text-xs text-muted-foreground">per hour</p>
                     </div>
-                    <Button size="sm" className="bg-gradient-to-r from-orange-500 to-fuchsia-500 text-white shadow-sm hover:opacity-95">
+                    <Button size="sm" className="bg-orange-500 text-white shadow-sm hover:bg-orange-600">
                       Schedule
                     </Button>
                   </div>
