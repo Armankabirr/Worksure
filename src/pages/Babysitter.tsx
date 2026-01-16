@@ -100,7 +100,10 @@ const Babysitter = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">
+                <Button 
+                  className="bg-orange-500 text-white shadow-md hover:bg-orange-600"
+                  onClick={() => window.open('https://youtu.be/020g-0hhCAU?si=U6qq1PHNTcH9QWPb', '_blank')}
+                >
                   <Play className="mr-2 h-4 w-4" />
                   Watch video
                 </Button>
