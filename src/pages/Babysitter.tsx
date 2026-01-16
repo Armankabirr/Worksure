@@ -10,26 +10,28 @@ import {
   Baby,
   CalendarClock,
   CheckCircle2,
+  Clock,
   Clock3,
   GraduationCap,
   HandHeart,
   Heart,
   Home,
+  Moon,
   MoonStar,
   Play,
   ShieldCheck,
   Sparkles,
   Star,
+  Sun,
   Users,
 } from "lucide-react";
 
 const popularServices = [
-  { title: "After school care", desc: "Safe supervision and activities after school hours.", icon: GraduationCap },
-  { title: "In-home care", desc: "Personalized care in the comfort of your home.", icon: Home },
-  { title: "Date night sitting", desc: "Enjoy your evening while we care for your child.", icon: MoonStar },
-  { title: "Special needs care", desc: "Trained caregivers for children with special needs.", icon: HandHeart },
-  { title: "Weekend care", desc: "Flexible weekend babysitting services.", icon: CalendarClock },
-  { title: "Group childcare", desc: "Professional care for multiple children.", icon: Users },
+  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", icon: Clock },
+  { title: "Full day", desc: "Complete daylong supervision and activities.", icon: Sun },
+  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", icon: Moon },
+  { title: "Newborn care", desc: "Specialized care for newborns and infants.", icon: Baby },
+  { title: "Special care", desc: "Trained caregivers for children with special needs.", icon: HandHeart },
 ];
 
 const sitterProfiles = [
