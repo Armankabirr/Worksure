@@ -27,11 +27,11 @@ import {
 } from "lucide-react";
 
 const popularServices = [
-  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", icon: Clock },
-  { title: "Full day", desc: "Complete daylong supervision and activities.", icon: Sun },
-  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", icon: Moon },
-  { title: "Newborn care", desc: "Specialized care for newborns and infants.", icon: Baby },
-  { title: "Special care", desc: "Trained caregivers for children with special needs.", icon: HandHeart },
+  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", image: "https://images.unsplash.com/photo-1503454537688-e6c6ff1b912d?w=400&h=300&fit=crop" },
+  { title: "Full day", desc: "Complete daylong supervision and activities.", image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=300&fit=crop" },
+  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", image: "https://images.unsplash.com/photo-1516627145497-ae6968895b0f?w=400&h=300&fit=crop" },
+  { title: "Newborn care", desc: "Specialized care for newborns and infants.", image: "https://images.unsplash.com/photo-1555097462-c2dfc2c1b770?w=400&h=300&fit=crop" },
+  { title: "Special care", desc: "Trained caregivers for children with special needs.", image: "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?w=400&h=300&fit=crop" },
 ];
 
 const sitterProfiles = [
@@ -166,17 +166,14 @@ const Babysitter = () => {
           </div>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {popularServices.map((service) => {
-              const Icon = service.icon;
               return (
-                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                  <CardHeader className="flex flex-row items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-fuchsia-100 text-orange-600">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base font-semibold text-foreground">{service.title}</CardTitle>
-                      <CardDescription className="text-sm text-muted-foreground">{service.desc}</CardDescription>
-                    </div>
+                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-sm transition hover:-translate-y-1 hover:shadow-md overflow-hidden">
+                  <div className="h-48 w-full overflow-hidden bg-gray-200">
+                    <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-base font-semibold text-foreground">{service.title}</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">{service.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button size="sm" className="w-full bg-orange-500 text-white shadow-sm hover:bg-orange-600">
