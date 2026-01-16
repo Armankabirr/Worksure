@@ -64,7 +64,7 @@ const Babysitter = () => {
     <div className="min-h-screen bg-gradient-to-b from-orange-50/70 via-white to-purple-50/40 flex flex-col">
       <Header />
       <main className="flex-1">
-        <section className="relative overflow-hidden pt-16 pb-14 md:pb-20">
+        <section className="relative overflow-hidden pt-24 md:pt-28 pb-14 md:pb-20">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 via-white to-purple-100/50" />
           <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-orange-200/30 blur-3xl" />
           <div className="absolute -right-24 bottom-10 h-64 w-64 rounded-full bg-purple-200/30 blur-3xl" />
