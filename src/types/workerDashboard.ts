@@ -42,8 +42,61 @@ export interface ApiServiceRequest {
 
 export interface UpcomingDay {
   date: string;
+  day_name?: string;
   appointments: number;
+  total_appointments?: number;
   availableSlots: number;
+  available_slots?: number;
+}
+
+// Dashboard Overview API Response Types
+export interface DashboardTodayWork {
+  booking_id: string;
+  client_name: string;
+  service_name: string;
+  start_time: string;
+  countdown: string;
+  location: string;
+  status: string;
+  client_picture?: string;
+}
+
+export interface DashboardUpcomingWork {
+  booking_id: string;
+  client_name: string;
+  service_name: string;
+  scheduled_date: string;
+  scheduled_time?: string;
+  days_until: string;
+  location: string;
+  client_picture?: string;
+}
+
+export interface DashboardServiceRequest {
+  request_id: string;
+  client_name: string;
+  client_email: string;
+  client_picture?: string;
+  task: string;
+  location: string;
+  status: string;
+}
+
+export interface DashboardSummary {
+  todaysAppointments: number;
+  confirmed: number;
+  pending: number;
+  availableSlots: number;
+}
+
+export interface DashboardOverviewResponse {
+  success: boolean;
+  worker_name: string;
+  summary: DashboardSummary;
+  todaysWorks: DashboardTodayWork[];
+  upcomingWorks: DashboardUpcomingWork[];
+  upcomingDays: UpcomingDay[];
+  serviceRequests: DashboardServiceRequest[];
 }
 
 export interface Notification {
@@ -92,4 +145,96 @@ export interface WorkerStats {
   confirmed: number;
   pending: number;
   availableSlots: number;
+}
+
+// Worker Dashboard Details API Response Types
+export interface WorkerProfile {
+  display_name?: string;
+  bio?: string;
+  years_experience?: number;
+  avg_rating?: number;
+  total_reviews?: number;
+  verification?: string;
+  documents_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export interface ServiceSection {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export interface WorkerService {
+  id: string;
+  base_price?: number;
+  price_unit?: string;
+  skills?: string[];
+  created_at?: string;
+  service_categories?: ServiceCategory;
+  service_sections?: ServiceSection;
+}
+
+export interface WorkerAvailability {
+  id: string;
+  available_from?: string;
+  available_to?: string;
+  weekend?: boolean;
+}
+
+export interface WorkerAddress {
+  id: string;
+  street?: string;
+  city?: string;
+  district?: string;
+  postal_code?: string;
+  lat?: number;
+  lon?: number;
+}
+
+export interface WorkerReviewReviewer {
+  id: string;
+  full_name?: string;
+  profile_picture?: string;
+}
+
+export interface WorkerReview {
+  id: string;
+  rating?: number;
+  comment?: string;
+  created_at?: string;
+  users_reviews_reviewer_idTousers?: WorkerReviewReviewer;
+}
+
+export interface WorkerDetailsData {
+  id: string;
+  email?: string;
+  phone?: string;
+  full_name?: string;
+  gender?: string;
+  role?: string;
+  date_of_birth?: string;
+  profile_picture?: string;
+  created_at?: string;
+  last_login_at?: string;
+  is_active?: boolean;
+  worker_profiles?: WorkerProfile[];
+  worker_services?: WorkerService[];
+  availabilities?: WorkerAvailability[];
+  addresses?: WorkerAddress[];
+  reviews_reviews_worker_idTousers?: WorkerReview[];
+}
+
+export interface WorkerDetailsResponse {
+  success: boolean;
+  data: WorkerDetailsData;
 }

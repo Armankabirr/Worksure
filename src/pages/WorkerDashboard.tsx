@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Clock,
   MapPin,
+  Loader2,
 } from "lucide-react";
 
 // Types
@@ -37,6 +38,13 @@ import {
   ProfileFormData,
   PasswordFormData,
   CompleteFormData,
+  DashboardOverviewResponse,
+  DashboardTodayWork,
+  DashboardUpcomingWork,
+  DashboardServiceRequest,
+  DashboardSummary,
+  WorkerDetailsData,
+  WorkerDetailsResponse,
 } from "@/types/workerDashboard";
 
 // Utils
@@ -94,9 +102,26 @@ const WorkerDashboard = () => {
   const [serviceRequestsLoading, setServiceRequestsLoading] = useState(false);
   const [workHistoryLoading, setWorkHistoryLoading] = useState(false);
   const [extraItemsLoading, setExtraItemsLoading] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   // Error States
   const [passwordError, setPasswordError] = useState("");
+
+  // Dashboard Overview Data States
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary>({
+    todaysAppointments: 0,
+    confirmed: 0,
+    pending: 0,
+    availableSlots: 0,
+  });
+  const [dashboardTodaysWorks, setDashboardTodaysWorks] = useState<DashboardTodayWork[]>([]);
+  const [dashboardUpcomingWorks, setDashboardUpcomingWorks] = useState<DashboardUpcomingWork[]>([]);
+  const [dashboardUpcomingDays, setDashboardUpcomingDays] = useState<UpcomingDay[]>([]);
+  const [dashboardServiceRequests, setDashboardServiceRequests] = useState<DashboardServiceRequest[]>([]);
+
+  // Worker Details Data States
+  const [workerDetails, setWorkerDetails] = useState<WorkerDetailsData | null>(null);
+  const [workerDetailsLoading, setWorkerDetailsLoading] = useState(false);
 
   // Data States
   const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([]);
@@ -179,14 +204,6 @@ const WorkerDashboard = () => {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Upcoming days mock data
-  const upcomingDays: UpcomingDay[] = [
-    { date: "Fri, Oct 17", appointments: 0, availableSlots: 0 },
-    { date: "Sat, Oct 18", appointments: 0, availableSlots: 0 },
-    { date: "Sun, Oct 19", appointments: 0, availableSlots: 0 },
-    { date: "Mon, Oct 20", appointments: 0, availableSlots: 0 },
-  ];
-
   // Filtered work data
   const {
     todaysWorks,
@@ -216,6 +233,50 @@ const WorkerDashboard = () => {
       avatarUrl: user.avatar || prev.avatarUrl,
     }));
   }, [user]);
+
+  // Fetch Dashboard Overview Data
+  useEffect(() => {
+    async function fetchDashboardOverview() {
+      if (!user?.email) return;
+      setDashboardLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
+        const data: DashboardOverviewResponse = res.data;
+        
+        if (data.success) {
+          setDashboardSummary(data.summary);
+          setDashboardTodaysWorks(data.todaysWorks || []);
+          setDashboardUpcomingWorks(data.upcomingWorks || []);
+          setDashboardServiceRequests(data.serviceRequests || []);
+          // Transform upcomingDays to match our interface
+          setDashboardUpcomingDays(
+            (data.upcomingDays || []).map((day) => ({
+              date: day.date,
+              day_name: day.day_name,
+              appointments: day.total_appointments || day.appointments || 0,
+              availableSlots: day.available_slots || day.availableSlots || 0,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard overview:", err);
+        // Reset to defaults on error
+        setDashboardSummary({
+          todaysAppointments: 0,
+          confirmed: 0,
+          pending: 0,
+          availableSlots: 0,
+        });
+        setDashboardTodaysWorks([]);
+        setDashboardUpcomingWorks([]);
+        setDashboardUpcomingDays([]);
+        setDashboardServiceRequests([]);
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+    fetchDashboardOverview();
+  }, [axiosPublic, user?.email]);
 
   useEffect(() => {
     async function fetchWorkHistory() {
@@ -250,6 +311,27 @@ const WorkerDashboard = () => {
       }
     }
     fetchServiceRequests();
+  }, [axiosPublic, user?.email]);
+
+  // Fetch Worker Details for Account Page
+  useEffect(() => {
+    async function fetchWorkerDetails() {
+      if (!user?.email) return;
+      setWorkerDetailsLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/details/${user.email}`);
+        const data: WorkerDetailsResponse = res.data;
+        if (data.success && data.data) {
+          setWorkerDetails(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching worker details:", err);
+        setWorkerDetails(null);
+      } finally {
+        setWorkerDetailsLoading(false);
+      }
+    }
+    fetchWorkerDetails();
   }, [axiosPublic, user?.email]);
 
   // Handlers
@@ -569,18 +651,30 @@ const WorkerDashboard = () => {
       case "dashboard":
         return (
           <DashboardContent
-            stats={stats}
-            todaysWorks={todaysWorks}
-            upcomingWorks={upcomingWorks}
-            serviceRequests={serviceRequests}
-            upcomingDays={upcomingDays}
+            summary={dashboardSummary}
+            todaysWorks={dashboardTodaysWorks}
+            upcomingWorks={dashboardUpcomingWorks}
+            serviceRequests={dashboardServiceRequests}
+            upcomingDays={dashboardUpcomingDays}
+            loading={dashboardLoading}
             actionLoading={actionLoading}
-            onAcceptRequest={acceptRequest}
-            onCancelRequest={openCancelDialog}
-            onViewDetails={(req) => {
-              setSelectedRequest(req);
-              setDetailsOpen(true);
+            onAcceptRequest={async (id) => {
+              await acceptRequest(id);
+              // Refresh dashboard data after accepting
+              try {
+                const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
+                const data: DashboardOverviewResponse = res.data;
+                if (data.success) {
+                  setDashboardSummary(data.summary);
+                  setDashboardTodaysWorks(data.todaysWorks || []);
+                  setDashboardUpcomingWorks(data.upcomingWorks || []);
+                  setDashboardServiceRequests(data.serviceRequests || []);
+                }
+              } catch (err) {
+                console.error("Error refreshing dashboard:", err);
+              }
             }}
+            onCancelRequest={openCancelDialog}
           />
         );
       case "service-request":
@@ -617,6 +711,8 @@ const WorkerDashboard = () => {
           <AccountContent
             user={user}
             savedProfile={savedProfile}
+            workerDetails={workerDetails}
+            workerDetailsLoading={workerDetailsLoading}
             onAvatarChange={handleAvatarChange}
             onEditProfile={() => setEditProfileOpen(true)}
             onChangePassword={() => {
@@ -888,28 +984,37 @@ const WorkerDashboard = () => {
 
 // Dashboard Content Component (kept inline as it's specific to this page)
 interface DashboardContentProps {
-  stats: { todayAppointments: number; confirmed: number; pending: number; availableSlots: number };
-  todaysWorks: ApiServiceRequest[];
-  upcomingWorks: ApiServiceRequest[];
-  serviceRequests: ApiServiceRequest[];
+  summary: DashboardSummary;
+  todaysWorks: DashboardTodayWork[];
+  upcomingWorks: DashboardUpcomingWork[];
+  serviceRequests: DashboardServiceRequest[];
   upcomingDays: UpcomingDay[];
+  loading: boolean;
   actionLoading: boolean;
   onAcceptRequest: (id: string) => void;
   onCancelRequest: (id: string) => void;
-  onViewDetails: (req: ApiServiceRequest) => void;
 }
 
 const DashboardContent = ({
-  stats,
+  summary,
   todaysWorks,
   upcomingWorks,
   serviceRequests,
   upcomingDays,
+  loading,
   actionLoading,
   onAcceptRequest,
   onCancelRequest,
-  onViewDetails,
 }: DashboardContentProps) => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <span className="ml-2 text-gray-600">Loading dashboard...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Stats Cards */}
@@ -921,7 +1026,7 @@ const DashboardContent = ({
               <Calendar className="h-5 w-5 text-blue-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.todayAppointments}</p>
+          <p className="text-3xl font-bold text-gray-900">{summary.todaysAppointments}</p>
           <p className="text-xs text-gray-500 mt-2">Total bookings for today</p>
         </Card>
         <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-green-500 hover:scale-105">
@@ -931,7 +1036,7 @@ const DashboardContent = ({
               <ClipboardList className="h-5 w-5 text-green-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.confirmed}</p>
+          <p className="text-3xl font-bold text-gray-900">{summary.confirmed}</p>
           <p className="text-xs text-gray-500 mt-2">Ready to start</p>
         </Card>
         <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
@@ -941,7 +1046,7 @@ const DashboardContent = ({
               <Bell className="h-5 w-5 text-orange-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
+          <p className="text-3xl font-bold text-gray-900">{summary.pending}</p>
           <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
         </Card>
         <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
@@ -951,7 +1056,7 @@ const DashboardContent = ({
               <Star className="h-5 w-5 text-purple-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.availableSlots}</p>
+          <p className="text-3xl font-bold text-gray-900">{summary.availableSlots}</p>
           <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
         </Card>
       </div>
@@ -996,45 +1101,41 @@ const DashboardContent = ({
                       </tr>
                     ) : (
                       todaysWorks.map((work) => (
-                        <tr key={work.id} className="hover:bg-gray-50">
+                        <tr key={work.booking_id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                {(work.users_orders_client_idTousers?.select?.profile_picture ||
-                                  work.users_orders_client_idTousers?.profile_picture) && (
+                                {work.client_picture && (
                                   <img
-                                    src={work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture}
+                                    src={work.client_picture}
                                     alt="Client"
                                     className="w-full h-full object-cover"
                                   />
                                 )}
                               </div>
                               <div className="text-sm font-medium text-gray-900">
-                                {work.users_orders_client_idTousers?.select?.full_name || work.users_orders_client_idTousers?.full_name || "Client"}
+                                {work.client_name || "Client"}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.description || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.service_name || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Clock className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.selected_date ? new Date(work.selected_date).toLocaleDateString() : "-"}
+                              {work.start_time ? new Date(work.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {(() => {
-                              const countdown = getCountdown(work.selected_date, work.selected_time);
-                              return countdown ? (
-                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">{countdown}</span>
-                              ) : (
-                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Now</span>
-                              );
-                            })()}
+                            {work.countdown ? (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">{work.countdown}</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Now</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center">
                               <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.address || "-"}
+                              {work.location || "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -1087,45 +1188,41 @@ const DashboardContent = ({
                       </tr>
                     ) : (
                       upcomingWorks.map((work) => (
-                        <tr key={work.id} className="hover:bg-gray-50">
+                        <tr key={work.booking_id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                {(work.users_orders_client_idTousers?.select?.profile_picture ||
-                                  work.users_orders_client_idTousers?.profile_picture) && (
+                                {work.client_picture && (
                                   <img
-                                    src={work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture}
+                                    src={work.client_picture}
                                     alt="Client"
                                     className="w-full h-full object-cover"
                                   />
                                 )}
                               </div>
                               <div className="text-sm font-medium text-gray-900">
-                                {work.users_orders_client_idTousers?.select?.full_name || work.users_orders_client_idTousers?.full_name || "Client"}
+                                {work.client_name || "Client"}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.description || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.service_name || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.selected_date ? new Date(work.selected_date).toLocaleDateString() : "-"} {work.selected_time || ""}
+                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleDateString() : "-"} {work.scheduled_time || ""}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {(() => {
-                              const countdown = getCountdown(work.selected_date, work.selected_time);
-                              return countdown ? (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{countdown}</span>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              );
-                            })()}
+                            {work.days_until ? (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{work.days_until}</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center">
                               <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.address || "-"}
+                              {work.location || "-"}
                             </div>
                           </td>
                         </tr>
@@ -1175,31 +1272,29 @@ const DashboardContent = ({
                     ) : (
                       serviceRequests.map((request) => (
                         <tr
-                          key={request.id}
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => onViewDetails(request)}
+                          key={request.request_id}
+                          className="hover:bg-gray-50 transition-colors"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                {(request.users_orders_client_idTousers?.select?.profile_picture ||
-                                  request.users_orders_client_idTousers?.profile_picture) && (
+                                {request.client_picture && (
                                   <img
-                                    src={request.users_orders_client_idTousers?.select?.profile_picture || request.users_orders_client_idTousers?.profile_picture}
+                                    src={request.client_picture}
                                     alt="Client"
                                     className="w-full h-full object-cover"
                                   />
                                 )}
                               </div>
                               <div className="text-sm font-medium text-gray-900">
-                                {request.users_orders_client_idTousers?.select?.full_name || request.users_orders_client_idTousers?.full_name || "Client"}
+                                {request.client_name || "Client"}
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.description || request.selected_time || "-"}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.address || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.location || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {request.users_orders_client_idTousers?.select?.email || request.users_orders_client_idTousers?.email || "-"}
+                            {request.client_email || "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
@@ -1212,7 +1307,7 @@ const DashboardContent = ({
                               className="bg-green-600 hover:bg-green-700 text-white px-3"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onAcceptRequest(request.id);
+                                onAcceptRequest(request.request_id);
                               }}
                               disabled={actionLoading || request.status === "Confirmed"}
                             >
@@ -1224,7 +1319,7 @@ const DashboardContent = ({
                               className="text-red-600 border border-red-200 px-3"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onCancelRequest(request.id);
+                                onCancelRequest(request.request_id);
                               }}
                               disabled={actionLoading || request.status === "Cancelled"}
                             >
@@ -1249,26 +1344,35 @@ const DashboardContent = ({
           </div>
           <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
             <div className="space-y-6">
-              {upcomingDays.map((day, index) => (
-                <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
-                  <div className="flex items-center mb-3">
-                    <Calendar className="h-4 w-4 text-orange-500 mr-2" />
-                    <span className="text-sm font-semibold text-gray-700">{day.date}</span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Appointments</span>
-                      <span className="font-semibold">{day.appointments}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Available Slots</span>
-                      <span className={`font-semibold ${day.availableSlots < 5 ? "text-red-600" : "text-green-600"}`}>
-                        {day.availableSlots}
+              {upcomingDays.length === 0 ? (
+                <div className="text-center py-4">
+                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">No upcoming days data</p>
+                </div>
+              ) : (
+                upcomingDays.map((day, index) => (
+                  <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
+                    <div className="flex items-center mb-3">
+                      <Calendar className="h-4 w-4 text-orange-500 mr-2" />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {day.day_name ? `${day.day_name}, ` : ""}{day.date ? new Date(day.date).toLocaleDateString() : day.date}
                       </span>
                     </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Appointments</span>
+                        <span className="font-semibold">{day.appointments}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Available Slots</span>
+                        <span className={`font-semibold ${day.availableSlots < 5 ? "text-red-600" : "text-green-600"}`}>
+                          {day.availableSlots}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </div>
@@ -1309,7 +1413,9 @@ const NotificationsDialog = ({ open, onOpenChange, notifications }: Notification
         <div className="space-y-3">
           {notifications.length === 0 ? (
             <div className="text-center py-8">
-              <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <Bell className="h-12 w-12 text-gray-300 
+              
+              mx-auto mb-3" />
               <p className="text-gray-500 text-sm">No notifications yet</p>
             </div>
           ) : (
