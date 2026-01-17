@@ -112,7 +112,7 @@ const WorkerDashboard = () => {
     todaysAppointments: 0,
     confirmed: 0,
     pending: 0,
-    availableSlots: 0,
+    completed: 0,
   });
   const [dashboardTodaysWorks, setDashboardTodaysWorks] = useState<DashboardTodayWork[]>([]);
   const [dashboardUpcomingWorks, setDashboardUpcomingWorks] = useState<DashboardUpcomingWork[]>([]);
@@ -234,17 +234,43 @@ const WorkerDashboard = () => {
     }));
   }, [user]);
 
-  // Fetch Dashboard Overview Data
+  // Fetch Dashboard Summary Data
   useEffect(() => {
-    async function fetchDashboardOverview() {
+    async function fetchDashboardSummary() {
       if (!user?.email) return;
       setDashboardLoading(true);
       try {
-        const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
-        const data: DashboardOverviewResponse = res.data;
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/summary/${user?.email}`);
+        const data = res.data;
         
         if (data.success) {
           setDashboardSummary(data.summary);
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard summary:", err);
+        // Reset to defaults on error
+        setDashboardSummary({
+          todaysAppointments: 0,
+          confirmed: 0,
+          pending: 0,
+          completed: 0,
+        });
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+    fetchDashboardSummary();
+  }, [axiosPublic, user?.email]);
+
+  // Fetch Dashboard Tasks Data
+  useEffect(() => {
+    async function fetchDashboardTasks() {
+      if (!user?.email) return;
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`);
+        const data = res.data;
+        
+        if (data.success) {
           setDashboardTodaysWorks(data.todaysWorks || []);
           setDashboardUpcomingWorks(data.upcomingWorks || []);
           setDashboardServiceRequests(data.serviceRequests || []);
@@ -254,28 +280,18 @@ const WorkerDashboard = () => {
               date: day.date,
               day_name: day.day_name,
               appointments: day.total_appointments || day.appointments || 0,
-              availableSlots: day.available_slots || day.availableSlots || 0,
             }))
           );
         }
       } catch (err) {
-        console.error("Error fetching dashboard overview:", err);
-        // Reset to defaults on error
-        setDashboardSummary({
-          todaysAppointments: 0,
-          confirmed: 0,
-          pending: 0,
-          availableSlots: 0,
-        });
+        console.error("Error fetching dashboard tasks:", err);
         setDashboardTodaysWorks([]);
         setDashboardUpcomingWorks([]);
         setDashboardUpcomingDays([]);
         setDashboardServiceRequests([]);
-      } finally {
-        setDashboardLoading(false);
       }
     }
-    fetchDashboardOverview();
+    fetchDashboardTasks();
   }, [axiosPublic, user?.email]);
 
   useEffect(() => {
@@ -662,13 +678,18 @@ const WorkerDashboard = () => {
               await acceptRequest(id);
               // Refresh dashboard data after accepting
               try {
-                const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
-                const data: DashboardOverviewResponse = res.data;
-                if (data.success) {
-                  setDashboardSummary(data.summary);
-                  setDashboardTodaysWorks(data.todaysWorks || []);
-                  setDashboardUpcomingWorks(data.upcomingWorks || []);
-                  setDashboardServiceRequests(data.serviceRequests || []);
+                const [summaryRes, tasksRes] = await Promise.all([
+                  axiosPublic.get(`/workerRoutes/dashboard/summary/${user?.email}`),
+                  axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`)
+                ]);
+                
+                if (summaryRes.data.success) {
+                  setDashboardSummary(summaryRes.data.summary);
+                }
+                if (tasksRes.data.success) {
+                  setDashboardTodaysWorks(tasksRes.data.todaysWorks || []);
+                  setDashboardUpcomingWorks(tasksRes.data.upcomingWorks || []);
+                  setDashboardServiceRequests(tasksRes.data.serviceRequests || []);
                 }
               } catch (err) {
                 console.error("Error refreshing dashboard:", err);
@@ -1018,7 +1039,7 @@ const DashboardContent = ({
   return (
     <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-8">
         <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 hover:scale-105">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
@@ -1049,22 +1070,20 @@ const DashboardContent = ({
           <p className="text-3xl font-bold text-gray-900">{summary.pending}</p>
           <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
         </Card>
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Available Slots</p>
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <Star className="h-5 w-5 text-purple-600" />
+            <p className="text-sm font-medium text-gray-600">Completed</p>
+            <div className="bg-orange-100 p-2 rounded-lg">
+              <Bell className="h-5 w-5 text-orange-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{summary.availableSlots}</p>
-          <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
+          <p className="text-3xl font-bold text-gray-900">{summary?.completed || 0}</p>
+          <p className="text-xs text-gray-500 mt-2">Completed works</p>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Today's Works */}
+      <div className="space-y-6">
+        {/* Today's Works */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-orange-500 flex items-center">
@@ -1335,48 +1354,6 @@ const DashboardContent = ({
             </Card>
           </div>
         </div>
-
-        {/* Sidebar - Upcoming Days */}
-        <div className="lg:col-span-1">
-          <div className="flex items-center mb-4">
-            <Calendar className="h-5 w-5 mr-2 text-orange-500" />
-            <h2 className="text-xl font-bold">Upcoming Days</h2>
-          </div>
-          <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="space-y-6">
-              {upcomingDays.length === 0 ? (
-                <div className="text-center py-4">
-                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">No upcoming days data</p>
-                </div>
-              ) : (
-                upcomingDays.map((day, index) => (
-                  <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="h-4 w-4 text-orange-500 mr-2" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {day.day_name ? `${day.day_name}, ` : ""}{day.date ? new Date(day.date).toLocaleDateString() : day.date}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Appointments</span>
-                        <span className="font-semibold">{day.appointments}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Available Slots</span>
-                        <span className={`font-semibold ${day.availableSlots < 5 ? "text-red-600" : "text-green-600"}`}>
-                          {day.availableSlots}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-      </div>
     </>
   );
 };

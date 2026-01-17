@@ -45,8 +45,6 @@ export interface UpcomingDay {
   day_name?: string;
   appointments: number;
   total_appointments?: number;
-  availableSlots: number;
-  available_slots?: number;
 }
 
 // Dashboard Overview API Response Types
@@ -86,7 +84,7 @@ export interface DashboardSummary {
   todaysAppointments: number;
   confirmed: number;
   pending: number;
-  availableSlots: number;
+  completed: number;
 }
 
 export interface DashboardOverviewResponse {
