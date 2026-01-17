@@ -5,25 +5,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Home,
   ClipboardList,
@@ -37,54 +24,161 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Camera,
-  Edit,
-  Save,
-  Lock,
   Clock,
   MapPin,
-  CheckCircle,
+  Loader2,
 } from "lucide-react";
 
-interface ApiServiceRequest {
-  id: string;
-  client_id?: string;
-  assigned_worker_id?: string;
-  selected_date?: string | null;
-  selected_time?: string | null;
-  address?: string | null;
-  description?: string | null;
-  status?: string | null;
-  total_amount?: number | null;
-  payment_completed?: boolean | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  work_start?: string | null;
-  work_end?: string | null;
-  users_orders_client_idTousers?: any;
-}
+// Types
+import {
+  ApiServiceRequest,
+  ExtraItem,
+  UpcomingDay,
+  Notification,
+  ProfileFormData,
+  PasswordFormData,
+  CompleteFormData,
+  DashboardOverviewResponse,
+  DashboardTodayWork,
+  DashboardUpcomingWork,
+  DashboardServiceRequest,
+  DashboardSummary,
+  WorkerDetailsData,
+  WorkerDetailsResponse,
+} from "@/types/workerDashboard";
 
-interface UpcomingDay {
-  date: string;
-  appointments: number;
-  availableSlots: number;
-}
+// Utils
+import {
+  isConfirmedStatus,
+  isPendingStatus,
+  isCompletedStatus,
+  isCancelledStatus,
+  isCompletedByWorkerStatus,
+  isToday,
+  isFuture,
+  getCountdown,
+  getDefaultWorkTimes,
+  filterWorkHistory,
+  calculateStats,
+} from "@/lib/workerDashboardUtils";
+
+// Components
+import {
+  ServiceHistoryContent,
+  ServiceRequestContent,
+  AccountContent,
+  EditProfileDialog,
+  ChangePasswordDialog,
+  RequestDetailsDialog,
+  CompleteWorkDialogFull,
+  PricingBreakdownDialog,
+  CancelReasonDialog,
+} from "@/components/worker-dashboard";
 
 const WorkerDashboard = () => {
   const { user, logout, changePassword } = useAuth();
   const navigate = useNavigate();
+  const axiosPublic = useAxiosPublic();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // UI State
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Dialog States
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+
+  // Loading States
+  const [actionLoading, setActionLoading] = useState(false);
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
+  const [serviceRequestsLoading, setServiceRequestsLoading] = useState(false);
+  const [workHistoryLoading, setWorkHistoryLoading] = useState(false);
+  const [extraItemsLoading, setExtraItemsLoading] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  // Error States
+  const [passwordError, setPasswordError] = useState("");
+
+  // Dashboard Overview Data States
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary>({
+    todaysAppointments: 0,
+    confirmed: 0,
+    pending: 0,
+    availableSlots: 0,
+  });
+  const [dashboardTodaysWorks, setDashboardTodaysWorks] = useState<DashboardTodayWork[]>([]);
+  const [dashboardUpcomingWorks, setDashboardUpcomingWorks] = useState<DashboardUpcomingWork[]>([]);
+  const [dashboardUpcomingDays, setDashboardUpcomingDays] = useState<UpcomingDay[]>([]);
+  const [dashboardServiceRequests, setDashboardServiceRequests] = useState<DashboardServiceRequest[]>([]);
+
+  // Worker Details Data States
+  const [workerDetails, setWorkerDetails] = useState<WorkerDetailsData | null>(null);
+  const [workerDetailsLoading, setWorkerDetailsLoading] = useState(false);
+
+  // Data States
+  const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([]);
+  const [workHistory, setWorkHistory] = useState<ApiServiceRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<ApiServiceRequest | null>(null);
+  const [selectedPricingWork, setSelectedPricingWork] = useState<ApiServiceRequest | null>(null);
+  const [cancelRequestId, setCancelRequestId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [completeRequestId, setCompleteRequestId] = useState<string | null>(null);
+  const [extraItems, setExtraItems] = useState<ExtraItem[]>([]);
+  const [newExtraItem, setNewExtraItem] = useState({ name: "", quantity: 1, unitPrice: 0 });
+
+  // Form States
+  const [completeForm, setCompleteForm] = useState<CompleteFormData>({
+    workStartTime: "",
+    workEndTime: "",
+    completionNotes: "",
+  });
+
+  const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [savedProfile, setSavedProfile] = useState<ProfileFormData>({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    nidNumber: "",
+    address: "",
+    dateOfBirth: "",
+    speciality: "",
+    experience: "",
+    certification: "",
+    serviceAreas: "",
+    hourlyRate: "",
+    availability: "",
+    avatarUrl: "",
+  });
+
+  const [profileForm, setProfileForm] = useState<ProfileFormData>({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    avatarUrl: "",
+    nidNumber: "",
+    address: "",
+    dateOfBirth: "",
+    speciality: "",
+    experience: "",
+    certification: "",
+    serviceAreas: "",
+    hourlyRate: "",
+    availability: "",
+  });
 
   // Mock notifications
-  const [notifications] = useState([
+  const [notifications] = useState<Notification[]>([
     {
       id: 1,
       title: "New Service Request",
@@ -110,55 +204,28 @@ const WorkerDashboard = () => {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Saved profile data that will be displayed
-  const [savedProfile, setSavedProfile] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    nidNumber: "",
-    address: "",
-    dateOfBirth: "",
-    speciality: "",
-    experience: "",
-    certification: "",
-    serviceAreas: "",
-    hourlyRate: "",
-    availability: "",
-    avatarUrl: "",
-  });
+  // Filtered work data
+  const {
+    todaysWorks,
+    upcomingWorks,
+    confirmedWorks,
+    pendingWorks,
+    completedWorks,
+    cancelledWorks,
+    awaitingConfirmationWorks,
+  } = filterWorkHistory(workHistory);
 
-  // Form states for editing
-  const [profileForm, setProfileForm] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    avatarUrl: "",
-    nidNumber: "",
-    address: "",
-    dateOfBirth: "",
-    speciality: "",
-    experience: "",
-    certification: "",
-    serviceAreas: "",
-    hourlyRate: "",
-    availability: "",
-  });
+  const stats = calculateStats(todaysWorks, confirmedWorks, pendingWorks);
 
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
+  // Effects
   useEffect(() => {
     if (!user) return;
-
     setProfileForm((prev) => ({
       ...prev,
       name: user.name,
       phone: user.phone,
-      email: user.email,
       avatarUrl: user.avatar || prev.avatarUrl,
     }));
-
     setSavedProfile((prev) => ({
       ...prev,
       name: user.name,
@@ -167,25 +234,50 @@ const WorkerDashboard = () => {
     }));
   }, [user]);
 
-  const [serviceRequests, setServiceRequests] = useState<ApiServiceRequest[]>([]);
-  const [serviceRequestsLoading, setServiceRequestsLoading] = useState(false);
+  // Fetch Dashboard Overview Data
+  useEffect(() => {
+    async function fetchDashboardOverview() {
+      if (!user?.email) return;
+      setDashboardLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
+        const data: DashboardOverviewResponse = res.data;
+        
+        if (data.success) {
+          setDashboardSummary(data.summary);
+          setDashboardTodaysWorks(data.todaysWorks || []);
+          setDashboardUpcomingWorks(data.upcomingWorks || []);
+          setDashboardServiceRequests(data.serviceRequests || []);
+          // Transform upcomingDays to match our interface
+          setDashboardUpcomingDays(
+            (data.upcomingDays || []).map((day) => ({
+              date: day.date,
+              day_name: day.day_name,
+              appointments: day.total_appointments || day.appointments || 0,
+              availableSlots: day.available_slots || day.availableSlots || 0,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard overview:", err);
+        // Reset to defaults on error
+        setDashboardSummary({
+          todaysAppointments: 0,
+          confirmed: 0,
+          pending: 0,
+          availableSlots: 0,
+        });
+        setDashboardTodaysWorks([]);
+        setDashboardUpcomingWorks([]);
+        setDashboardUpcomingDays([]);
+        setDashboardServiceRequests([]);
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+    fetchDashboardOverview();
+  }, [axiosPublic, user?.email]);
 
-  const [selectedRequest, setSelectedRequest] = useState<ApiServiceRequest | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancelRequestId, setCancelRequestId] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-
-  const [workHistory, setWorkHistory] = useState<ApiServiceRequest[]>([]);
-  const [workHistoryLoading, setWorkHistoryLoading] = useState(false);
-  const [historyTab, setHistoryTab] = useState("all");
-
-  const axiosPublic = useAxiosPublic();
-  const { toast } = useToast();
-
-  // Fetch work history
   useEffect(() => {
     async function fetchWorkHistory() {
       if (!user?.email) return;
@@ -204,129 +296,162 @@ const WorkerDashboard = () => {
     fetchWorkHistory();
   }, [axiosPublic, user?.email]);
 
-  // Helper: check if a date is today
-  function isToday(dateStr: string | null | undefined): boolean {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  }
-
-  // Helper: check if a date is in the future
-  function isFuture(dateStr: string | null | undefined): boolean {
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const now = new Date();
-    return date > now;
-  }
-
-  // Helper: get countdown string
-  function getCountdown(dateStr: string | null | undefined, timeStr?: string | null): string {
-    if (!dateStr) return "";
-    let targetStr = dateStr;
-    if (timeStr) {
-      // Combine date and time for more accurate countdown
-      targetStr = `${dateStr.split('T')[0]}T${timeStr}`;
-    }
-    const target = new Date(targetStr);
-    const now = new Date();
-    const diff = target.getTime() - now.getTime();
-    if (diff <= 0) return "";
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
-  }
-
-  // Compute stats from work history
-  // Include "accepted" as confirmed status since API may return "accepted"
-  const isConfirmedStatus = (status: string | null | undefined) => 
-    ["confirmed", "Confirmed", "accepted", "Accepted"].includes(status || "");
-  const isPendingStatus = (status: string | null | undefined) => 
-    ["pending", "Pending"].includes(status || "");
-  const isCompletedStatus = (status: string | null | undefined) => 
-    ["completed", "Completed", "done", "Done"].includes(status || "");
-  const isCancelledStatus = (status: string | null | undefined) => 
-    ["cancelled", "Cancelled", "canceled", "Canceled"].includes(status || "");
-
-  const todaysWorks = workHistory.filter((w) => isToday(w.selected_date) && isConfirmedStatus(w.status));
-  const upcomingWorks = workHistory.filter((w) => isFuture(w.selected_date) && !isToday(w.selected_date) && isConfirmedStatus(w.status));
-  const confirmedWorks = workHistory.filter((w) => isConfirmedStatus(w.status));
-  const pendingWorks = workHistory.filter((w) => isPendingStatus(w.status));
-  const completedWorks = workHistory.filter((w) => isCompletedStatus(w.status));
-  const cancelledWorks = workHistory.filter((w) => isCancelledStatus(w.status));
-
-  const stats = {
-    todayAppointments: todaysWorks.length,
-    confirmed: confirmedWorks.length,
-    pending: pendingWorks.length,
-    availableSlots: 10 - todaysWorks.length, // Assuming max 10 slots per day
-  };
-
   useEffect(() => {
     async function fetchServiceRequests() {
       setServiceRequestsLoading(true);
       try {
-        const res = await axiosPublic.get(
-          `/workerRoutes/hirings/requests/${user?.email}`
-        );
-
-        // Accept either data.data or data
+        const res = await axiosPublic.get(`/workerRoutes/hirings/requests/${user?.email}`);
         const items = res.data?.data || res.data || [];
         setServiceRequests(items);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("Error fetching service requests:", err);
         setServiceRequests([]);
       } finally {
         setServiceRequestsLoading(false);
       }
     }
-
     fetchServiceRequests();
-  }, [axiosPublic]);
+  }, [axiosPublic, user?.email]);
 
+  // Fetch Worker Details for Account Page
+  useEffect(() => {
+    async function fetchWorkerDetails() {
+      if (!user?.email) return;
+      setWorkerDetailsLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/details/${user.email}`);
+        const data: WorkerDetailsResponse = res.data;
+        if (data.success && data.data) {
+          setWorkerDetails(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching worker details:", err);
+        setWorkerDetails(null);
+      } finally {
+        setWorkerDetailsLoading(false);
+      }
+    }
+    fetchWorkerDetails();
+  }, [axiosPublic, user?.email]);
+
+  // Handlers
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload a valid image file.",
+        variant: "destructive",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    const maxSizeBytes = 2 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      toast({
+        title: "File Too Large",
+        description: "Image size should be under 2MB.",
+        variant: "destructive",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      setProfileForm((prev) => ({ ...prev, avatarUrl: dataUrl }));
+      setSavedProfile((prev) => ({ ...prev, avatarUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetPasswordDialog = () => {
+    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setPasswordError("");
+    setIsPasswordSaving(false);
+  };
+
+  const handlePasswordUpdate = async () => {
+    setPasswordError("");
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError("All password fields are required.");
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError("New password must be at least 6 characters.");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+    if (passwordForm.currentPassword === passwordForm.newPassword) {
+      setPasswordError("New password must be different from current password.");
+      return;
+    }
+
+    try {
+      setIsPasswordSaving(true);
+      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      toast({ title: "Success", description: "Password updated successfully." });
+      setChangePasswordOpen(false);
+      resetPasswordDialog();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to update password.";
+      setPasswordError(message);
+    } finally {
+      setIsPasswordSaving(false);
+    }
+  };
+
+  const handleProfileUpdate = () => {
+    const nidRegex = /^(\d{10}|\d{13}|\d{17})$/;
+    if (profileForm.nidNumber && !nidRegex.test(profileForm.nidNumber)) {
+      toast({
+        title: "Invalid NID",
+        description: "Please provide a valid NID number (10, 13, or 17 digits).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavedProfile((prev) => ({
+      ...prev,
+      ...profileForm,
+      avatarUrl: profileForm.avatarUrl || prev.avatarUrl,
+    }));
+
+    setEditProfileOpen(false);
+    toast({ title: "Success", description: "Profile updated successfully!" });
+  };
+
+  // Service Request Handlers
   async function acceptRequest(id: string) {
     setActionLoading(true);
     try {
       await axiosPublic.patch(`/orderRoutes/acceptWorkRequest/${id}`, {
         workerEmail: user?.email,
       });
-
-      // Update local state
-      setServiceRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: "Confirmed" } : r)));
-      setSelectedRequest((prev) => (prev && prev.id === id ? { ...prev, status: "Confirmed" } : prev));
+      setServiceRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: "Confirmed" } : r))
+      );
+      setSelectedRequest((prev) =>
+        prev && prev.id === id ? { ...prev, status: "Confirmed" } : prev
+      );
     } catch (err) {
       console.error("Error accepting request:", err);
       toast({
         title: "Error",
         description: "Failed to accept request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function markWorkComplete(id: string) {
-    setActionLoading(true);
-    try {
-      await axiosPublic.patch(`/orderRoutes/completeWorkRequest/${id}`, {
-        workerEmail: user?.email,
-      });
-      // Update local state - update work history
-      setWorkHistory((prev) => prev.map((w) => (w.id === id ? { ...w, status: "completed" } : w)));
-      toast({
-        title: "Success",
-        description: "Work marked as completed!",
-      });
-    } catch (err) {
-      console.error("Error completing work:", err);
-      toast({
-        title: "Error",
-        description: "Failed to mark work as complete. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -357,17 +482,19 @@ const WorkerDashboard = () => {
         workerEmail: user?.email,
         reason: cancelReason.trim(),
       });
-      // Update local state - both service requests and work history
-      setServiceRequests((prev) => prev.map((r) => (r.id === cancelRequestId ? { ...r, status: "Cancelled" } : r)));
-      setSelectedRequest((prev) => (prev && prev.id === cancelRequestId ? { ...prev, status: "Cancelled" } : prev));
-      setWorkHistory((prev) => prev.map((w) => (w.id === cancelRequestId ? { ...w, status: "cancelled" } : w)));
+      setServiceRequests((prev) =>
+        prev.map((r) => (r.id === cancelRequestId ? { ...r, status: "Cancelled" } : r))
+      );
+      setSelectedRequest((prev) =>
+        prev && prev.id === cancelRequestId ? { ...prev, status: "Cancelled" } : prev
+      );
+      setWorkHistory((prev) =>
+        prev.map((w) => (w.id === cancelRequestId ? { ...w, status: "cancelled" } : w))
+      );
       setCancelDialogOpen(false);
       setCancelRequestId(null);
       setCancelReason("");
-      toast({
-        title: "Success",
-        description: "Work cancelled successfully.",
-      });
+      toast({ title: "Success", description: "Work cancelled successfully." });
     } catch (err) {
       console.error("Error cancelling request:", err);
       toast({
@@ -380,1045 +507,219 @@ const WorkerDashboard = () => {
     }
   }
 
-  const upcomingDays: UpcomingDay[] = [
-    { date: "Fri, Oct 17", appointments: 0, availableSlots: 0 },
-    { date: "Sat, Oct 18", appointments: 0, availableSlots: 0 },
-    { date: "Sun, Oct 19", appointments: 0, availableSlots: 0 },
-    { date: "Mon, Oct 20", appointments: 0, availableSlots: 0 },
-  ];
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
-  const handleAvatarButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid File",
-        description: "Please upload a valid image file.",
-        variant: "destructive",
-      });
-      event.target.value = "";
-      return;
-    }
-
-    const maxSizeBytes = 2 * 1024 * 1024; // 2MB limit to avoid huge previews
-    if (file.size > maxSizeBytes) {
-      toast({
-        title: "File Too Large",
-        description: "Image size should be under 2MB.",
-        variant: "destructive",
-      });
-      event.target.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result as string;
-      setProfileForm((prev) => ({ ...prev, avatarUrl: dataUrl }));
-      setSavedProfile((prev) => ({ ...prev, avatarUrl: dataUrl }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const resetPasswordDialog = () => {
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setPasswordError("");
-    setIsPasswordSaving(false);
-  };
-
-  const handlePasswordUpdate = async () => {
-    setPasswordError("");
-
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordError("All password fields are required.");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters.");
-      return;
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError("New password and confirmation do not match.");
-      return;
-    }
-
-    if (passwordForm.currentPassword === passwordForm.newPassword) {
-      setPasswordError("New password must be different from current password.");
-      return;
-    }
-
+  // Complete Work Handlers
+  async function fetchExtraItems(orderId: string) {
+    setExtraItemsLoading(true);
     try {
-      setIsPasswordSaving(true);
-      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-      toast({
-        title: "Success",
-        description: "Password updated successfully.",
-      });
-      setChangePasswordOpen(false);
-      resetPasswordDialog();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update password.";
-      setPasswordError(message);
+      const res = await axiosPublic.get(`/orderRoutes/extraItems/${orderId}`);
+      const items = res.data?.data || res.data || [];
+      setExtraItems(items);
+    } catch (err) {
+      console.error("Error fetching extra items:", err);
+      setExtraItems([]);
     } finally {
-      setIsPasswordSaving(false);
+      setExtraItemsLoading(false);
     }
-  };
+  }
 
-  const handleProfileUpdate = () => {
-    // Validate NID number (should be 10 or 13 or 17 digits)
-    const nidRegex = /^(\d{10}|\d{13}|\d{17})$/;
-    if (profileForm.nidNumber && !nidRegex.test(profileForm.nidNumber)) {
+  function openCompleteDialog(id: string) {
+    setCompleteRequestId(id);
+    const { startTime, endTime } = getDefaultWorkTimes();
+    setCompleteForm({
+      workStartTime: startTime,
+      workEndTime: endTime,
+      completionNotes: "",
+    });
+    setExtraItems([]);
+    setNewExtraItem({ name: "", quantity: 1, unitPrice: 0 });
+    fetchExtraItems(id);
+    setCompleteDialogOpen(true);
+  }
+
+  function addExtraItem() {
+    if (!newExtraItem.name.trim()) {
       toast({
-        title: "Invalid NID",
-        description: "Please provide a valid NID number (10, 13, or 17 digits).",
+        title: "Item Name Required",
+        description: "Please provide a name for the extra item.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newExtraItem.unitPrice <= 0) {
+      toast({
+        title: "Invalid Price",
+        description: "Please provide a valid unit price.",
         variant: "destructive",
       });
       return;
     }
 
-    // TODO: API call to update profile
-    console.log("Updating profile:", profileForm);
-    
-    // Update saved profile to display the new information
-    setSavedProfile((prev) => ({
-      ...prev,
-      ...profileForm,
-      avatarUrl: profileForm.avatarUrl || prev.avatarUrl,
-    }));
-    
-    setEditProfileOpen(false);
-    toast({
-      title: "Success",
-      description: "Profile updated successfully!",
-    });
-  };
+    const newItem: ExtraItem = {
+      id: `temp-${Date.now()}`,
+      name: newExtraItem.name.trim(),
+      quantity: newExtraItem.quantity,
+      unitPrice: newExtraItem.unitPrice,
+      status: "pending",
+    };
+    setExtraItems((prev) => [...prev, newItem]);
+    setNewExtraItem({ name: "", quantity: 1, unitPrice: 0 });
+  }
 
+  function removeExtraItem(itemId: string) {
+    setExtraItems((prev) => prev.filter((item) => item.id !== itemId));
+  }
+
+  function updateExtraItem(itemId: string, field: keyof ExtraItem, value: string | number) {
+    setExtraItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, [field]: value } : item))
+    );
+  }
+
+  async function confirmCompleteWork() {
+    if (!completeRequestId) return;
+
+    if (!completeForm.workStartTime || !completeForm.workEndTime) {
+      toast({
+        title: "Required Fields",
+        description: "Please provide both work start and end times.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (completeForm.workStartTime >= completeForm.workEndTime) {
+      toast({
+        title: "Invalid Time Range",
+        description: "Work end time must be after start time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      if (extraItems.length > 0) {
+        await axiosPublic.post(`/orderRoutes/extraItems/${completeRequestId}`, {
+          workerEmail: user?.email,
+          extraItems: extraItems,
+        });
+      }
+
+      await axiosPublic.patch(`/orderRoutes/completeByWorker/${completeRequestId}`, {
+        workerEmail: user?.email,
+        workStartTime: completeForm.workStartTime,
+        workEndTime: completeForm.workEndTime,
+        completionNotes: completeForm.completionNotes.trim(),
+        extraItems: extraItems,
+      });
+
+      setWorkHistory((prev) =>
+        prev.map((w) =>
+          w.id === completeRequestId
+            ? { ...w, status: "completed_by_worker", extra_items: extraItems }
+            : w
+        )
+      );
+      setCompleteDialogOpen(false);
+      setCompleteRequestId(null);
+      setCompleteForm({ workStartTime: "", workEndTime: "", completionNotes: "" });
+      setExtraItems([]);
+      toast({
+        title: "Submitted for Confirmation",
+        description: "Work submitted! Waiting for user confirmation.",
+      });
+    } catch (err) {
+      console.error("Error completing work:", err);
+      toast({
+        title: "Error",
+        description: "Failed to submit work. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function openPricingDialog(work: ApiServiceRequest) {
+    setSelectedPricingWork(work);
+    setPricingDialogOpen(true);
+  }
+
+  // Content Renderer
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 hover:scale-105">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.todayAppointments}</p>
-                <p className="text-xs text-gray-500 mt-2">Total bookings for today</p>
-              </Card>
-              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-green-500 hover:scale-105">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-600">Confirmed</p>
-                  <div className="bg-green-100 p-2 rounded-lg">
-                    <ClipboardList className="h-5 w-5 text-green-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.confirmed}</p>
-                <p className="text-xs text-gray-500 mt-2">Ready to start</p>
-              </Card>
-              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <div className="bg-orange-100 p-2 rounded-lg">
-                    <Bell className="h-5 w-5 text-orange-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
-                <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
-              </Card>
-              <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-600">Available Slots</p>
-                  <div className="bg-purple-100 p-2 rounded-lg">
-                    <Star className="h-5 w-5 text-purple-600" />
-                  </div>
-                </div>
-                <p className="text-3xl font-bold text-gray-900">{stats.availableSlots}</p>
-                <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Main Content - Today's Works & Upcoming */}
-              <div className="lg:col-span-3 space-y-6">
-                {/* Today's Works */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-orange-500 flex items-center">
-                      <ClipboardList className="h-6 w-6 mr-2" />
-                      Today's Works
-                    </h2>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      {todaysWorks.length} scheduled
-                    </span>
-                  </div>
-                  <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Client
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Service
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Time
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Countdown
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Location
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Status
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {todaysWorks.length === 0 ? (
-                            <tr>
-                              <td colSpan={6} className="px-6 py-12 text-center">
-                                <div className="flex flex-col items-center justify-center">
-                                  <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
-                                  <p className="text-gray-600 text-lg font-medium">No works scheduled for today</p>
-                                  <p className="text-gray-400 text-sm mt-2">Accepted work for today will appear here</p>
-                                </div>
-                              </td>
-                            </tr>
-                          ) : (
-                            todaysWorks.map((work) => (
-                              <tr key={work.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                      {(work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture) && (
-                                        <img
-                                          src={work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture}
-                                          alt="Client"
-                                          className="w-full h-full object-cover"
-                                        />
-                                      )}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {work.users_orders_client_idTousers?.select?.full_name || work.users_orders_client_idTousers?.full_name || "Client"}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {work.description || "-"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-1 text-gray-400" />
-                                    {work.selected_time || "-"}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {(() => {
-                                    const countdown = getCountdown(work.selected_date, work.selected_time);
-                                    return countdown ? (
-                                      <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                                        {countdown}
-                                      </span>
-                                    ) : (
-                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                        Now
-                                      </span>
-                                    );
-                                  })()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  <div className="flex items-center">
-                                    <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                                    {work.address || "-"}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    {work.status || "confirmed"}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-
-                {/* Upcoming Works */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-orange-500 flex items-center">
-                      <Calendar className="h-6 w-6 mr-2" />
-                      Upcoming Works
-                    </h2>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      {upcomingWorks.length} upcoming
-                    </span>
-                  </div>
-                  <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Client
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Service
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Date & Time
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Days Until
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Location
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {upcomingWorks.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="px-6 py-12 text-center">
-                                <div className="flex flex-col items-center justify-center">
-                                  <Calendar className="h-16 w-16 text-gray-300 mb-4" />
-                                  <p className="text-gray-600 text-lg font-medium">No upcoming works</p>
-                                  <p className="text-gray-400 text-sm mt-2">Future scheduled works will appear here</p>
-                                </div>
-                              </td>
-                            </tr>
-                          ) : (
-                            upcomingWorks.map((work) => (
-                              <tr key={work.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                      {(work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture) && (
-                                        <img
-                                          src={work.users_orders_client_idTousers?.select?.profile_picture || work.users_orders_client_idTousers?.profile_picture}
-                                          alt="Client"
-                                          className="w-full h-full object-cover"
-                                        />
-                                      )}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {work.users_orders_client_idTousers?.select?.full_name || work.users_orders_client_idTousers?.full_name || "Client"}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {work.description || "-"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  <div className="flex items-center">
-                                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                                    {work.selected_date ? new Date(work.selected_date).toLocaleDateString() : "-"} {work.selected_time || ""}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {(() => {
-                                    const countdown = getCountdown(work.selected_date, work.selected_time);
-                                    return countdown ? (
-                                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                        {countdown}
-                                      </span>
-                                    ) : (
-                                      <span className="text-gray-400">-</span>
-                                    );
-                                  })()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  <div className="flex items-center">
-                                    <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                                    {work.address || "-"}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-
-                {/* Service Request */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-orange-500 flex items-center">
-                      <Bell className="h-6 w-6 mr-2" />
-                      Service Request
-                    </h2>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      {serviceRequests.length} pending
-                    </span>
-                  </div>
-                  <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              User Name
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Task
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Location
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Email address
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Status
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {serviceRequests.length === 0 ? (
-                            <tr>
-                              <td colSpan={6} className="px-6 py-12 text-center">
-                                <div className="flex flex-col items-center justify-center">
-                                  <Bell className="h-16 w-16 text-gray-300 mb-4" />
-                                  <p className="text-gray-600 text-lg font-medium">No service requests</p>
-                                  <p className="text-gray-400 text-sm mt-2">New requests will appear here</p>
-                                </div>
-                              </td>
-                            </tr>
-                          ) : (
-                            serviceRequests.map((request: ApiServiceRequest) => (
-                              <tr
-                                key={request.id}
-                                className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                onClick={() => {
-                                  setSelectedRequest(request);
-                                  setDetailsOpen(true);
-                                }}
-                              >
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                      {(
-                                        request.users_orders_client_idTousers?.select?.profile_picture ||
-                                        request.users_orders_client_idTousers?.profile_picture
-                                      ) ? (
-                                        <img
-                                          src={
-                                            request.users_orders_client_idTousers?.select?.profile_picture ||
-                                            request.users_orders_client_idTousers?.profile_picture
-                                          }
-                                          alt={
-                                            request.users_orders_client_idTousers?.select?.full_name ||
-                                            request.users_orders_client_idTousers?.full_name ||
-                                            "Client"
-                                          }
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : null}
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {request.users_orders_client_idTousers?.select?.full_name || request.users_orders_client_idTousers?.full_name || "Client"}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {request.description || request.selected_time || "-"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {request.address || "-"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {request.users_orders_client_idTousers?.select?.email || request.users_orders_client_idTousers?.email || "-"}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                                    {request.status || "-"}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 text-white px-3"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      acceptRequest(request.id);
-                                    }}
-                                    disabled={actionLoading || request.status === "Confirmed"}
-                                  >
-                                    Accept
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-red-600 border border-red-200 px-3"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openCancelDialog(request.id);
-                                    }}
-                                    disabled={actionLoading || request.status === "Cancelled"}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Sidebar - Upcoming Days */}
-              <div className="lg:col-span-1">
-                <div className="flex items-center mb-4">
-                  <Calendar className="h-5 w-5 mr-2 text-orange-500" />
-                  <h2 className="text-xl font-bold">Upcoming Days</h2>
-                </div>
-                <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="space-y-6">
-                    {upcomingDays.map((day, index) => (
-                      <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
-                        <div className="flex items-center mb-3">
-                          <Calendar className="h-4 w-4 text-orange-500 mr-2" />
-                          <span className="text-sm font-semibold text-gray-700">{day.date}</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Appointments</span>
-                            <span className="font-semibold">{day.appointments}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Available Slots</span>
-                            <span
-                              className={`font-semibold ${
-                                day.availableSlots < 5 ? "text-red-600" : "text-green-600"
-                              }`}
-                            >
-                              {day.availableSlots}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-          </>
+          <DashboardContent
+            summary={dashboardSummary}
+            todaysWorks={dashboardTodaysWorks}
+            upcomingWorks={dashboardUpcomingWorks}
+            serviceRequests={dashboardServiceRequests}
+            upcomingDays={dashboardUpcomingDays}
+            loading={dashboardLoading}
+            actionLoading={actionLoading}
+            onAcceptRequest={async (id) => {
+              await acceptRequest(id);
+              // Refresh dashboard data after accepting
+              try {
+                const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
+                const data: DashboardOverviewResponse = res.data;
+                if (data.success) {
+                  setDashboardSummary(data.summary);
+                  setDashboardTodaysWorks(data.todaysWorks || []);
+                  setDashboardUpcomingWorks(data.upcomingWorks || []);
+                  setDashboardServiceRequests(data.serviceRequests || []);
+                }
+              } catch (err) {
+                console.error("Error refreshing dashboard:", err);
+              }
+            }}
+            onCancelRequest={openCancelDialog}
+          />
         );
       case "service-request":
         return (
-          <div>
-            <h2 className="text-2xl font-bold text-orange-500 mb-6">Service Request</h2>
-            <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        User Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Task
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {serviceRequestsLoading ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center">
-                          <div className="flex flex-col items-center justify-center">
-                            <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
-                            <p className="text-gray-500 text-lg font-medium">Loading service requests...</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : serviceRequests.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center">
-                          <div className="flex flex-col items-center justify-center">
-                            <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
-                            <p className="text-gray-500 text-lg font-medium">No service request available now</p>
-                            <p className="text-gray-400 text-sm mt-2">New service requests will appear here</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      serviceRequests.map((req: ApiServiceRequest) => (
-                        <tr
-                          key={req.id}
-                          className="hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => {
-                            setSelectedRequest(req);
-                            setDetailsOpen(true);
-                          }}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                                {(req.users_orders_client_idTousers?.select?.profile_picture || req.users_orders_client_idTousers?.profile_picture) ? (
-                                  <img
-                                    src={req.users_orders_client_idTousers?.select?.profile_picture || req.users_orders_client_idTousers?.profile_picture}
-                                    alt={req.users_orders_client_idTousers?.select?.full_name || req.users_orders_client_idTousers?.full_name || 'Client'}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : null}
-                              </div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {req.users_orders_client_idTousers?.select?.full_name || req.users_orders_client_idTousers?.full_name || 'Client'}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{req.description || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{req.total_amount != null ? `৳${req.total_amount}` : '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{req.address || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
-                              {req.status || '-'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white px-3"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                acceptRequest(req.id);
-                              }}
-                              disabled={actionLoading || req.status === "Confirmed"}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-600 border border-red-200 px-3"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openCancelDialog(req.id);
-                              }}
-                              disabled={actionLoading || req.status === "Cancelled"}
-                            >
-                              Cancel
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
+          <ServiceRequestContent
+            serviceRequests={serviceRequests}
+            serviceRequestsLoading={serviceRequestsLoading}
+            actionLoading={actionLoading}
+            onViewDetails={(req) => {
+              setSelectedRequest(req);
+              setDetailsOpen(true);
+            }}
+            onAccept={acceptRequest}
+            onCancel={openCancelDialog}
+          />
         );
       case "service-history":
-        const renderHistoryTable = (data: ApiServiceRequest[], emptyMessage: string, showActions: boolean = false) => (
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Service
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date & Time
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    {showActions && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.length === 0 ? (
-                    <tr>
-                      <td colSpan={showActions ? 6 : 5} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <History className="h-16 w-16 text-gray-300 mb-4" />
-                          <p className="text-gray-500 text-lg font-medium">{emptyMessage}</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    data.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
-                              {(item.users_orders_client_idTousers?.select?.profile_picture || item.users_orders_client_idTousers?.profile_picture) && (
-                                <img
-                                  src={item.users_orders_client_idTousers?.select?.profile_picture || item.users_orders_client_idTousers?.profile_picture}
-                                  alt="Client"
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">
-                              {item.users_orders_client_idTousers?.select?.full_name || item.users_orders_client_idTousers?.full_name || "Client"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.description || "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.selected_date ? new Date(item.selected_date).toLocaleDateString() : "-"} {item.selected_time || ""}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.address || "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            isCompletedStatus(item.status) ? "bg-green-100 text-green-800" :
-                            isConfirmedStatus(item.status) ? "bg-blue-100 text-blue-800" :
-                            isCancelledStatus(item.status) ? "bg-red-100 text-red-800" :
-                            "bg-yellow-100 text-yellow-800"
-                          }`}>
-                            {item.status || "-"}
-                          </span>
-                        </td>
-                        {showActions && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
-                            {isConfirmedStatus(item.status) && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white px-3"
-                                  onClick={() => markWorkComplete(item.id)}
-                                  disabled={actionLoading}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Complete
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-red-600 border border-red-200 px-3"
-                                  onClick={() => openCancelDialog(item.id)}
-                                  disabled={actionLoading}
-                                >
-                                  Cancel
-                                </Button>
-                              </>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        );
-
         return (
-          <div>
-            <h2 className="text-2xl font-bold text-orange-500 mb-6">Service History</h2>
-            {workHistoryLoading ? (
-              <Card className="p-12 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                <p className="text-gray-500">Loading work history...</p>
-              </Card>
-            ) : (
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="all">All ({workHistory.length})</TabsTrigger>
-                  <TabsTrigger value="confirmed">Confirmed ({confirmedWorks.length})</TabsTrigger>
-                  <TabsTrigger value="completed">Completed ({completedWorks.length})</TabsTrigger>
-                  <TabsTrigger value="cancelled">Cancelled ({cancelledWorks.length})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all">
-                  {renderHistoryTable(workHistory, "No work history available", true)}
-                </TabsContent>
-                <TabsContent value="confirmed">
-                  {renderHistoryTable(confirmedWorks, "No confirmed/accepted works", true)}
-                </TabsContent>
-                <TabsContent value="completed">
-                  {renderHistoryTable(completedWorks, "No completed works")}
-                </TabsContent>
-                <TabsContent value="cancelled">
-                  {renderHistoryTable(cancelledWorks, "No cancelled works")}
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
+          <ServiceHistoryContent
+            workHistory={workHistory}
+            workHistoryLoading={workHistoryLoading}
+            confirmedWorks={confirmedWorks}
+            awaitingConfirmationWorks={awaitingConfirmationWorks}
+            completedWorks={completedWorks}
+            cancelledWorks={cancelledWorks}
+            actionLoading={actionLoading}
+            onCompleteWork={openCompleteDialog}
+            onCancelWork={openCancelDialog}
+            onViewPricing={openPricingDialog}
+          />
         );
       case "account":
         return (
-          <div>
-            <h2 className="text-2xl font-bold text-orange-500 mb-6">Account Information</h2>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-            
-            {/* Profile Header Card */}
-            <Card className="p-6 mb-6">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                {/* Profile Picture */}
-                <div className="relative group">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden">
-                    {savedProfile.avatarUrl ? (
-                      <img
-                        src={savedProfile.avatarUrl}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      user?.name?.charAt(0).toUpperCase() || "W"
-                    )}
-                  </div>
-                  <button
-                    onClick={handleAvatarButtonClick}
-                    className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors"
-                  >
-                    <Camera className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Profile Summary */}
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{savedProfile.name || user?.name || "Worker Name"}</h3>
-                  <p className="text-gray-600 mb-2">{user?.email || "email@example.com"}</p>
-                  <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
-                      {savedProfile.speciality || "Professional Worker"}
-                    </span>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center">
-                      <Star className="h-3 w-3 mr-1 fill-green-700" />
-                      0.0 Rating
-                    </span>
-                  </div>
-                  <div className="flex gap-3 justify-center md:justify-start">
-                    <Button 
-                      onClick={() => setEditProfileOpen(true)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white flex items-center"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-4 md:gap-6 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-xs text-gray-500">Services</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">৳0</p>
-                    <p className="text-xs text-gray-500">Earned</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-xs text-gray-500">Reviews</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Personal Information */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <User className="h-5 w-5 mr-2 text-orange-500" />
-                    Personal Information
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Full Name</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.name || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Email Address</label>
-                    <p className="text-base text-gray-900 mt-1">{user?.email || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Phone Number</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.phone || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">NID Number</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.nidNumber || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Address</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.address || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Date of Birth</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.dateOfBirth || "Not provided"}</p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Professional Information */}
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                    <Star className="h-5 w-5 mr-2 text-orange-500" />
-                    Professional Information
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Work Speciality</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.speciality || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Work Experience</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.experience || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Certification</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.certification || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Service Areas</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.serviceAreas || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Hourly Rate</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.hourlyRate ? `৳${savedProfile.hourlyRate}` : "Not provided"}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Availability</label>
-                    <p className="text-base text-gray-900 mt-1">{savedProfile.availability || "Not provided"}</p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Account Statistics */}
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <ClipboardList className="h-5 w-5 mr-2 text-orange-500" />
-                  Account Statistics
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm font-medium text-gray-500">Total Services Completed</span>
-                    <span className="text-lg font-semibold text-gray-900">0</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm font-medium text-gray-500">Total Earnings</span>
-                    <span className="text-lg font-semibold text-green-600">৳ 0</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm font-medium text-gray-500">Average Rating</span>
-                    <span className="text-lg font-semibold text-gray-900 flex items-center">
-                      <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                      0.0
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm font-medium text-gray-500">Pending Services</span>
-                    <span className="text-lg font-semibold text-orange-600">0</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-sm font-medium text-gray-500">Member Since</span>
-                    <span className="text-lg font-semibold text-gray-900">2025</span>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Account Actions */}
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <User className="h-5 w-5 mr-2 text-orange-500" />
-                  Account Settings
-                </h3>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => setEditProfileOpen(true)}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white justify-start"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Update Profile Information
-                  </Button>
-                  <Button
-                    onClick={handleAvatarButtonClick}
-                    className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start"
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Change Profile Picture
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setChangePasswordOpen(true);
-                      resetPasswordDialog();
-                    }}
-                    className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start"
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Change Password
-                  </Button>
-                  <Button className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 justify-start">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notification Settings
-                  </Button>
-                  <Button className="w-full bg-white border border-red-300 text-red-600 hover:bg-red-50 justify-start mt-4">
-                    Deactivate Account
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          </div>
+          <AccountContent
+            user={user}
+            savedProfile={savedProfile}
+            workerDetails={workerDetails}
+            workerDetailsLoading={workerDetailsLoading}
+            onAvatarChange={handleAvatarChange}
+            onEditProfile={() => setEditProfileOpen(true)}
+            onChangePassword={() => {
+              setChangePasswordOpen(true);
+              resetPasswordDialog();
+            }}
+          />
         );
       case "rating":
         return (
@@ -1465,7 +766,7 @@ const WorkerDashboard = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed md:static top-0 left-0 h-screen md:h-auto z-40 bg-orange-500 text-white flex flex-col transition-all duration-300 ${
+        className={`fixed top-0 left-0 h-screen z-40 bg-orange-500 text-white flex flex-col transition-all duration-300 ${
           sidebarMinimized ? "w-20" : "w-64"
         } ${mobileMenuOpen ? "w-64" : "-translate-x-full md:translate-x-0"}`}
       >
@@ -1499,90 +800,44 @@ const WorkerDashboard = () => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-2">
-          <button
-            onClick={() => {
-              setActiveTab("dashboard");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "dashboard"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Dashboard" : ""}
-          >
-            <Home className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Dashboard</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("service-request");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "service-request"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Service Request" : ""}
-          >
-            <ClipboardList className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Service Request</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("service-history");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "service-history"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Service History" : ""}
-          >
-            <History className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Service History</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("account");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "account"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Account" : ""}
-          >
-            <User className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Account</span>}
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("rating");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "rating"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Rating" : ""}
-          >
-            <Star className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Rating</span>}
-          </button>
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+          {[
+            { id: "dashboard", label: "Dashboard", icon: ClipboardList },
+            { id: "service-request", label: "Service Request", icon: ClipboardList },
+            { id: "service-history", label: "Service History", icon: History },
+            { id: "account", label: "Account", icon: User },
+            { id: "rating", label: "Rating", icon: Star },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
+                activeTab === item.id
+                  ? "bg-orange-700 text-white"
+                  : "text-white hover:bg-orange-600"
+              }`}
+              title={sidebarMinimized ? item.label : ""}
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!sidebarMinimized && <span className="ml-3">{item.label}</span>}
+            </button>
+          ))}
         </nav>
 
-        {/* Features Button */}
-        <div className="p-4">
+        {/* Home & Features */}
+        <div className="p-4 space-y-2">
+          <Link
+            to="/"
+            className="w-full flex items-center px-4 py-3 rounded-lg transition-colors text-white hover:bg-orange-600"
+            title={sidebarMinimized ? "Home" : ""}
+          >
+            <Home className="h-5 w-5 flex-shrink-0" />
+            {!sidebarMinimized && <span className="ml-3">Home</span>}
+          </Link>
+
           <button
             onClick={() => {
               setActiveTab("features");
@@ -1599,13 +854,19 @@ const WorkerDashboard = () => {
               <Gift className="h-5 w-5 flex-shrink-0" />
               {!sidebarMinimized && <span className="ml-3">Features</span>}
             </div>
-            {!sidebarMinimized && <span className="px-2 py-0.5 bg-orange-700 text-xs rounded">NEW</span>}
+            {!sidebarMinimized && (
+              <span className="px-2 py-0.5 bg-orange-700 text-xs rounded">NEW</span>
+            )}
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div
+        className={`flex-1 flex flex-col ${
+          sidebarMinimized ? "md:ml-20" : "md:ml-64"
+        } transition-all duration-300`}
+      >
         {/* Header */}
         <header className="bg-white shadow-sm">
           <div className="px-8 py-4 flex items-center justify-between">
@@ -1640,500 +901,545 @@ const WorkerDashboard = () => {
         <main className="flex-1 p-8">{renderContent()}</main>
       </div>
 
-      {/* Edit Profile Dialog */}
-      <Dialog open={editProfileOpen} onOpenChange={setEditProfileOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-orange-500 flex items-center">
-              <Edit className="h-6 w-6 mr-2" />
-              Update Profile Information
-            </DialogTitle>
-            <DialogDescription>
-              Update your personal and professional details. Email cannot be changed.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-6 py-4">
-            {/* Personal Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center border-b pb-2">
-                <User className="h-5 w-5 mr-2 text-orange-500" />
-                Personal Information
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={profileForm.name}
-                    onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address (Read-only)</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-gray-100 cursor-not-allowed"
-                  />
-                </div>
-              </div>
+      {/* Dialogs */}
+      <EditProfileDialog
+        open={editProfileOpen}
+        onOpenChange={setEditProfileOpen}
+        profileForm={profileForm}
+        setProfileForm={setProfileForm}
+        userEmail={user?.email || ""}
+        onSave={handleProfileUpdate}
+      />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={profileForm.phone}
-                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                    placeholder="+880 1XXX-XXXXXX"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="nid">NID Number * (10, 13, or 17 digits)</Label>
-                  <Input
-                    id="nid"
-                    value={profileForm.nidNumber}
-                    onChange={(e) => setProfileForm({ ...profileForm, nidNumber: e.target.value })}
-                    placeholder="Enter valid NID number"
-                    maxLength={17}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={profileForm.dateOfBirth}
-                  onChange={(e) => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={profileForm.address}
-                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                  placeholder="Enter your full address"
-                  rows={2}
-                />
-              </div>
-            </div>
-
-            {/* Professional Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center border-b pb-2">
-                <Star className="h-5 w-5 mr-2 text-orange-500" />
-                Professional Information
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="speciality">Work Speciality *</Label>
-                  <Select 
-                    value={profileForm.speciality} 
-                    onValueChange={(value) => setProfileForm({ ...profileForm, speciality: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select speciality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Electrician">Electrician</SelectItem>
-                      <SelectItem value="Plumber">Plumber</SelectItem>
-                      <SelectItem value="Carpenter">Carpenter</SelectItem>
-                      <SelectItem value="AC Technician">AC Technician</SelectItem>
-                      <SelectItem value="Painter">Painter</SelectItem>
-                      <SelectItem value="Mechanic">Mechanic</SelectItem>
-                      <SelectItem value="Cleaner">Cleaner</SelectItem>
-                      <SelectItem value="Gardener">Gardener</SelectItem>
-                      <SelectItem value="Security Guard">Security Guard</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="experience">Work Experience</Label>
-                  <Select 
-                    value={profileForm.experience} 
-                    onValueChange={(value) => setProfileForm({ ...profileForm, experience: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select experience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Less than 1 year">Less than 1 year</SelectItem>
-                      <SelectItem value="1-2 years">1-2 years</SelectItem>
-                      <SelectItem value="3-5 years">3-5 years</SelectItem>
-                      <SelectItem value="6-10 years">6-10 years</SelectItem>
-                      <SelectItem value="More than 10 years">More than 10 years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="certification">Certification</Label>
-                <Select 
-                  value={profileForm.certification} 
-                  onValueChange={(value) => setProfileForm({ ...profileForm, certification: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select certification status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Certified">Certified</SelectItem>
-                    <SelectItem value="Trade License">Trade License</SelectItem>
-                    <SelectItem value="Government Approved">Government Approved</SelectItem>
-                    <SelectItem value="Self-trained">Self-trained</SelectItem>
-                    <SelectItem value="None">None</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="serviceAreas">Service Areas</Label>
-                <Textarea
-                  id="serviceAreas"
-                  value={profileForm.serviceAreas}
-                  onChange={(e) => setProfileForm({ ...profileForm, serviceAreas: e.target.value })}
-                  placeholder="e.g., Dhaka, Chittagong, Sylhet"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hourlyRate">Hourly Rate (৳)</Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    value={profileForm.hourlyRate}
-                    onChange={(e) => setProfileForm({ ...profileForm, hourlyRate: e.target.value })}
-                    placeholder="500"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="availability">Availability</Label>
-                  <Select 
-                    value={profileForm.availability} 
-                    onValueChange={(value) => setProfileForm({ ...profileForm, availability: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select availability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Full-time (Mon-Sat)">Full-time (Mon-Sat)</SelectItem>
-                      <SelectItem value="Part-time (Weekdays)">Part-time (Weekdays)</SelectItem>
-                      <SelectItem value="Part-time (Weekends)">Part-time (Weekends)</SelectItem>
-                      <SelectItem value="Flexible Hours">Flexible Hours</SelectItem>
-                      <SelectItem value="Evening Only">Evening Only</SelectItem>
-                      <SelectItem value="Morning Only">Morning Only</SelectItem>
-                      <SelectItem value="On-Demand">On-Demand</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditProfileOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleProfileUpdate}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Change Password Dialog */}
-      <Dialog
+      <ChangePasswordDialog
         open={changePasswordOpen}
-        onOpenChange={(open) => {
-          setChangePasswordOpen(open);
-          if (!open) {
-            resetPasswordDialog();
-          }
+        onOpenChange={setChangePasswordOpen}
+        passwordForm={passwordForm}
+        setPasswordForm={setPasswordForm}
+        passwordError={passwordError}
+        isPasswordSaving={isPasswordSaving}
+        onSave={handlePasswordUpdate}
+        onReset={resetPasswordDialog}
+      />
+
+      <NotificationsDialog
+        open={notificationsOpen}
+        onOpenChange={setNotificationsOpen}
+        notifications={notifications}
+      />
+
+      <RequestDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        selectedRequest={selectedRequest}
+        actionLoading={actionLoading}
+        onAccept={acceptRequest}
+        onCancel={openCancelDialog}
+      />
+
+      <CompleteWorkDialogFull
+        open={completeDialogOpen}
+        onOpenChange={setCompleteDialogOpen}
+        completeForm={completeForm}
+        setCompleteForm={setCompleteForm}
+        extraItems={extraItems}
+        newExtraItem={newExtraItem}
+        setNewExtraItem={setNewExtraItem}
+        extraItemsLoading={extraItemsLoading}
+        actionLoading={actionLoading}
+        onAddExtraItem={addExtraItem}
+        onRemoveExtraItem={removeExtraItem}
+        onUpdateExtraItem={updateExtraItem}
+        onConfirmComplete={confirmCompleteWork}
+        onClose={() => {
+          setCompleteDialogOpen(false);
+          setCompleteRequestId(null);
+          setCompleteForm({ workStartTime: "", workEndTime: "", completionNotes: "" });
+          setExtraItems([]);
         }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold flex items-center text-orange-500">
-              <Lock className="h-5 w-5 mr-2" />
-              Change Password
-            </DialogTitle>
-            <DialogDescription>
-              Update your password to keep your account secure.
-            </DialogDescription>
-          </DialogHeader>
+      />
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                placeholder="Enter current password"
-              />
+      <PricingBreakdownDialog
+        open={pricingDialogOpen}
+        onOpenChange={setPricingDialogOpen}
+        selectedWork={selectedPricingWork}
+      />
+
+      <CancelReasonDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+        actionLoading={actionLoading}
+        onConfirm={confirmCancelRequest}
+        onClose={() => {
+          setCancelDialogOpen(false);
+          setCancelRequestId(null);
+          setCancelReason("");
+        }}
+      />
+    </div>
+  );
+};
+
+// Dashboard Content Component (kept inline as it's specific to this page)
+interface DashboardContentProps {
+  summary: DashboardSummary;
+  todaysWorks: DashboardTodayWork[];
+  upcomingWorks: DashboardUpcomingWork[];
+  serviceRequests: DashboardServiceRequest[];
+  upcomingDays: UpcomingDay[];
+  loading: boolean;
+  actionLoading: boolean;
+  onAcceptRequest: (id: string) => void;
+  onCancelRequest: (id: string) => void;
+}
+
+const DashboardContent = ({
+  summary,
+  todaysWorks,
+  upcomingWorks,
+  serviceRequests,
+  upcomingDays,
+  loading,
+  actionLoading,
+  onAcceptRequest,
+  onCancelRequest,
+}: DashboardContentProps) => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <span className="ml-2 text-gray-600">Loading dashboard...</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 hover:scale-105">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <Calendar className="h-5 w-5 text-blue-600" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                placeholder="Enter new password"
-              />
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{summary.todaysAppointments}</p>
+          <p className="text-xs text-gray-500 mt-2">Total bookings for today</p>
+        </Card>
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-green-500 hover:scale-105">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-600">Confirmed</p>
+            <div className="bg-green-100 p-2 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-green-600" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                placeholder="Re-enter new password"
-              />
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{summary.confirmed}</p>
+          <p className="text-xs text-gray-500 mt-2">Ready to start</p>
+        </Card>
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-600">Pending</p>
+            <div className="bg-orange-100 p-2 rounded-lg">
+              <Bell className="h-5 w-5 text-orange-600" />
             </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{summary.pending}</p>
+          <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
+        </Card>
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-600">Available Slots</p>
+            <div className="bg-purple-100 p-2 rounded-lg">
+              <Star className="h-5 w-5 text-purple-600" />
+            </div>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{summary.availableSlots}</p>
+          <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
+        </Card>
+      </div>
 
-            {passwordError && (
-              <p className="text-sm text-red-600" role="alert">{passwordError}</p>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Today's Works */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-orange-500 flex items-center">
+                <ClipboardList className="h-6 w-6 mr-2" />
+                Today's Works
+              </h2>
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {todaysWorks.length} scheduled
+              </span>
+            </div>
+            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Client</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Time</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Countdown</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {todaysWorks.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-gray-600 text-lg font-medium">No works scheduled for today</p>
+                            <p className="text-gray-400 text-sm mt-2">Accepted work for today will appear here</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      todaysWorks.map((work) => (
+                        <tr key={work.booking_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
+                                {work.client_picture && (
+                                  <img
+                                    src={work.client_picture}
+                                    alt="Client"
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {work.client_name || "Client"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.service_name || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                              {work.start_time ? new Date(work.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {work.countdown ? (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">{work.countdown}</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Now</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                              {work.location || "-"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                              {work.status || "confirmed"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setChangePasswordOpen(false);
-                resetPasswordDialog();
-              }}
-              disabled={isPasswordSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handlePasswordUpdate}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={isPasswordSaving}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isPasswordSaving ? "Saving..." : "Save Password"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Notifications Dialog */}
-      <Dialog open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold flex items-center">
-              <Bell className="h-5 w-5 mr-2 text-orange-500" />
-              Notifications
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-3">
-            {notifications.length === 0 ? (
-              <div className="text-center py-8">
-                <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No notifications yet</p>
+          {/* Upcoming Works */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-orange-500 flex items-center">
+                <Calendar className="h-6 w-6 mr-2" />
+                Upcoming Works
+              </h2>
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {upcomingWorks.length} upcoming
+              </span>
+            </div>
+            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Client</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date & Time</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Days Until</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {upcomingWorks.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <Calendar className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-gray-600 text-lg font-medium">No upcoming works</p>
+                            <p className="text-gray-400 text-sm mt-2">Future scheduled works will appear here</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      upcomingWorks.map((work) => (
+                        <tr key={work.booking_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
+                                {work.client_picture && (
+                                  <img
+                                    src={work.client_picture}
+                                    alt="Client"
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {work.client_name || "Client"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{work.service_name || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleDateString() : "-"} {work.scheduled_time || ""}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {work.days_until ? (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{work.days_until}</span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                              {work.location || "-"}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 rounded-lg border transition-colors ${
-                    notification.read
-                      ? "bg-gray-50 border-gray-200"
-                      : "bg-orange-50 border-orange-200"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                        notification.read ? "bg-gray-400" : "bg-orange-500"
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
-                      <p className="text-gray-600 text-xs mt-1 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-gray-500 text-xs mt-2">
-                        {
-                          (() => {
-                            const now = new Date();
-                            const diff = now.getTime() - notification.timestamp.getTime();
-                            const mins = Math.floor(diff / 60000);
-                            const hours = Math.floor(diff / 3600000);
-                            const days = Math.floor(diff / 86400000);
+            </Card>
+          </div>
 
-                            if (mins < 1) return "just now";
-                            if (mins < 60) return `${mins}m ago`;
-                            if (hours < 24) return `${hours}h ago`;
-                            return `${days}d ago`;
-                          })()
-                        }
-                      </p>
+          {/* Service Requests */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-orange-500 flex items-center">
+                <Bell className="h-6 w-6 mr-2" />
+                Service Request
+              </h2>
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {serviceRequests.length} pending
+              </span>
+            </div>
+            <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">User Name</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Task</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email address</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {serviceRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center justify-center">
+                            <Bell className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-gray-600 text-lg font-medium">No service requests</p>
+                            <p className="text-gray-400 text-sm mt-2">New requests will appear here</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      serviceRequests.map((request) => (
+                        <tr
+                          key={request.request_id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-300 mr-3 overflow-hidden">
+                                {request.client_picture && (
+                                  <img
+                                    src={request.client_picture}
+                                    alt="Client"
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {request.client_name || "Client"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.location || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {request.client_email || "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                              {request.status || "-"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAcceptRequest(request.request_id);
+                              }}
+                              disabled={actionLoading || request.status === "Confirmed"}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 border border-red-200 px-3"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCancelRequest(request.request_id);
+                              }}
+                              disabled={actionLoading || request.status === "Cancelled"}
+                            >
+                              Cancel
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* Sidebar - Upcoming Days */}
+        <div className="lg:col-span-1">
+          <div className="flex items-center mb-4">
+            <Calendar className="h-5 w-5 mr-2 text-orange-500" />
+            <h2 className="text-xl font-bold">Upcoming Days</h2>
+          </div>
+          <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="space-y-6">
+              {upcomingDays.length === 0 ? (
+                <div className="text-center py-4">
+                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">No upcoming days data</p>
+                </div>
+              ) : (
+                upcomingDays.map((day, index) => (
+                  <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
+                    <div className="flex items-center mb-3">
+                      <Calendar className="h-4 w-4 text-orange-500 mr-2" />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {day.day_name ? `${day.day_name}, ` : ""}{day.date ? new Date(day.date).toLocaleDateString() : day.date}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Appointments</span>
+                        <span className="font-semibold">{day.appointments}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Available Slots</span>
+                        <span className={`font-semibold ${day.availableSlots < 5 ? "text-red-600" : "text-green-600"}`}>
+                          {day.availableSlots}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* Request Details Dialog */}
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold flex items-center text-orange-500">Service Request Details</DialogTitle>
-          </DialogHeader>
+                ))
+              )}
+            </div>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+};
 
-          {selectedRequest ? (
-            <div className="space-y-4 py-2">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
-                  {(selectedRequest.users_orders_client_idTousers?.select?.profile_picture || selectedRequest.users_orders_client_idTousers?.profile_picture) ? (
-                    <img src={selectedRequest.users_orders_client_idTousers?.select?.profile_picture || selectedRequest.users_orders_client_idTousers?.profile_picture} alt={selectedRequest.users_orders_client_idTousers?.select?.full_name || 'Client'} className="w-full h-full object-cover" />
-                  ) : null}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{selectedRequest.users_orders_client_idTousers?.select?.full_name || selectedRequest.users_orders_client_idTousers?.full_name || 'Client'}</p>
-                  <p className="text-sm text-gray-500">{selectedRequest.users_orders_client_idTousers?.select?.email || selectedRequest.users_orders_client_idTousers?.email || '-'}</p>
-                  <p className="text-sm text-gray-500">{selectedRequest.users_orders_client_idTousers?.select?.phone || selectedRequest.users_orders_client_idTousers?.phone || '-'}</p>
-                </div>
-              </div>
+// Notifications Dialog
+interface NotificationsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  notifications: Notification[];
+}
 
-              <div>
-                <h4 className="text-sm font-medium text-gray-700">Description</h4>
-                <p className="text-sm text-gray-900">{selectedRequest.description || '-'}</p>
-              </div>
+const NotificationsDialog = ({ open, onOpenChange, notifications }: NotificationsDialogProps) => {
+  const formatTime = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - timestamp.getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Address</h4>
-                  <p className="text-sm text-gray-900">{selectedRequest.address || '-'}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Amount</h4>
-                  <p className="text-sm text-gray-900">{selectedRequest.total_amount != null ? `৳${selectedRequest.total_amount}` : '-'}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Selected Time</h4>
-                  <p className="text-sm text-gray-900">{selectedRequest.selected_time || '-'}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700">Status</h4>
-                  <p className="text-sm text-gray-900">{selectedRequest.status || '-'}</p>
-                </div>
-              </div>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold flex items-center">
+            <Bell className="h-5 w-5 mr-2 text-orange-500" />
+            Notifications
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {notifications.length === 0 ? (
+            <div className="text-center py-8">
+              <Bell className="h-12 w-12 text-gray-300 
+              
+              mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">No notifications yet</p>
             </div>
           ) : (
-            <div className="py-4 text-center text-gray-500">No request selected</div>
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-lg border transition-colors ${
+                  notification.read ? "bg-gray-50 border-gray-200" : "bg-orange-50 border-orange-200"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notification.read ? "bg-gray-400" : "bg-orange-500"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
+                    <p className="text-gray-600 text-xs mt-1 line-clamp-2">{notification.message}</p>
+                    <p className="text-gray-500 text-xs mt-2">{formatTime(notification.timestamp)}</p>
+                  </div>
+                </div>
+              </div>
+            ))
           )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailsOpen(false)}>Close</Button>
-            <div className="flex gap-2">
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => selectedRequest && acceptRequest(selectedRequest.id)}
-                disabled={actionLoading || selectedRequest?.status === "Confirmed"}
-              >
-                Accept
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-red-600 border border-red-200"
-                onClick={() => selectedRequest && openCancelDialog(selectedRequest.id)}
-                disabled={actionLoading || selectedRequest?.status === "Cancelled"}
-              >
-                Cancel
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cancel Reason Dialog */}
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold flex items-center text-red-600">
-              Cancel Work Request
-            </DialogTitle>
-            <DialogDescription>
-              Please provide a reason for cancelling this work request.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="cancelReason">Reason for Cancellation *</Label>
-              <Textarea
-                id="cancelReason"
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="Please explain why you are cancelling this request..."
-                rows={4}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCancelDialogOpen(false);
-                setCancelRequestId(null);
-                setCancelReason("");
-              }}
-              disabled={actionLoading}
-            >
-              Go Back
-            </Button>
-            <Button
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={confirmCancelRequest}
-              disabled={actionLoading || !cancelReason.trim()}
-            >
-              {actionLoading ? "Cancelling..." : "Confirm Cancellation"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
