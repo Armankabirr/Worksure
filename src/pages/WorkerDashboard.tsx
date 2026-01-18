@@ -27,6 +27,7 @@ import {
   Clock,
   MapPin,
   Loader2,
+  Play,
 } from "lucide-react";
 
 // Types
@@ -38,7 +39,6 @@ import {
   ProfileFormData,
   PasswordFormData,
   CompleteFormData,
-  DashboardOverviewResponse,
   DashboardTodayWork,
   DashboardUpcomingWork,
   DashboardServiceRequest,
@@ -112,7 +112,7 @@ const WorkerDashboard = () => {
     todaysAppointments: 0,
     confirmed: 0,
     pending: 0,
-    availableSlots: 0,
+    completed: 0,
   });
   const [dashboardTodaysWorks, setDashboardTodaysWorks] = useState<DashboardTodayWork[]>([]);
   const [dashboardUpcomingWorks, setDashboardUpcomingWorks] = useState<DashboardUpcomingWork[]>([]);
@@ -209,6 +209,7 @@ const WorkerDashboard = () => {
     todaysWorks,
     upcomingWorks,
     confirmedWorks,
+    inProgressWorks,
     pendingWorks,
     completedWorks,
     cancelledWorks,
@@ -234,17 +235,43 @@ const WorkerDashboard = () => {
     }));
   }, [user]);
 
-  // Fetch Dashboard Overview Data
+  // Fetch Dashboard Summary Data
   useEffect(() => {
-    async function fetchDashboardOverview() {
+    async function fetchDashboardSummary() {
       if (!user?.email) return;
       setDashboardLoading(true);
       try {
-        const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
-        const data: DashboardOverviewResponse = res.data;
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/summary/${user?.email}`);
+        const data = res.data;
         
         if (data.success) {
           setDashboardSummary(data.summary);
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard summary:", err);
+        // Reset to defaults on error
+        setDashboardSummary({
+          todaysAppointments: 0,
+          confirmed: 0,
+          pending: 0,
+          completed: 0,
+        });
+      } finally {
+        setDashboardLoading(false);
+      }
+    }
+    fetchDashboardSummary();
+  }, [axiosPublic, user?.email]);
+
+  // Fetch Dashboard Tasks Data
+  useEffect(() => {
+    async function fetchDashboardTasks() {
+      if (!user?.email) return;
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`);
+        const data = res.data;
+        
+        if (data.success) {
           setDashboardTodaysWorks(data.todaysWorks || []);
           setDashboardUpcomingWorks(data.upcomingWorks || []);
           setDashboardServiceRequests(data.serviceRequests || []);
@@ -254,29 +281,24 @@ const WorkerDashboard = () => {
               date: day.date,
               day_name: day.day_name,
               appointments: day.total_appointments || day.appointments || 0,
-              availableSlots: day.available_slots || day.availableSlots || 0,
             }))
           );
         }
       } catch (err) {
-        console.error("Error fetching dashboard overview:", err);
-        // Reset to defaults on error
-        setDashboardSummary({
-          todaysAppointments: 0,
-          confirmed: 0,
-          pending: 0,
-          availableSlots: 0,
-        });
+        console.error("Error fetching dashboard tasks:", err);
         setDashboardTodaysWorks([]);
         setDashboardUpcomingWorks([]);
         setDashboardUpcomingDays([]);
         setDashboardServiceRequests([]);
-      } finally {
-        setDashboardLoading(false);
       }
     }
-    fetchDashboardOverview();
+    fetchDashboardTasks();
   }, [axiosPublic, user?.email]);
+
+  console.log("todays: ", dashboardTodaysWorks);
+  console.log("upcoming: ", dashboardUpcomingWorks);
+  console.log("requested: ", dashboardServiceRequests);
+  
 
   useEffect(() => {
     async function fetchWorkHistory() {
@@ -459,6 +481,41 @@ const WorkerDashboard = () => {
     }
   }
 
+  async function startWork(id: string) {
+    setActionLoading(true);
+    try {
+      await axiosPublic.patch(`/orderRoutes/startWork/${id}`, {
+        workerEmail: user?.email,
+      });
+      // Update local state to reflect the work has started
+      setWorkHistory((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, status: "in_progress" } : w))
+      );
+      toast({ title: "Success", description: "Work started successfully!" });
+      
+      // Refresh dashboard data
+      try {
+        const tasksRes = await axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`);
+        if (tasksRes.data.success) {
+          setDashboardTodaysWorks(tasksRes.data.todaysWorks || []);
+          setDashboardUpcomingWorks(tasksRes.data.upcomingWorks || []);
+          setDashboardServiceRequests(tasksRes.data.serviceRequests || []);
+        }
+      } catch (refreshErr) {
+        console.error("Error refreshing dashboard:", refreshErr);
+      }
+    } catch (err) {
+      console.error("Error starting work:", err);
+      toast({
+        title: "Error",
+        description: "Failed to start work. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   function openCancelDialog(id: string) {
     setCancelRequestId(id);
     setCancelReason("");
@@ -522,9 +579,25 @@ const WorkerDashboard = () => {
     }
   }
 
-  function openCompleteDialog(id: string) {
+  async function openCompleteDialog(id: string) {
     setCompleteRequestId(id);
-    const { startTime, endTime } = getDefaultWorkTimes();
+    const { endTime } = getDefaultWorkTimes();
+    
+    // Fetch start time from API
+    let startTime = "";
+    try {
+      const res = await axiosPublic.get(`/orderRoutes/getStartTime/${id}`);
+      if (res.data?.work_start) {
+        // Convert the start time to HH:mm format
+        const startDate = new Date(res.data.work_start);
+        startTime = startDate.toTimeString().slice(0, 5);
+      }
+    } catch (err) {
+      console.error("Error fetching start time:", err);
+      // Use default start time if API fails
+      startTime = getDefaultWorkTimes().startTime;
+    }
+    
     setCompleteForm({
       workStartTime: startTime,
       workEndTime: endTime,
@@ -598,25 +671,27 @@ const WorkerDashboard = () => {
 
     setActionLoading(true);
     try {
-      if (extraItems.length > 0) {
-        await axiosPublic.post(`/orderRoutes/extraItems/${completeRequestId}`, {
-          workerEmail: user?.email,
-          extraItems: extraItems,
-        });
-      }
+      // Transform extraItems to match the order_items table structure
+      const orderItemsPayload = {
+        items: extraItems.map((item) => ({
+          service_id: item.id,
+          service_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.quantity * item.unitPrice,
+        })),
+        additional_notes: completeForm.completionNotes.trim() || null
+      };
 
-      await axiosPublic.patch(`/orderRoutes/completeByWorker/${completeRequestId}`, {
-        workerEmail: user?.email,
-        workStartTime: completeForm.workStartTime,
-        workEndTime: completeForm.workEndTime,
-        completionNotes: completeForm.completionNotes.trim(),
-        extraItems: extraItems,
-      });
+      // Submit order items if there are extra items
+      if (extraItems.length > 0) {
+        await axiosPublic.post(`/orderRoutes/orderItems/${completeRequestId}`, orderItemsPayload);
+      }
 
       setWorkHistory((prev) =>
         prev.map((w) =>
           w.id === completeRequestId
-            ? { ...w, status: "completed_by_worker", extra_items: extraItems }
+            ? { ...w, status: "awaiting", extra_items: extraItems }
             : w
         )
       );
@@ -645,6 +720,27 @@ const WorkerDashboard = () => {
     setPricingDialogOpen(true);
   }
 
+  async function confirmPayment(id: string) {
+    setActionLoading(true);
+    try {
+      await axiosPublic.patch(`/paymentRoutes/verify/${id}`);
+      // Update local state to reflect payment is confirmed
+      setWorkHistory((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, payment_completed: true } : w))
+      );
+      toast({ title: "Success", description: "Payment confirmed successfully!" });
+    } catch (err) {
+      console.error("Error confirming payment:", err);
+      toast({
+        title: "Error",
+        description: "Failed to confirm payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   // Content Renderer
   const renderContent = () => {
     switch (activeTab) {
@@ -662,19 +758,25 @@ const WorkerDashboard = () => {
               await acceptRequest(id);
               // Refresh dashboard data after accepting
               try {
-                const res = await axiosPublic.get(`/workerRoutes/dashboard/overview/${user?.email}`);
-                const data: DashboardOverviewResponse = res.data;
-                if (data.success) {
-                  setDashboardSummary(data.summary);
-                  setDashboardTodaysWorks(data.todaysWorks || []);
-                  setDashboardUpcomingWorks(data.upcomingWorks || []);
-                  setDashboardServiceRequests(data.serviceRequests || []);
+                const [summaryRes, tasksRes] = await Promise.all([
+                  axiosPublic.get(`/workerRoutes/dashboard/summary/${user?.email}`),
+                  axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`)
+                ]);
+                
+                if (summaryRes.data.success) {
+                  setDashboardSummary(summaryRes.data.summary);
+                }
+                if (tasksRes.data.success) {
+                  setDashboardTodaysWorks(tasksRes.data.todaysWorks || []);
+                  setDashboardUpcomingWorks(tasksRes.data.upcomingWorks || []);
+                  setDashboardServiceRequests(tasksRes.data.serviceRequests || []);
                 }
               } catch (err) {
                 console.error("Error refreshing dashboard:", err);
               }
             }}
             onCancelRequest={openCancelDialog}
+            onStartWork={startWork}
           />
         );
       case "service-request":
@@ -697,6 +799,7 @@ const WorkerDashboard = () => {
             workHistory={workHistory}
             workHistoryLoading={workHistoryLoading}
             confirmedWorks={confirmedWorks}
+            inProgressWorks={inProgressWorks}
             awaitingConfirmationWorks={awaitingConfirmationWorks}
             completedWorks={completedWorks}
             cancelledWorks={cancelledWorks}
@@ -704,6 +807,8 @@ const WorkerDashboard = () => {
             onCompleteWork={openCompleteDialog}
             onCancelWork={openCancelDialog}
             onViewPricing={openPricingDialog}
+            onStartWork={startWork}
+            onConfirmPayment={confirmPayment}
           />
         );
       case "account":
@@ -993,6 +1098,7 @@ interface DashboardContentProps {
   actionLoading: boolean;
   onAcceptRequest: (id: string) => void;
   onCancelRequest: (id: string) => void;
+  onStartWork: (id: string) => void;
 }
 
 const DashboardContent = ({
@@ -1005,6 +1111,7 @@ const DashboardContent = ({
   actionLoading,
   onAcceptRequest,
   onCancelRequest,
+  onStartWork,
 }: DashboardContentProps) => {
   if (loading) {
     return (
@@ -1018,7 +1125,7 @@ const DashboardContent = ({
   return (
     <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-8">
         <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 hover:scale-105">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
@@ -1049,22 +1156,20 @@ const DashboardContent = ({
           <p className="text-3xl font-bold text-gray-900">{summary.pending}</p>
           <p className="text-xs text-gray-500 mt-2">Awaiting confirmation</p>
         </Card>
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-purple-500 hover:scale-105">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-orange-500 hover:scale-105">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Available Slots</p>
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <Star className="h-5 w-5 text-purple-600" />
+            <p className="text-sm font-medium text-gray-600">Completed</p>
+            <div className="bg-orange-100 p-2 rounded-lg">
+              <Bell className="h-5 w-5 text-orange-600" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{summary.availableSlots}</p>
-          <p className="text-xs text-gray-500 mt-2">Open for bookings</p>
+          <p className="text-3xl font-bold text-gray-900">{summary?.completed || 0}</p>
+          <p className="text-xs text-gray-500 mt-2">Completed works</p>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Today's Works */}
+      <div className="space-y-6">
+        {/* Today's Works */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-orange-500 flex items-center">
@@ -1086,12 +1191,13 @@ const DashboardContent = ({
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Countdown</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {todaysWorks.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center">
+                        <td colSpan={7} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center">
                             <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
                             <p className="text-gray-600 text-lg font-medium">No works scheduled for today</p>
@@ -1142,6 +1248,17 @@ const DashboardContent = ({
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                               {work.status || "confirmed"}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              onClick={() => onStartWork(work.booking_id)}
+                              disabled={actionLoading || work.status === "in_progress"}
+                            >
+                              <Play className="h-4 w-4 mr-1" />
+                              Start
+                            </Button>
                           </td>
                         </tr>
                       ))
@@ -1209,7 +1326,7 @@ const DashboardContent = ({
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleDateString() : "-"} {work.scheduled_time || ""}
+                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleString() : "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -1291,7 +1408,7 @@ const DashboardContent = ({
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task_name || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.location || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {request.client_email || "-"}
@@ -1335,48 +1452,6 @@ const DashboardContent = ({
             </Card>
           </div>
         </div>
-
-        {/* Sidebar - Upcoming Days */}
-        <div className="lg:col-span-1">
-          <div className="flex items-center mb-4">
-            <Calendar className="h-5 w-5 mr-2 text-orange-500" />
-            <h2 className="text-xl font-bold">Upcoming Days</h2>
-          </div>
-          <Card className="p-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="space-y-6">
-              {upcomingDays.length === 0 ? (
-                <div className="text-center py-4">
-                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">No upcoming days data</p>
-                </div>
-              ) : (
-                upcomingDays.map((day, index) => (
-                  <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
-                    <div className="flex items-center mb-3">
-                      <Calendar className="h-4 w-4 text-orange-500 mr-2" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {day.day_name ? `${day.day_name}, ` : ""}{day.date ? new Date(day.date).toLocaleDateString() : day.date}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Appointments</span>
-                        <span className="font-semibold">{day.appointments}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Available Slots</span>
-                        <span className={`font-semibold ${day.availableSlots < 5 ? "text-red-600" : "text-green-600"}`}>
-                          {day.availableSlots}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-        </div>
-      </div>
     </>
   );
 };

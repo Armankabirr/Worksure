@@ -18,6 +18,9 @@ import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Cart from "./pages/Cart";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
+import PaymentCancelled from "./pages/PaymentCancelled";
 import Preloader from "./components/Preloader";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -77,6 +80,9 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/failed" element={<PaymentFailed />} />
+              <Route path="/payment/cancelled" element={<PaymentCancelled />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

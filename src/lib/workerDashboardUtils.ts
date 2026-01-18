@@ -16,7 +16,7 @@ export const isCancelledStatus = (status: string | null | undefined): boolean =>
   ["cancelled", "Cancelled", "canceled", "Canceled"].includes(status || "");
 
 export const isCompletedByWorkerStatus = (status: string | null | undefined): boolean =>
-  ["completed_by_worker", "COMPLETED_BY_WORKER"].includes(status || "");
+  ["completed_by_worker", "COMPLETED_BY_WORKER", "awaiting", "Awaiting", "AWAITING"].includes(status || "");
 
 export const isInProgressStatus = (status: string | null | undefined): boolean =>
   ["in_progress", "IN_PROGRESS", "confirmed", "Confirmed", "accepted", "Accepted"].includes(status || "");
@@ -69,7 +69,10 @@ export const filterWorkHistory = (workHistory: ApiServiceRequest[]) => {
     (w) => isFuture(w.selected_date) && !isToday(w.selected_date) && isConfirmedStatus(w.status)
   );
   const confirmedWorks = workHistory.filter(
-    (w) => isConfirmedStatus(w.status) && !isCompletedByWorkerStatus(w.status)
+    (w) => isConfirmedStatus(w.status) && !isCompletedByWorkerStatus(w.status) && w.status?.toLowerCase() !== "in_progress"
+  );
+  const inProgressWorks = workHistory.filter(
+    (w) => w.status?.toLowerCase() === "in_progress"
   );
   const pendingWorks = workHistory.filter((w) => isPendingStatus(w.status));
   const completedWorks = workHistory.filter((w) => isCompletedStatus(w.status));
@@ -80,6 +83,7 @@ export const filterWorkHistory = (workHistory: ApiServiceRequest[]) => {
     todaysWorks,
     upcomingWorks,
     confirmedWorks,
+    inProgressWorks,
     pendingWorks,
     completedWorks,
     cancelledWorks,
