@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { History, CheckCircle, Loader2, DollarSign, Play } from "lucide-react";
+import { History, CheckCircle, Loader2, DollarSign, Play, BadgeCheck } from "lucide-react";
 import { ApiServiceRequest } from "@/types/workerDashboard";
 import {
   isCompletedStatus,
@@ -24,6 +24,7 @@ interface ServiceHistoryContentProps {
   onCancelWork: (id: string) => void;
   onViewPricing: (work: ApiServiceRequest) => void;
   onStartWork: (id: string) => void;
+  onConfirmPayment: (id: string) => void;
 }
 
 export const ServiceHistoryContent = ({
@@ -39,6 +40,7 @@ export const ServiceHistoryContent = ({
   onCancelWork,
   onViewPricing,
   onStartWork,
+  onConfirmPayment,
 }: ServiceHistoryContentProps) => {
   const renderHistoryTable = (
     data: ApiServiceRequest[],
@@ -211,17 +213,30 @@ export const ServiceHistoryContent = ({
                         </div>
                       )}
 
-                      {/* Show view pricing for completed tasks */}
+                      {/* Show view pricing and confirm payment for completed tasks */}
                       {isCompletedStatus(item.status) && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 border-green-200 px-3"
-                          onClick={() => onViewPricing(item)}
-                        >
-                          <DollarSign className="h-4 w-4 mr-1" />
-                          View Pricing
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-600 border-green-200 px-3"
+                            onClick={() => onViewPricing(item)}
+                          >
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            View Pricing
+                          </Button>
+                          {!item.payment_completed && (
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3"
+                              onClick={() => onConfirmPayment(item.id)}
+                              disabled={actionLoading}
+                            >
+                              <BadgeCheck className="h-4 w-4 mr-1" />
+                              Confirm Payment
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </td>
                   )}

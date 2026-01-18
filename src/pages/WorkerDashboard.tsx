@@ -720,6 +720,27 @@ const WorkerDashboard = () => {
     setPricingDialogOpen(true);
   }
 
+  async function confirmPayment(id: string) {
+    setActionLoading(true);
+    try {
+      await axiosPublic.patch(`/paymentRoutes/verify/${id}`);
+      // Update local state to reflect payment is confirmed
+      setWorkHistory((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, payment_completed: true } : w))
+      );
+      toast({ title: "Success", description: "Payment confirmed successfully!" });
+    } catch (err) {
+      console.error("Error confirming payment:", err);
+      toast({
+        title: "Error",
+        description: "Failed to confirm payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   // Content Renderer
   const renderContent = () => {
     switch (activeTab) {
@@ -787,6 +808,7 @@ const WorkerDashboard = () => {
             onCancelWork={openCancelDialog}
             onViewPricing={openPricingDialog}
             onStartWork={startWork}
+            onConfirmPayment={confirmPayment}
           />
         );
       case "account":

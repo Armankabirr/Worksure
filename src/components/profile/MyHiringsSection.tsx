@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Hiring } from "@/types/profile";
 import { HiringPricingDialog } from "./HiringPricingDialog";
+import { PaymentDialog } from "./PaymentDialog";
 
 // Status tab types
 type StatusTab = "pending" | "accepted" | "in_progress" | "awaiting" | "completed" | "cancelled";
@@ -104,6 +105,7 @@ const MyHiringsSection = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<StatusTab>("pending");
   const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedHiring, setSelectedHiring] = useState<Hiring | null>(null);
 
   const handleViewPricing = (hiring: Hiring) => {
@@ -112,12 +114,13 @@ const MyHiringsSection = ({
   };
 
   const handleMakePayment = (hiring: Hiring) => {
-    if (onMakePayment) {
-      onMakePayment(hiring);
-    } else {
-      // Default behavior - navigate to payment page or open payment dialog
-      navigate(`/payment/${hiring.id}`);
-    }
+    setSelectedHiring(hiring);
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    // Optionally refresh hirings data after successful payment
+    // This could be done by passing a refresh callback from parent
   };
 
   // Filter hirings based on active tab
@@ -238,6 +241,14 @@ const MyHiringsSection = ({
         open={pricingDialogOpen}
         onOpenChange={setPricingDialogOpen}
         selectedHiring={selectedHiring}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        selectedHiring={selectedHiring}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </Card>
   );
@@ -505,6 +516,18 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
           Created: {new Date(hiring.created_at).toLocaleDateString()} at {new Date(hiring.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </p>
         <div className="flex items-center gap-2">
+          {/* Show Cancel button for pending and accepted tasks */}
+          {(hiring.status?.toLowerCase() === "pending" || hiring.status?.toLowerCase() === "accepted") && (
+            <Button
+              onClick={() => onCancel(hiring.id)}
+              size="sm"
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+            >
+              <XCircle className="h-3 w-3 mr-1" />
+              Cancel
+            </Button>
+          )}
           {/* Show View Pricing only for completed and awaiting tasks */}
           {(hiring.status?.toLowerCase() === "completed" || hiring.status?.toLowerCase() === "awaiting") && (
             <Button
