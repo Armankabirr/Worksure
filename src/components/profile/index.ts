@@ -5,3 +5,4 @@ export { default as MyHiringsSection } from "./MyHiringsSection";
 export { default as MyReviewsSection } from "./MyReviewsSection";
 export { default as SavedServicesSection } from "./SavedServicesSection";
 export { default as ProfileLoadingState } from "./ProfileLoadingState";
+export { default as HiringPricingDialog } from "./HiringPricingDialog";

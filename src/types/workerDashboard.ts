@@ -76,8 +76,14 @@ export interface DashboardServiceRequest {
   client_email: string;
   client_picture?: string;
   task: string;
+  task_name?: string;
+  service_name?: string;
   location: string;
   status: string;
+  scheduled_date?: string;
+  scheduled_time?: string;
+  description?: string;
+  total_amount?: number;
 }
 
 export interface DashboardSummary {

@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { History, CheckCircle, Loader2, DollarSign } from "lucide-react";
+import { History, CheckCircle, Loader2, DollarSign, Play } from "lucide-react";
 import { ApiServiceRequest } from "@/types/workerDashboard";
 import {
   isCompletedStatus,
@@ -15,6 +15,7 @@ interface ServiceHistoryContentProps {
   workHistory: ApiServiceRequest[];
   workHistoryLoading: boolean;
   confirmedWorks: ApiServiceRequest[];
+  inProgressWorks: ApiServiceRequest[];
   awaitingConfirmationWorks: ApiServiceRequest[];
   completedWorks: ApiServiceRequest[];
   cancelledWorks: ApiServiceRequest[];
@@ -22,12 +23,14 @@ interface ServiceHistoryContentProps {
   onCompleteWork: (id: string) => void;
   onCancelWork: (id: string) => void;
   onViewPricing: (work: ApiServiceRequest) => void;
+  onStartWork: (id: string) => void;
 }
 
 export const ServiceHistoryContent = ({
   workHistory,
   workHistoryLoading,
   confirmedWorks,
+  inProgressWorks,
   awaitingConfirmationWorks,
   completedWorks,
   cancelledWorks,
@@ -35,6 +38,7 @@ export const ServiceHistoryContent = ({
   onCompleteWork,
   onCancelWork,
   onViewPricing,
+  onStartWork,
 }: ServiceHistoryContentProps) => {
   const renderHistoryTable = (
     data: ApiServiceRequest[],
@@ -107,10 +111,9 @@ export const ServiceHistoryContent = ({
                     {item.description || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.selected_date
-                      ? new Date(item.selected_date).toLocaleDateString()
-                      : "-"}{" "}
-                    {item.selected_time || ""}
+                    {item.selected_time
+                      ? new Date(item.selected_time).toLocaleString()
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.address || "-"}
@@ -136,13 +139,39 @@ export const ServiceHistoryContent = ({
                   </td>
                   {showActions && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
-                      {/* Show Complete button for in-progress/confirmed tasks */}
-                      {isInProgressStatus(item.status) &&
-                        !isCompletedByWorkerStatus(item.status) && (
+                      {/* Show Start button for confirmed tasks that haven't started yet */}
+                      {isConfirmedStatus(item.status) &&
+                        !isCompletedByWorkerStatus(item.status) &&
+                        item.status?.toLowerCase() !== "in_progress" && (
                           <>
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              onClick={() => onStartWork(item.id)}
+                              disabled={actionLoading}
+                            >
+                              <Play className="h-4 w-4 mr-1" />
+                              Start
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 border border-red-200 px-3"
+                              onClick={() => onCancelWork(item.id)}
+                              disabled={actionLoading}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+
+                      {/* Show Complete button for in-progress tasks */}
+                      {item.status?.toLowerCase() === "in_progress" &&
+                        !isCompletedByWorkerStatus(item.status) && (
+                          <>
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3"
                               onClick={() => onCompleteWork(item.id)}
                               disabled={actionLoading}
                             >
@@ -214,19 +243,22 @@ export const ServiceHistoryContent = ({
           <p className="text-gray-500">Loading work history...</p>
         </Card>
       ) : (
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+        <Tabs defaultValue="all" className="w-full ">
+          <TabsList className="grid w-full grid-cols-6 mb-6 bg-gray-200 rounded-lg">
             <TabsTrigger value="all">All ({workHistory.length})</TabsTrigger>
             <TabsTrigger value="confirmed">
-              In Progress ({confirmedWorks.length})
+              Upcoming ({confirmedWorks.length})
+            </TabsTrigger>
+            <TabsTrigger value="inprogress" className="text-blue-600">
+              In progress ({inProgressWorks.length})
             </TabsTrigger>
             <TabsTrigger value="awaiting" className="text-amber-600">
               Awaiting ({awaitingConfirmationWorks.length})
             </TabsTrigger>
-            <TabsTrigger value="completed">
+            <TabsTrigger value="completed" className="text-green-600">
               Completed ({completedWorks.length})
             </TabsTrigger>
-            <TabsTrigger value="cancelled">
+            <TabsTrigger value="cancelled" className="text-red-600">
               Cancelled ({cancelledWorks.length})
             </TabsTrigger>
           </TabsList>
@@ -234,7 +266,10 @@ export const ServiceHistoryContent = ({
             {renderHistoryTable(workHistory, "No work history available", true)}
           </TabsContent>
           <TabsContent value="confirmed">
-            {renderHistoryTable(confirmedWorks, "No in-progress works", true)}
+            {renderHistoryTable(confirmedWorks, "No upcoming works", true)}
+          </TabsContent>
+          <TabsContent value="inprogress">
+            {renderHistoryTable(inProgressWorks, "No works in progress", true)}
           </TabsContent>
           <TabsContent value="awaiting">
             {renderHistoryTable(

@@ -146,6 +146,7 @@ const WorkerDetail = () => {
                     selected_time: dateTime.toISOString(),
                     address: selectedAddress.trim(),
                     description: description.trim(),
+                    total_amount: worker.worker_services[0]?.base_price || "0",
                };
 
                console.log(orderData);

@@ -27,6 +27,7 @@ import {
   Clock,
   MapPin,
   Loader2,
+  Play,
 } from "lucide-react";
 
 // Types
@@ -38,7 +39,6 @@ import {
   ProfileFormData,
   PasswordFormData,
   CompleteFormData,
-  DashboardOverviewResponse,
   DashboardTodayWork,
   DashboardUpcomingWork,
   DashboardServiceRequest,
@@ -209,6 +209,7 @@ const WorkerDashboard = () => {
     todaysWorks,
     upcomingWorks,
     confirmedWorks,
+    inProgressWorks,
     pendingWorks,
     completedWorks,
     cancelledWorks,
@@ -293,6 +294,11 @@ const WorkerDashboard = () => {
     }
     fetchDashboardTasks();
   }, [axiosPublic, user?.email]);
+
+  console.log("todays: ", dashboardTodaysWorks);
+  console.log("upcoming: ", dashboardUpcomingWorks);
+  console.log("requested: ", dashboardServiceRequests);
+  
 
   useEffect(() => {
     async function fetchWorkHistory() {
@@ -475,6 +481,41 @@ const WorkerDashboard = () => {
     }
   }
 
+  async function startWork(id: string) {
+    setActionLoading(true);
+    try {
+      await axiosPublic.patch(`/orderRoutes/startWork/${id}`, {
+        workerEmail: user?.email,
+      });
+      // Update local state to reflect the work has started
+      setWorkHistory((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, status: "in_progress" } : w))
+      );
+      toast({ title: "Success", description: "Work started successfully!" });
+      
+      // Refresh dashboard data
+      try {
+        const tasksRes = await axiosPublic.get(`/workerRoutes/dashboard/tasks/${user?.email}`);
+        if (tasksRes.data.success) {
+          setDashboardTodaysWorks(tasksRes.data.todaysWorks || []);
+          setDashboardUpcomingWorks(tasksRes.data.upcomingWorks || []);
+          setDashboardServiceRequests(tasksRes.data.serviceRequests || []);
+        }
+      } catch (refreshErr) {
+        console.error("Error refreshing dashboard:", refreshErr);
+      }
+    } catch (err) {
+      console.error("Error starting work:", err);
+      toast({
+        title: "Error",
+        description: "Failed to start work. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   function openCancelDialog(id: string) {
     setCancelRequestId(id);
     setCancelReason("");
@@ -538,9 +579,25 @@ const WorkerDashboard = () => {
     }
   }
 
-  function openCompleteDialog(id: string) {
+  async function openCompleteDialog(id: string) {
     setCompleteRequestId(id);
-    const { startTime, endTime } = getDefaultWorkTimes();
+    const { endTime } = getDefaultWorkTimes();
+    
+    // Fetch start time from API
+    let startTime = "";
+    try {
+      const res = await axiosPublic.get(`/orderRoutes/getStartTime/${id}`);
+      if (res.data?.work_start) {
+        // Convert the start time to HH:mm format
+        const startDate = new Date(res.data.work_start);
+        startTime = startDate.toTimeString().slice(0, 5);
+      }
+    } catch (err) {
+      console.error("Error fetching start time:", err);
+      // Use default start time if API fails
+      startTime = getDefaultWorkTimes().startTime;
+    }
+    
     setCompleteForm({
       workStartTime: startTime,
       workEndTime: endTime,
@@ -614,25 +671,27 @@ const WorkerDashboard = () => {
 
     setActionLoading(true);
     try {
-      if (extraItems.length > 0) {
-        await axiosPublic.post(`/orderRoutes/extraItems/${completeRequestId}`, {
-          workerEmail: user?.email,
-          extraItems: extraItems,
-        });
-      }
+      // Transform extraItems to match the order_items table structure
+      const orderItemsPayload = {
+        items: extraItems.map((item) => ({
+          service_id: item.id,
+          service_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.quantity * item.unitPrice,
+        })),
+        additional_notes: completeForm.completionNotes.trim() || null
+      };
 
-      await axiosPublic.patch(`/orderRoutes/completeByWorker/${completeRequestId}`, {
-        workerEmail: user?.email,
-        workStartTime: completeForm.workStartTime,
-        workEndTime: completeForm.workEndTime,
-        completionNotes: completeForm.completionNotes.trim(),
-        extraItems: extraItems,
-      });
+      // Submit order items if there are extra items
+      if (extraItems.length > 0) {
+        await axiosPublic.post(`/orderRoutes/orderItems/${completeRequestId}`, orderItemsPayload);
+      }
 
       setWorkHistory((prev) =>
         prev.map((w) =>
           w.id === completeRequestId
-            ? { ...w, status: "completed_by_worker", extra_items: extraItems }
+            ? { ...w, status: "awaiting", extra_items: extraItems }
             : w
         )
       );
@@ -696,6 +755,7 @@ const WorkerDashboard = () => {
               }
             }}
             onCancelRequest={openCancelDialog}
+            onStartWork={startWork}
           />
         );
       case "service-request":
@@ -718,6 +778,7 @@ const WorkerDashboard = () => {
             workHistory={workHistory}
             workHistoryLoading={workHistoryLoading}
             confirmedWorks={confirmedWorks}
+            inProgressWorks={inProgressWorks}
             awaitingConfirmationWorks={awaitingConfirmationWorks}
             completedWorks={completedWorks}
             cancelledWorks={cancelledWorks}
@@ -725,6 +786,7 @@ const WorkerDashboard = () => {
             onCompleteWork={openCompleteDialog}
             onCancelWork={openCancelDialog}
             onViewPricing={openPricingDialog}
+            onStartWork={startWork}
           />
         );
       case "account":
@@ -1014,6 +1076,7 @@ interface DashboardContentProps {
   actionLoading: boolean;
   onAcceptRequest: (id: string) => void;
   onCancelRequest: (id: string) => void;
+  onStartWork: (id: string) => void;
 }
 
 const DashboardContent = ({
@@ -1026,6 +1089,7 @@ const DashboardContent = ({
   actionLoading,
   onAcceptRequest,
   onCancelRequest,
+  onStartWork,
 }: DashboardContentProps) => {
   if (loading) {
     return (
@@ -1105,12 +1169,13 @@ const DashboardContent = ({
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Countdown</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {todaysWorks.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center">
+                        <td colSpan={7} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center">
                             <ClipboardList className="h-16 w-16 text-gray-300 mb-4" />
                             <p className="text-gray-600 text-lg font-medium">No works scheduled for today</p>
@@ -1161,6 +1226,17 @@ const DashboardContent = ({
                             <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                               {work.status || "confirmed"}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              onClick={() => onStartWork(work.booking_id)}
+                              disabled={actionLoading || work.status === "in_progress"}
+                            >
+                              <Play className="h-4 w-4 mr-1" />
+                              Start
+                            </Button>
                           </td>
                         </tr>
                       ))
@@ -1228,7 +1304,7 @@ const DashboardContent = ({
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleDateString() : "-"} {work.scheduled_time || ""}
+                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleString() : "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -1310,7 +1386,7 @@ const DashboardContent = ({
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.task_name || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{request.location || "-"}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {request.client_email || "-"}

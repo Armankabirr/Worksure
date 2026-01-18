@@ -16,12 +16,15 @@ import {
   CheckCircle,
   XCircle,
   PlayCircle,
-  HourglassIcon
+  HourglassIcon,
+  Eye,
+  CreditCard
 } from "lucide-react";
 import { Hiring } from "@/types/profile";
+import { HiringPricingDialog } from "./HiringPricingDialog";
 
 // Status tab types
-type StatusTab = "all" | "pending" | "accepted" | "in_progress" | "completed" | "cancelled";
+type StatusTab = "pending" | "accepted" | "in_progress" | "awaiting" | "completed" | "cancelled";
 
 interface StatusTabConfig {
   key: StatusTab;
@@ -33,14 +36,6 @@ interface StatusTabConfig {
 }
 
 const statusTabs: StatusTabConfig[] = [
-  { 
-    key: "all", 
-    label: "All", 
-    icon: <Briefcase className="h-4 w-4" />,
-    color: "text-slate-700",
-    bgColor: "bg-slate-100",
-    borderColor: "border-slate-300"
-  },
   { 
     key: "pending", 
     label: "Pending", 
@@ -66,6 +61,14 @@ const statusTabs: StatusTabConfig[] = [
     borderColor: "border-purple-300"
   },
   { 
+    key: "awaiting", 
+    label: "Awaiting", 
+    icon: <Clock className="h-4 w-4" />,
+    color: "text-amber-700",
+    bgColor: "bg-amber-50",
+    borderColor: "border-amber-300"
+  },
+  { 
     key: "completed", 
     label: "Completed", 
     icon: <CheckCheck className="h-4 w-4" />,
@@ -88,20 +91,37 @@ interface MyHiringsSectionProps {
   isLoading: boolean;
   error: string | null;
   onCancelOrder: (hiringId: string) => void;
+  onMakePayment?: (hiring: Hiring) => void;
 }
 
 const MyHiringsSection = ({ 
   hirings, 
   isLoading, 
   error, 
-  onCancelOrder 
+  onCancelOrder,
+  onMakePayment
 }: MyHiringsSectionProps) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<StatusTab>("all");
+  const [activeTab, setActiveTab] = useState<StatusTab>("pending");
+  const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+  const [selectedHiring, setSelectedHiring] = useState<Hiring | null>(null);
+
+  const handleViewPricing = (hiring: Hiring) => {
+    setSelectedHiring(hiring);
+    setPricingDialogOpen(true);
+  };
+
+  const handleMakePayment = (hiring: Hiring) => {
+    if (onMakePayment) {
+      onMakePayment(hiring);
+    } else {
+      // Default behavior - navigate to payment page or open payment dialog
+      navigate(`/payment/${hiring.id}`);
+    }
+  };
 
   // Filter hirings based on active tab
   const filteredHirings = hirings.filter((hiring) => {
-    if (activeTab === "all") return true;
     // Handle different status naming conventions (e.g., "in-progress" vs "in_progress")
     const normalizedStatus = hiring.status?.toLowerCase().replace("-", "_");
     return normalizedStatus === activeTab;
@@ -109,7 +129,6 @@ const MyHiringsSection = ({
 
   // Get count for each status
   const getStatusCount = (status: StatusTab): number => {
-    if (status === "all") return hirings.length;
     return hirings.filter((h) => {
       const normalizedStatus = h.status?.toLowerCase().replace("-", "_");
       return normalizedStatus === status;
@@ -180,7 +199,9 @@ const MyHiringsSection = ({
               <HiringCard 
                 key={hiring.id} 
                 hiring={hiring} 
-                onCancel={onCancelOrder} 
+                onCancel={onCancelOrder}
+                onViewPricing={handleViewPricing}
+                onMakePayment={handleMakePayment}
               />
             ))}
           </div>
@@ -190,11 +211,11 @@ const MyHiringsSection = ({
             <h3 className="text-lg font-semibold text-foreground mb-1">No {activeTab.replace("_", " ")} Hirings</h3>
             <p className="text-sm text-muted-foreground mb-4">You don't have any hirings with this status</p>
             <Button
-              onClick={() => setActiveTab("all")}
+              onClick={() => setActiveTab("pending")}
               variant="outline"
               className="border-slate-300"
             >
-              View All Hirings
+              View Pending Hirings
             </Button>
           </div>
         ) : (
@@ -211,6 +232,13 @@ const MyHiringsSection = ({
           </div>
         )}
       </div>
+
+      {/* Pricing Dialog */}
+      <HiringPricingDialog
+        open={pricingDialogOpen}
+        onOpenChange={setPricingDialogOpen}
+        selectedHiring={selectedHiring}
+      />
     </Card>
   );
 };
@@ -218,10 +246,14 @@ const MyHiringsSection = ({
 interface HiringCardProps {
   hiring: Hiring;
   onCancel: (hiringId: string) => void;
+  onViewPricing: (hiring: Hiring) => void;
+  onMakePayment?: (hiring: Hiring) => void;
 }
 
-const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
+const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCardProps) => {
   const worker = hiring.users_orders_assigned_worker_idTousers;
+  const isCompleted = hiring.status?.toLowerCase() === "completed";
+  const isAwaiting = hiring.status?.toLowerCase() === "awaiting";
 
   // Get status badge styling
   const getStatusStyle = (status: string) => {
@@ -237,6 +269,8 @@ const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
         return "bg-green-100 text-green-700 border-green-200";
       case "cancelled":
         return "bg-red-100 text-red-700 border-red-200";
+      case "awaiting":
+        return "bg-amber-100 text-amber-700 border-amber-200";
       default:
         return "bg-slate-100 text-slate-700 border-slate-200";
     }
@@ -253,6 +287,88 @@ const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
       .join(" ");
   };
 
+  // Minimized card for completed orders
+  if (isCompleted) {
+    return (
+      <div className="border border-slate-200 rounded-lg p-4 hover:border-primary/50 hover:shadow-md transition-all duration-200 bg-green-50/30">
+        {/* Header with Status */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1">
+            {worker && (
+              <Avatar className="h-10 w-10 flex-shrink-0 border border-slate-200">
+                <AvatarImage src={worker.profile_picture} alt={worker.full_name} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                  {worker.full_name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-sm truncate">{hiring.description}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                {worker && (
+                  <span className="text-xs text-muted-foreground">{worker.full_name}</span>
+                )}
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs font-semibold text-foreground">৳{hiring.total_amount}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(hiring.status)}`}
+            >
+              {formatStatus(hiring.status)}
+            </span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200">
+          <div className="flex items-center gap-2">
+            {hiring.payment_completed ? (
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                <CheckCheck className="h-3 w-3" />
+                Payment Completed
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                <Clock className="h-3 w-3" />
+                Payment Pending
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => onViewPricing(hiring)}
+              size="sm"
+              variant="outline"
+              className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              View Pricing
+            </Button>
+            {!hiring.payment_completed && (
+              <Button
+                onClick={() => onMakePayment?.(hiring)}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white text-xs"
+              >
+                <CreditCard className="h-3 w-3 mr-1" />
+                Make Payment
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full card for other statuses
   return (
     <div className="border border-slate-200 rounded-lg p-4 hover:border-primary/50 hover:shadow-md transition-all duration-200">
       {/* Header with Status */}
@@ -388,13 +504,20 @@ const HiringCard = ({ hiring, onCancel }: HiringCardProps) => {
         <p className="text-xs text-muted-foreground">
           Created: {new Date(hiring.created_at).toLocaleDateString()} at {new Date(hiring.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </p>
-        <Button
-          onClick={() => onCancel(hiring.id)}
-          size="sm"
-          className="mt-2 bg-primary hover:bg-primary/90 text-white text-xs"
-        >
-          Cancel
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Show View Pricing only for completed and awaiting tasks */}
+          {(hiring.status?.toLowerCase() === "completed" || hiring.status?.toLowerCase() === "awaiting") && (
+            <Button
+              onClick={() => onViewPricing(hiring)}
+              size="sm"
+              variant="outline"
+              className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              View Pricing
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
