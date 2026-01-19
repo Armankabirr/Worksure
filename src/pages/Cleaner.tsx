@@ -20,7 +20,7 @@ type ServiceType = {
   cta: string;
   bgColor: string;
   image: string;
-  navigateTo: string;
+  slug: string;
   included: string[];
 };
 
@@ -66,8 +66,11 @@ const Cleaner = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleBookNow = () => {
-    navigate("/search/workers?serviceType=cleaner");
+  const handleBookNow = (serviceSlug?: string) => {
+    const query = serviceSlug 
+      ? `/search/workers?serviceType=cleaner&service=${serviceSlug}`
+      : "/search/workers?serviceType=cleaner";
+    navigate(query);
   };
 
   const handleAddToCart = (service: typeof services[0]) => {
@@ -116,7 +119,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-green-500 to-green-600",
       image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "deep-cleaning",
       included: [
         "Complete room-by-room deep cleaning",
         "Kitchen and bathroom sanitization",
@@ -134,7 +137,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
       image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "move-in-out",
       included: [
         "Full interior deep cleaning",
         "Cabinets and closets cleaned",
@@ -152,7 +155,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-yellow-500 to-yellow-600",
       image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "carpet-upholstery",
       included: [
         "Professional steam cleaning",
         "Stain removal treatment",
@@ -170,7 +173,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-cyan-500 to-cyan-600",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "window-cleaning",
       included: [
         "Inside and outside window cleaning",
         "Window frames and sills",
@@ -188,7 +191,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-purple-500 to-purple-600",
       image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "office-cleaning",
       included: [
         "Desk and workstation cleaning",
         "Restroom sanitization",
@@ -206,7 +209,7 @@ const Cleaner = () => {
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
       image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
-      navigateTo: "/search/workers?serviceType=cleaner",
+      slug: "regular-cleaning",
       included: [
         "Regular vacuuming and mopping",
         "Bathroom and kitchen cleaning",
@@ -332,7 +335,7 @@ const Cleaner = () => {
                   key={service.title}
                   className="group flex flex-col h-full border-2 border-border/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 animate-fade-up bg-card"
                   style={{ animationDelay: `${100 + index * 70}ms` }}
-                  onClick={() => service.navigateTo && navigate(service.navigateTo)}
+                  onClick={() => navigate(`/cleaner/${service.slug}`)}
                 >
                   {/* Service Image Background - Fixed Height */}
                   <div className="relative h-48 overflow-hidden bg-muted">
@@ -376,19 +379,17 @@ const Cleaner = () => {
                       </div>
 
                       {/* Button - Always at Bottom */}
-                      {service.navigateTo && (
-                        <Button
-                          variant="default"
-                          size="default"
-                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(service.navigateTo as string);
-                          }}
-                        >
-                          View Services
-                        </Button>
-                      )}
+                      <Button
+                        variant="default"
+                        size="default"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/cleaner/${service.slug}`);
+                        }}
+                      >
+                        View Full Details
+                      </Button>
                       
                       {/* Mobile Quick View Button */}
                       <Button
@@ -659,7 +660,7 @@ const Cleaner = () => {
                     className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                     onClick={() => {
                       setQuickViewOpen(false);
-                      handleBookNow();
+                      handleBookNow(selectedService.slug);
                     }}
                   >
                     Book Cleaner
@@ -670,7 +671,7 @@ const Cleaner = () => {
                     className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold py-6 rounded-xl"
                     onClick={() => {
                       setQuickViewOpen(false);
-                      navigate(selectedService.navigateTo);
+                      navigate(`/cleaner/${selectedService.slug}`);
                     }}
                   >
                     View Full Details

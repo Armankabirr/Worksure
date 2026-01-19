@@ -4,102 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BadgeCheck, Sparkles, CheckCircle2, XCircle, ShieldCheck, Clock, ShoppingCart } from "lucide-react";
-import heroImage from "@/assets/hero-workspace.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
-import { useState } from "react";
+import { cleaningServicesData } from "@/lib/cleaningServices";
+import NotFound from "./NotFound";
 
 const DeepCleaning = () => {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
 
-  const serviceData = {
-    title: "Deep Cleaning",
-    subtitle: "Transform your space with our comprehensive deep cleaning service",
-    description: "Our professional deep cleaning service ensures every corner of your home or office receives thorough attention. We use eco-friendly products and proven techniques to deliver spotless results that exceed expectations.",
-    startingPrice: "৳1,200",
-    heroImage: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1200&h=600&fit=crop&q=80",
-    duration: "4-6 hours",
-    included: [
-      "Complete room-by-room deep cleaning",
-      "Kitchen deep clean (appliances, cabinets, countertops)",
-      "Bathroom sanitization (tiles, fixtures, mirrors)",
-      "Baseboards and window sills cleaning",
-      "Inside appliances cleaning (oven, refrigerator, microwave)",
-      "Dusting all surfaces including ceiling fans and light fixtures",
-      "Floor vacuuming and mopping",
-      "Eco-friendly cleaning products",
-      "Post-cleaning inspection and quality check",
-    ],
-    notIncluded: [
-      "Exterior window cleaning (available as add-on)",
-      "Carpet steam cleaning (separate service)",
-      "Upholstery cleaning (separate service)",
-      "Deep carpet stain removal",
-      "Wall washing or painting",
-      "Organization or decluttering services",
-    ],
-    coveredAreas: [
-      "Living room and common areas",
-      "Bedrooms (all surfaces and fixtures)",
-      "Kitchen (appliances, cabinets, countertops)",
-      "Bathrooms (tiles, fixtures, mirrors, grout)",
-      "Dining area",
-      "Hallways and entryways",
-      "Baseboards and trim",
-      "Light fixtures and ceiling fans",
-      "Window sills and frames",
-      "Inside appliances",
-    ],
-    pricingFactors: [
-      {
-        factor: "Property Size",
-        description: "Larger homes require more time and supplies",
-      },
-      {
-        factor: "Number of Rooms",
-        description: "Each additional room adds to the service time",
-      },
-      {
-        factor: "Condition of Space",
-        description: "Heavily soiled areas may require extra attention",
-      },
-      {
-        factor: "Additional Services",
-        description: "Add-ons like inside oven cleaning or refrigerator deep clean",
-      },
-    ],
-    faqs: [
-      {
-        question: "How long does a deep cleaning service take?",
-        answer: "A standard deep cleaning service typically takes 4-6 hours, depending on the size of your property and the number of rooms. Our team will provide an estimated timeline during the initial consultation.",
-      },
-      {
-        question: "What cleaning products do you use?",
-        answer: "We use eco-friendly, non-toxic cleaning products that are safe for your family, pets, and the environment. All products are professional-grade and effective at removing dirt, grime, and bacteria.",
-      },
-      {
-        question: "Do I need to be present during the cleaning?",
-        answer: "No, you don't need to be present. However, we recommend being available for the initial walkthrough to discuss specific areas of focus. You can also provide access instructions if you won't be home.",
-      },
-      {
-        question: "What should I do to prepare for deep cleaning?",
-        answer: "Please remove any personal items, valuables, or breakables from surfaces. Clear countertops and tables of small items. Our team will handle the rest, including moving furniture (within reason) to clean underneath.",
-      },
-      {
-        question: "Is deep cleaning suitable for move-in/move-out?",
-        answer: "Yes! Our deep cleaning service is perfect for move-in/move-out situations. We also offer a specialized move-in/move-out cleaning service with additional features like carpet cleaning and detailed inspection reports.",
-      },
-      {
-        question: "What if I'm not satisfied with the cleaning?",
-        answer: "We guarantee 100% satisfaction. If you're not happy with any aspect of our service, contact us within 24 hours and we'll return to address your concerns at no additional charge.",
-      },
-    ],
-  };
+  const serviceData = slug ? cleaningServicesData[slug] : null;
+
+  if (!serviceData) {
+    return <NotFound />;
+  }
 
   const handleBookNow = () => {
-    navigate("/search/workers?serviceType=cleaner");
+    navigate(`/search/workers?serviceType=cleaner&service=${serviceData.slug}`);
   };
 
   const handleAddToCart = () => {
@@ -151,7 +74,7 @@ const DeepCleaning = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6 animate-fade-up" style={{ animationDelay: "80ms" }}>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2 text-xs font-semibold tracking-[0.18em] uppercase">
-                  Professional Deep Cleaning
+                  Professional Cleaning Service
                 </div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
                   {serviceData.title}
