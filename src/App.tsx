@@ -15,6 +15,8 @@ import Babysitter from "./pages/Babysitter";
 import ElectricalRepairs from "./pages/ElectricalRepairs";
 import DeepCleaning from "./pages/DeepCleaning";
 import CleaningPricing from "./pages/CleaningPricing";
+import ACDoctorServiceDetail from "./pages/ACDoctorServiceDetail";
+import ACDoctorPricing from "./pages/ACDoctorPricing";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -57,6 +59,8 @@ const App = () => {
               <Route path="/electrician" element={<Electrician />} />
               <Route path="/electrician/electrical-repairs" element={<ElectricalRepairs />} />
               <Route path="/ac-doctor" element={<ACDoctor />} />
+              <Route path="/ac-doctor/pricing" element={<ACDoctorPricing />} />
+              <Route path="/ac-doctor/:slug" element={<ACDoctorServiceDetail />} />
               <Route path="/cleaner" element={<Cleaner />} />
               <Route path="/cleaner/pricing" element={<CleaningPricing />} />
               <Route path="/cleaner/:slug" element={<DeepCleaning />} />
