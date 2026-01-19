@@ -57,7 +57,7 @@ const DeepCleaning = () => {
     },
     {
       title: "Service Completed & Verified",
-      description: "Our team completes the deep cleaning, performs a quality check, and ensures your satisfaction.",
+      description: `Our team completes the ${serviceData.title.toLowerCase()}, performs a quality check, and ensures your satisfaction.`,
     },
   ];
 
@@ -140,9 +140,9 @@ const DeepCleaning = () => {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12 animate-fade-up">
               <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Service Overview</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">What Our Deep Cleaning Includes</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">What Our {serviceData.title} Includes</h2>
               <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-                Our comprehensive deep cleaning service covers every area of your space with meticulous attention to detail.
+                Our comprehensive {serviceData.title.toLowerCase()} service covers every area of your space with meticulous attention to detail.
               </p>
             </div>
 
@@ -165,7 +165,7 @@ const DeepCleaning = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  Complete Deep Cleaning Process
+                  Complete {serviceData.title} Process
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -198,7 +198,7 @@ const DeepCleaning = () => {
                 <Card className="border-2 border-primary/20 animate-fade-up" style={{ animationDelay: "100ms" }}>
                   <CardHeader>
                     <CardTitle className="text-2xl font-bold text-primary">{serviceData.startingPrice}</CardTitle>
-                    <CardDescription>Starting price for standard deep cleaning</CardDescription>
+                    <CardDescription>Starting price for {serviceData.title.toLowerCase()}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
@@ -248,7 +248,7 @@ const DeepCleaning = () => {
             <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">How It Works</p>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Simple Booking Process</h2>
             <p className="text-muted-foreground mt-3">
-              Booking your deep cleaning service is quick and easy. Follow these simple steps to get started.
+              Booking your {serviceData.title.toLowerCase()} service is quick and easy. Follow these simple steps to get started.
             </p>
           </div>
 
@@ -280,7 +280,7 @@ const DeepCleaning = () => {
                 <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Service Details</p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">What's Included & Not Included</h2>
                 <p className="text-muted-foreground mt-3">
-                  Clear transparency about what our deep cleaning service covers and what requires additional services.
+                  Clear transparency about what our {serviceData.title.toLowerCase()} service covers and what requires additional services.
                 </p>
               </div>
 
@@ -396,7 +396,7 @@ const DeepCleaning = () => {
                   <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Questions & Answers</p>
                   <h2 className="text-3xl md:text-4xl font-bold text-foreground">Frequently Asked Questions</h2>
                   <p className="text-muted-foreground">
-                    Have questions about our deep cleaning service? We're here to help. If you don't find your answer here,
+                    Have questions about our {serviceData.title.toLowerCase()} service? We're here to help. If you don't find your answer here,
                     feel free to contact us anytime.
                   </p>
                 </div>
@@ -420,7 +420,7 @@ const DeepCleaning = () => {
               <p className="text-xs uppercase tracking-[0.25em] font-semibold">Ready to Get Started?</p>
               <h3 className="text-2xl md:text-3xl font-bold mt-2">Transform Your Space Today</h3>
               <p className="text-primary-foreground/80 mt-2">
-                Book your deep cleaning service now and experience the difference of professional, thorough cleaning.
+                Book your {serviceData.title.toLowerCase()} service now and experience the difference of professional, thorough cleaning.
               </p>
             </div>
             <div className="flex gap-3">

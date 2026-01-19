@@ -409,21 +409,6 @@ const Cleaner = () => {
               );
             })}
           </div>
-
-          <div className="flex justify-center pt-8 animate-fade-up" style={{ animationDelay: "520ms" }}>
-            <Button 
-              className="rounded-full" 
-              variant="outline" 
-              onClick={() => {
-                const servicesSection = document.getElementById("services-section");
-                if (servicesSection) {
-                  servicesSection.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >
-              View All Services
-            </Button>
-          </div>
         </section>
 
         <section className="bg-card/60 border-y border-border/60">
