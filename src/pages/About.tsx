@@ -16,7 +16,10 @@ import {
   Sparkles,
   Target,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  CheckCircle,
+  UserCheck,
+  TrendingUp
 } from "lucide-react";
 
 const About = () => {
@@ -105,25 +108,34 @@ const About = () => {
 
   const stats = [
     {
-      icon: Briefcase,
+      icon: CheckCircle,
       value: jobsCompleted.toLocaleString(),
       suffix: "+",
       label: "Jobs Completed",
-      color: "from-blue-500 to-blue-600"
+      iconBg: "from-orange-400 to-orange-600",
+      iconGradient: "bg-gradient-to-br from-orange-400/20 to-orange-600/30",
+      iconColor: "text-orange-600",
+      numberColor: "from-orange-500 to-orange-600"
     },
     {
-      icon: Users,
+      icon: UserCheck,
       value: professionalsOnboarded.toLocaleString(),
       suffix: "+",
       label: "Professionals Onboarded",
-      color: "from-green-500 to-green-600"
+      iconBg: "from-blue-400 to-blue-600",
+      iconGradient: "bg-gradient-to-br from-blue-400/20 to-blue-600/30",
+      iconColor: "text-blue-600",
+      numberColor: "from-blue-500 to-blue-600"
     },
     {
-      icon: Smile,
+      icon: TrendingUp,
       value: happyCustomers.toLocaleString(),
       suffix: "+",
       label: "Happy Customers",
-      color: "from-purple-500 to-purple-600"
+      iconBg: "from-green-400 to-green-600",
+      iconGradient: "bg-gradient-to-br from-green-400/20 to-green-600/30",
+      iconColor: "text-green-600",
+      numberColor: "from-green-500 to-green-600"
     }
   ];
 
@@ -377,14 +389,20 @@ const About = () => {
                     className="relative group"
                   >
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <Card className="relative h-full border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl">
+                    <Card className="relative h-full border-2 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl bg-card">
                       <CardContent className="p-8 text-center space-y-6">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110 transition-transform duration-300">
-                          <Icon className={`h-8 w-8 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
+                        {/* Fancy Icon Container */}
+                        <div className="flex justify-center">
+                          <div className={`relative inline-flex items-center justify-center w-20 h-20 rounded-2xl ${stat.iconGradient} border-2 border-transparent group-hover:border-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}>
+                            {/* Glow Effect */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${stat.iconBg} rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300`}></div>
+                            {/* Icon */}
+                            <Icon className={`relative h-10 w-10 ${stat.iconColor} drop-shadow-sm group-hover:scale-110 transition-transform duration-300`} strokeWidth={2.5} />
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                            {stat.value}{stat.suffix}
+                          <div className={`text-5xl md:text-6xl font-bold bg-gradient-to-r ${stat.numberColor} bg-clip-text text-transparent`}>
+                            {stat.value}<span className="opacity-60">{stat.suffix}</span>
                           </div>
                           <div className="text-lg font-semibold text-muted-foreground">
                             {stat.label}
