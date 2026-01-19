@@ -100,7 +100,7 @@ const Cleaner = () => {
       price: "From ৳1,200",
       cta: "Book Now",
       bgColor: "from-green-500 to-green-600",
-      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
     {
@@ -110,7 +110,7 @@ const Cleaner = () => {
       price: "From ৳1,800",
       cta: "Book Now",
       bgColor: "from-blue-500 to-blue-600",
-      image: "https://images.unsplash.com/photo-1556912172-45b7abe8b7c1?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
     {
@@ -120,7 +120,7 @@ const Cleaner = () => {
       price: "From ৳950",
       cta: "Book Now",
       bgColor: "from-yellow-500 to-yellow-600",
-      image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
     {
@@ -130,7 +130,7 @@ const Cleaner = () => {
       price: "From ৳650",
       cta: "Book Now",
       bgColor: "from-cyan-500 to-cyan-600",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
     {
@@ -140,7 +140,7 @@ const Cleaner = () => {
       price: "From ৳1,500",
       cta: "Book Now",
       bgColor: "from-purple-500 to-purple-600",
-      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
     {
@@ -150,7 +150,7 @@ const Cleaner = () => {
       price: "From ৳800",
       cta: "Book Now",
       bgColor: "from-orange-500 to-orange-600",
-      image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=400&h=300&fit=crop",
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
     },
   ];
