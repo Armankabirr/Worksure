@@ -17,6 +17,8 @@ import DeepCleaning from "./pages/DeepCleaning";
 import CleaningPricing from "./pages/CleaningPricing";
 import ACDoctorServiceDetail from "./pages/ACDoctorServiceDetail";
 import ACDoctorPricing from "./pages/ACDoctorPricing";
+import ElectricianServiceDetail from "./pages/ElectricianServiceDetail";
+import ElectricianPricing from "./pages/ElectricianPricing";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -26,6 +28,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Preloader from "./components/Preloader";
+import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
@@ -54,10 +57,13 @@ const App = () => {
           <Sonner />
           {isLoading && <Preloader isLoading={isLoading} onComplete={() => setIsLoading(false)} />}
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
+              <Route path="/electrician/pricing" element={<ElectricianPricing />} />
               <Route path="/electrician/electrical-repairs" element={<ElectricalRepairs />} />
+              <Route path="/electrician/:slug" element={<ElectricianServiceDetail />} />
               <Route path="/ac-doctor" element={<ACDoctor />} />
               <Route path="/ac-doctor/pricing" element={<ACDoctorPricing />} />
               <Route path="/ac-doctor/:slug" element={<ACDoctorServiceDetail />} />

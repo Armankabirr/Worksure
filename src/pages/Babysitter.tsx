@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import heroImage from "@/assets/babysitter.jpg";
+import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
 import {
   Activity,
@@ -27,11 +27,12 @@ import {
 } from "lucide-react";
 
 const popularServices = [
-  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", image: "https://images.unsplash.com/photo-1503454537688-e6c6ff1b912d?w=400&h=300&fit=crop" },
-  { title: "Full day", desc: "Complete daylong supervision and activities.", image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400&h=300&fit=crop" },
-  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", image: "https://images.unsplash.com/photo-1516627145497-ae6968895b0f?w=400&h=300&fit=crop" },
-  { title: "Newborn care", desc: "Specialized care for newborns and infants.", image: "https://images.unsplash.com/photo-1555097462-c2dfc2c1b770?w=400&h=300&fit=crop" },
-  { title: "Special care", desc: "Trained caregivers for children with special needs.", image: "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?w=400&h=300&fit=crop" },
+  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", image: "https://www.shutterstock.com/image-photo/portrait-cute-little-baby-on-white-600nw-2114251433.jpg", icon: "⏰" },
+  { title: "Full day care", desc: "Complete daylong supervision and activities.", image: "https://media.gettyimages.com/id/1296071477/photo/baby-boy-smiling.jpg?s=612x612&w=0&k=20&c=62XzM-4X9nC9qU8mX_O77G5T_L9G7I_C0i_U7lY2P2A=", icon: "🌞" },
+  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", image: "https://images.pexels.com/photos/266011/pexels-photo-266011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500", icon: "🌙" },
+  { title: "Newborn care", desc: "Specialized care for newborns and infants.", image: "https://st2.depositphotos.com/1010613/11267/i/450/depositphotos_112675664-stock-photo-cute-baby-girl.jpg", icon: "👶" },
+  { title: "Playing & Activities", desc: "Engaging games, crafts, and educational activities.", image: "https://cdn.pixabay.com/photo/2015/01/05/11/02/baby-589002_1280.jpg", icon: "🎮" },
+  { title: "Homework help", desc: "Tutoring and educational support for school assignments.", image: "https://www.parents.com/thmb/p9zR6P0L8y7l6-6w8i-o6-8-0-o/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cute-baby-names-1-4191632f057e4e89921b798782782b79.jpg", icon: "📚" },
 ];
 
 const sitterProfiles = [
@@ -167,19 +168,21 @@ const Babysitter = () => {
             </div>
             <Button variant="ghost" className="text-sm text-orange-600 hover:bg-orange-50">See more</Button>
           </div>
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {popularServices.map((service) => {
               return (
-                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-sm transition hover:-translate-y-1 hover:shadow-md overflow-hidden">
-                  <div className="h-48 w-full overflow-hidden bg-gray-200">
-                    <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
+                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl overflow-hidden group">
+                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-orange-100 to-orange-50">
+                    <img src={service.image} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    <div className="absolute top-3 right-3 text-4xl bg-white/90 p-2 rounded-full shadow-md">{service.icon}</div>
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-base font-semibold text-foreground">{service.title}</CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">{service.desc}</CardDescription>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-bold text-foreground group-hover:text-orange-600 transition-colors">{service.title}</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground leading-relaxed">{service.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button size="sm" className="w-full bg-orange-500 text-white shadow-sm hover:bg-orange-600">
+                    <Button size="sm" className="w-full bg-orange-500 text-white shadow-sm hover:bg-orange-600 transition-all duration-200">
                       Schedule
                     </Button>
                   </CardContent>
