@@ -34,6 +34,7 @@ import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
 import WorkerDetail from "./pages/WorkerDetail";
+import About from "./pages/About";
 import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,7 @@ const App = () => {
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/payment/failed" element={<PaymentFailed />} />
               <Route path="/payment/cancelled" element={<PaymentCancelled />} />
+              <Route path="/about" element={<About />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
