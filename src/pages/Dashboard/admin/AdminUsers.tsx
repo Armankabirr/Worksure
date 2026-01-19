@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Filter, Download, MoreVertical, Eye, Ban, CheckCircle, Users } from 'lucide-react';
+import { Search, Filter, Download, MoreVertical, Eye, Ban, CheckCircle, Users, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import useAxiosPublic from '@/hooks/useAxiosPublic';
+import UserDetailsDialog from './components/UserDetailsDialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -40,31 +41,16 @@ import {
  * User type definition (based on API response)
  */
 interface User {
-  _id: string;
+  id: string;
   name: string;
+  avatar: string | null;
   email: string;
-  phone?: string;
-  role?: string;
-  isBlocked?: boolean;
-  addresses?: any[];
-  bookings?: any[];
-  createdAt: string;
-  updatedAt?: string;
-  // Computed fields for display
-  id?: string;
-  status?: 'active' | 'suspended';
-  addressCount?: number;
-  bookingCount?: number;
-  joinedDate?: string;
-}
-
-/**
- * API Response type
- */
-interface UsersApiResponse {
-  success: boolean;
-  message: string;
-  data: User[];
+  phone: string;
+  status: 'active' | 'inactive';
+  bookingCount: number;
+  joinedDate: string;
+  gender: string;
+  lastLoginAt: string | null;
 }
 
 /**
@@ -87,59 +73,100 @@ const AdminUsers = () => {
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [addressFilter, setAddressFilter] = useState<string>('all');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<'bookingCount' | 'joinedDate' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   /**
    * Fetch users from API
    */
-  const { data: apiResponse, isLoading, error } = useQuery<UsersApiResponse>({
+  const { data: users, isLoading, error } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const response = await axiosPublic.get('/userRoutes/users');
       return response.data;
     },
+    select: (data) => data || [],
   });
-
-  /**
-   * Transform API data to match component expectations
-   */
-  const users: User[] = apiResponse?.data?.map((user) => ({
-    ...user,
-    id: user.id,
-    phone: user.phone || 'N/A',
-    status: user.isBlocked ? 'suspended' : 'active',
-    addressCount: user.addresses?.length || 0,
-    bookingCount: user.bookings?.length || 0,
-    joinedDate: user.createdAt,
-  })) || [];
 
   /**
    * Filter users based on search query and filters
    */
-  const filteredUsers = users.filter((user) => {
+  const filteredUsers = (users || []).filter((user) => {
     // Search filter
     const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery) ||
-      user.id.toLowerCase().includes(searchQuery.toLowerCase());
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.phone?.includes(searchQuery) ||
+      user.id?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Status filter
     const matchesStatus =
       statusFilter === 'all' || user.status === statusFilter;
 
-    // Address filter
-    const matchesAddress =
-      addressFilter === 'all' ||
-      (addressFilter === 'has-address' && user.addressCount > 0) ||
-      (addressFilter === 'no-address' && user.addressCount === 0) ||
-      (addressFilter === 'multiple' && user.addressCount > 1);
-
-    return matchesSearch && matchesStatus && matchesAddress;
+    return matchesSearch && matchesStatus;
   });
+
+  /**
+   * Sort users based on selected field and direction
+   */
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let comparison = 0;
+    if (sortField === 'bookingCount') {
+      comparison = a.bookingCount - b.bookingCount;
+    } else if (sortField === 'joinedDate') {
+      comparison = new Date(a.joinedDate).getTime() - new Date(b.joinedDate).getTime();
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  /**
+   * Handle sort column click
+   */
+  const handleSort = (field: 'bookingCount' | 'joinedDate') => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new field with default desc direction
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  /**
+   * Get sort icon for column
+   */
+  const getSortIcon = (field: 'bookingCount' | 'joinedDate') => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-4 h-4" />
+    ) : (
+      <ArrowDown className="w-4 h-4" />
+    );
+  };
+
+  /**
+   * Pagination calculations
+   */
+  const totalPages = Math.ceil(sortedUsers.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, pageSize]);
 
   /**
    * Handle user suspension/activation with API call
@@ -176,7 +203,7 @@ const AdminUsers = () => {
    */
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(new Set(filteredUsers.map((u) => u.id)));
+      setSelectedUsers(new Set(sortedUsers.map((u) => u.id)));
     } else {
       setSelectedUsers(new Set());
     }
@@ -198,7 +225,7 @@ const AdminUsers = () => {
   /**
    * Get status badge styling
    */
-  const getStatusBadge = (status?: 'active' | 'suspended') => {
+  const getStatusBadge = (status?: 'active' | 'inactive') => {
     if (!status) {
       return (
         <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
@@ -212,8 +239,8 @@ const AdminUsers = () => {
         Active
       </Badge>
     ) : (
-      <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-        Suspended
+      <Badge className="bg-gray-100 text-gray-600 hover:bg-gray-100">
+        Inactive
       </Badge>
     );
   };
@@ -312,7 +339,7 @@ const AdminUsers = () => {
           <CardDescription>Search and filter users</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Search Input */}
             <div className="relative col-span-1 md:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -332,20 +359,7 @@ const AdminUsers = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Address Filter */}
-            <Select value={addressFilter} onValueChange={setAddressFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Address" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Addresses</SelectItem>
-                <SelectItem value="has-address">Has Address</SelectItem>
-                <SelectItem value="no-address">No Address</SelectItem>
-                <SelectItem value="multiple">Multiple Addresses</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -363,8 +377,11 @@ const AdminUsers = () => {
       {/* Results Summary */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          Showing <span className="font-semibold">{filteredUsers.length}</span>{' '}
-          of <span className="font-semibold">{users.length}</span> users
+          Showing{' '}
+          <span className="font-semibold">
+            {sortedUsers.length > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, sortedUsers.length)}
+          </span>{' '}
+          of <span className="font-semibold">{sortedUsers.length}</span> users
           {selectedUsers.size > 0 && (
             <span className="ml-2">
               ({selectedUsers.size} selected)
@@ -374,7 +391,7 @@ const AdminUsers = () => {
       </div>
 
       {/* Users Table */}
-      {filteredUsers.length === 0 ? (
+      {sortedUsers.length === 0 ? (
         // Empty State
         <Card>
           <CardContent className="py-16">
@@ -393,7 +410,6 @@ const AdminUsers = () => {
                 onClick={() => {
                   setSearchQuery('');
                   setStatusFilter('all');
-                  setAddressFilter('all');
                 }}
               >
                 Clear Filters
@@ -411,8 +427,8 @@ const AdminUsers = () => {
                     <TableHead className="w-12">
                       <Checkbox
                         checked={
-                          selectedUsers.size === filteredUsers.length &&
-                          filteredUsers.length > 0
+                          selectedUsers.size === sortedUsers.length &&
+                          sortedUsers.length > 0
                         }
                         onCheckedChange={handleSelectAll}
                       />
@@ -421,14 +437,37 @@ const AdminUsers = () => {
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Addresses</TableHead>
-                    <TableHead className="text-center">Bookings</TableHead>
-                    <TableHead>Joined Date</TableHead>
+                    <TableHead className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 font-medium hover:bg-gray-100"
+                        onClick={() => handleSort('bookingCount')}
+                      >
+                        Bookings
+                        <span className="ml-2">
+                          {getSortIcon('bookingCount')}
+                        </span>
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 font-medium hover:bg-gray-100"
+                        onClick={() => handleSort('joinedDate')}
+                      >
+                        Joined Date
+                        <span className="ml-2">
+                          {getSortIcon('joinedDate')}
+                        </span>
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
                       {/* Checkbox */}
                       <TableCell>
@@ -443,16 +482,23 @@ const AdminUsers = () => {
                       {/* User Info */}
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-semibold text-blue-700">
-                              {getUserInitials(user.name)}
-                            </span>
-                          </div>
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-semibold text-blue-700">
+                                {getUserInitials(user.name)}
+                              </span>
+                            </div>
+                          )}
                           <div>
                             <p className="font-medium text-gray-900">
                               {user.name}
                             </p>
-                            <p className="text-sm text-gray-500">{user.id}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -469,13 +515,6 @@ const AdminUsers = () => {
 
                       {/* Status */}
                       <TableCell>{getStatusBadge(user.status)}</TableCell>
-
-                      {/* Address Count */}
-                      <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm font-medium text-gray-700">
-                          {user.addressCount}
-                        </span>
-                      </TableCell>
 
                       {/* Booking Count */}
                       <TableCell className="text-center">
@@ -502,12 +541,17 @@ const AdminUsers = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUserId(user.id);
+                                setIsDetailsOpen(true);
+                              }}
+                            >
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleToggleStatus(user._id || user.id || '')}
+                              onClick={() => handleToggleStatus(user.id)}
                               className={
                                 user.status === 'active'
                                   ? 'text-red-600'
@@ -518,7 +562,7 @@ const AdminUsers = () => {
                               {user.status === 'active' ? (
                                 <>
                                   <Ban className="w-4 h-4 mr-2" />
-                                  Suspend User
+                                  Deactivate User
                                 </>
                               ) : (
                                 <>
@@ -565,13 +609,83 @@ const AdminUsers = () => {
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-gray-600">
-                  Page {currentPage}
-                </span>
+                
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {totalPages <= 7 ? (
+                    // Show all pages if 7 or fewer
+                    Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    ))
+                  ) : (
+                    // Show ellipsis for many pages
+                    <>
+                      {/* First page */}
+                      <Button
+                        variant={currentPage === 1 ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        className="w-8 h-8 p-0"
+                      >
+                        1
+                      </Button>
+                      
+                      {currentPage > 3 && (
+                        <span className="px-2 text-gray-500">...</span>
+                      )}
+                      
+                      {/* Pages around current */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                          return page > 1 && 
+                                 page < totalPages && 
+                                 page >= currentPage - 1 && 
+                                 page <= currentPage + 1;
+                        })
+                        .map((page) => (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      
+                      {currentPage < totalPages - 2 && (
+                        <span className="px-2 text-gray-500">...</span>
+                      )}
+                      
+                      {/* Last page */}
+                      {totalPages > 1 && (
+                        <Button
+                          variant={currentPage === totalPages ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {totalPages}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+                
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage((p) => p + 1)}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages || totalPages === 0}
                 >
                   Next
                 </Button>
@@ -580,6 +694,16 @@ const AdminUsers = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* User Details Dialog */}
+      <UserDetailsDialog
+        userId={selectedUserId}
+        open={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedUserId(null);
+        }}
+      />
     </div>
   );
 };
