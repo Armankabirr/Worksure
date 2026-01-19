@@ -15,6 +15,8 @@ import Babysitter from "./pages/Babysitter";
 import ElectricalRepairs from "./pages/ElectricalRepairs";
 import DeepCleaning from "./pages/DeepCleaning";
 import CleaningPricing from "./pages/CleaningPricing";
+import ElectricianServiceDetail from "./pages/ElectricianServiceDetail";
+import ElectricianPricing from "./pages/ElectricianPricing";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -57,7 +59,9 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
+              <Route path="/electrician/pricing" element={<ElectricianPricing />} />
               <Route path="/electrician/electrical-repairs" element={<ElectricalRepairs />} />
+              <Route path="/electrician/:slug" element={<ElectricianServiceDetail />} />
               <Route path="/ac-doctor" element={<ACDoctor />} />
               <Route path="/cleaner" element={<Cleaner />} />
               <Route path="/cleaner/pricing" element={<CleaningPricing />} />

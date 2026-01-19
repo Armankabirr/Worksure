@@ -2,9 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby } from "lucide-react";
-import cleaningTeam from "@/assets/cleaning-team.jpg";
-import electrician from "@/assets/electrician.jpg";
-import acDoctor from "@/assets/ac-doctor.jpg";
 
 const PremiumServices = () => {
   const navigate = useNavigate();
@@ -14,7 +11,7 @@ const PremiumServices = () => {
       icon: Zap,
       title: "Electrician",
       description: "Certified electricians for all your electrical needs. Safe, reliable, and professional service.",
-      image: electrician,
+      image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&h=600&fit=crop&q=80",
       path: "/electrician",
       color: "from-yellow-500/20 to-orange-500/20",
       iconColor: "text-yellow-600",
@@ -23,7 +20,7 @@ const PremiumServices = () => {
       icon: Sparkles,
       title: "Cleaner",
       description: "Professional cleaning services that leave your space spotless. Deep cleaning, regular maintenance, and more.",
-      image: cleaningTeam,
+      image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop&q=80",
       path: "/cleaner",
       color: "from-blue-500/20 to-cyan-500/20",
       iconColor: "text-blue-600",
@@ -32,7 +29,7 @@ const PremiumServices = () => {
       icon: Wind,
       title: "AC Doctor",
       description: "Expert AC repair and maintenance. Keep your space cool and comfortable year-round.",
-      image: acDoctor,
+      image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&h=600&fit=crop&q=80",
       path: "/ac-doctor",
       color: "from-teal-500/20 to-green-500/20",
       iconColor: "text-teal-600",
@@ -41,7 +38,7 @@ const PremiumServices = () => {
       icon: Heart,
       title: "Pet Care",
       description: "Loving care for your furry friends. Professional pet care services you can trust.",
-      image: cleaningTeam,
+      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop&q=80",
       path: "/pet-caring",
       color: "from-pink-500/20 to-rose-500/20",
       iconColor: "text-pink-600",
@@ -50,7 +47,7 @@ const PremiumServices = () => {
       icon: UtensilsCrossed,
       title: "Catering",
       description: "Delicious meals for your events. Professional catering services for any occasion.",
-      image: cleaningTeam,
+      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&h=600&fit=crop&q=80",
       path: "/catering",
       color: "from-amber-500/20 to-orange-500/20",
       iconColor: "text-amber-600",
@@ -59,7 +56,7 @@ const PremiumServices = () => {
       icon: Baby,
       title: "Babysitter",
       description: "Trusted and experienced babysitters. Background-checked professionals ensuring your peace of mind.",
-      image: cleaningTeam,
+      image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&h=600&fit=crop&q=80",
       path: "/babysitter",
       color: "from-purple-500/20 to-indigo-500/20",
       iconColor: "text-purple-600",
