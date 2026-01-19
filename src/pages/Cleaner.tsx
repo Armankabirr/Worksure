@@ -255,49 +255,60 @@ const Cleaner = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, index) => {
               const Icon = service.icon;
               return (
                 <Card
                   key={service.title}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 animate-fade-up overflow-hidden cursor-pointer"
+                  className="group flex flex-col h-full border-2 border-border/50 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 animate-fade-up bg-card"
                   style={{ animationDelay: `${100 + index * 70}ms` }}
                   onClick={() => service.navigateTo && navigate(service.navigateTo)}
                 >
-                  {/* Service Image Background */}
-                  <div className="h-40 relative overflow-hidden">
+                  {/* Service Image Background - Fixed Height */}
+                  <div className="relative h-48 overflow-hidden bg-muted">
                     <img 
                       src={service.image} 
                       alt={service.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgColor} opacity-30`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.bgColor} opacity-20 group-hover:opacity-30 transition-opacity duration-300`} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
                   </div>
 
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-3 pt-2">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-sm font-semibold text-foreground">{service.price}</span>
-                    </div>
+                  {/* Content Section - Flex Grow */}
+                  <div className="flex flex-col flex-grow p-5">
+                    <CardHeader className="p-0 pb-3">
+                      <CardTitle className="text-xl font-bold text-foreground leading-tight mb-2">
+                        {service.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        {service.description}
+                      </CardDescription>
+                    </CardHeader>
 
-                    {service.navigateTo && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-green-500 hover:bg-green-600 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(service.navigateTo as string);
-                        }}
-                      >
-                        View Services
-                      </Button>
-                    )}
-                  </CardContent>
+                    {/* Price Section */}
+                    <div className="mt-auto pt-4 pb-3">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-2xl font-bold text-primary">{service.price}</span>
+                      </div>
+
+                      {/* Button - Always at Bottom */}
+                      {service.navigateTo && (
+                        <Button
+                          variant="default"
+                          size="default"
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(service.navigateTo as string);
+                          }}
+                        >
+                          View Services
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </Card>
               );
             })}
