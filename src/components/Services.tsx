@@ -2,7 +2,7 @@ import ServiceCard from "./ServiceCard";
 import cleaningTeam from "@/assets/cleaning-team.jpg";
 import securityTech from "@/assets/security-tech.jpg";
 import electrician from "@/assets/electrician.jpg";
-import babysitter from "@/assets/babysitter.jpg";
+import babysitter from "@/assets/babysitter.png";
 import {
   Carousel,
   CarouselContent,

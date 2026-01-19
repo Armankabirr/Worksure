@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import heroImage from "@/assets/babysitter.jpg";
+import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
 import {
   Activity,

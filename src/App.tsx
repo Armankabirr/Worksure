@@ -24,6 +24,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Preloader from "./components/Preloader";
+import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
@@ -52,6 +53,7 @@ const App = () => {
           <Sonner />
           {isLoading && <Preloader isLoading={isLoading} onComplete={() => setIsLoading(false)} />}
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
