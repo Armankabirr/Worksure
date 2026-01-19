@@ -1,5 +1,5 @@
-import { MouseEvent, useEffect, useState } from "react";
-import { ShoppingCart, User, Menu, X as CloseIcon } from "lucide-react";
+import { MouseEvent, useEffect, useState, useRef } from "react";
+import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
@@ -24,6 +24,11 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const serviceDropdownRef = useRef<HTMLDivElement>(null);
+  const serviceTriggerRef = useRef<HTMLAnchorElement>(null);
+  const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle scrolling to hash targets when location changes
   useEffect(() => {
@@ -64,10 +69,62 @@ const Header = () => {
     return location.hash === `#${hash}` || (hash === "home" && !location.hash && location.pathname === "/");
   };
 
+  const handleServiceMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    openTimeoutRef.current = setTimeout(() => {
+      setServiceDropdownOpen(true);
+    }, 150);
+  };
+
+  const handleServiceMouseLeave = () => {
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
+    closeTimeoutRef.current = setTimeout(() => {
+      setServiceDropdownOpen(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: globalThis.MouseEvent) => {
+      if (
+        serviceDropdownRef.current &&
+        serviceTriggerRef.current &&
+        !serviceDropdownRef.current.contains(event.target as Node) &&
+        !serviceTriggerRef.current.contains(event.target as Node)
+      ) {
+        setServiceDropdownOpen(false);
+      }
+    };
+
+    if (serviceDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [serviceDropdownOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (openTimeoutRef.current) clearTimeout(openTimeoutRef.current);
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+    <>
+      {serviceDropdownOpen && (
+        <div className="fixed inset-0 z-[45] backdrop-blur-sm pointer-events-none" aria-hidden="true" />
+      )}
+      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="flex h-20 items-center justify-between">
           {/* Branding */}
           <div className="flex items-center">
             <Link 
@@ -85,7 +142,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 relative">
             <a 
               href="#home" 
               onClick={(event) => handleScroll(event, "home")} 
@@ -102,29 +159,141 @@ const Header = () => {
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
             </a>
 
-            <div className="relative group">
+            <div 
+              className="relative"
+              onMouseEnter={handleServiceMouseEnter}
+              onMouseLeave={handleServiceMouseLeave}
+            >
               <a 
+                ref={serviceTriggerRef}
                 href="#service" 
                 onClick={(event) => handleScroll(event, "service")} 
                 className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
                   isActive("service")
                     ? "text-primary"
                     : "text-foreground/70 hover:text-foreground"
-                }`}
+                } ${serviceDropdownOpen ? "text-primary" : ""}`}
               >
                 Service
                 {isActive("service") && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
                 )}
+                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-center ${
+                  serviceDropdownOpen ? "scale-x-100" : "scale-x-0"
+                }`}></span>
               </a>
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-xl bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-border/50 backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out z-20 overflow-hidden">
-                <div className="p-1.5">
-                  <Link to="/electrician" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Electrician</Link>
-                  <Link to="/cleaner" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Cleaner</Link>
-                  <Link to="/ac-doctor" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">AC Doctor</Link>
-                  <Link to="/catering" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Catering</Link>
-                  <Link to="/babysitter" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Babysitter</Link>
-                  <Link to="/pet-caring" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Pet Caring</Link>
+              <div 
+                ref={serviceDropdownRef}
+                className={`absolute left-1/2 -translate-x-1/2 top-[calc(100%+0.5rem)] w-[520px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] border border-border/40 z-[100] overflow-hidden transition-all duration-200 ease-out ${
+                  serviceDropdownOpen
+                    ? "opacity-100 visible translate-y-0 pointer-events-auto"
+                    : "opacity-0 invisible translate-y-[-4px] pointer-events-none"
+                }`}
+              >
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link 
+                      to="/electrician" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <Zap className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          Electrician
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Fixes, wiring, and electrical safety
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link 
+                      to="/cleaner" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <Sparkles className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          Cleaner
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Deep cleaning and maintenance
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link 
+                      to="/ac-doctor" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <Wind className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          AC Doctor
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Installation, repair, and maintenance
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link 
+                      to="/pet-caring" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <Heart className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          Pet Care
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Pet sitting and care services
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link 
+                      to="/catering" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <UtensilsCrossed className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          Catering
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Event catering and meal prep
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link 
+                      to="/babysitter" 
+                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                    >
+                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                        <Baby className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                          Babysitter
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">
+                          Trusted childcare professionals
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -283,48 +452,108 @@ const Header = () => {
             >
               Service
             </a>
-            <div className="mt-1 ml-4 space-y-1">
+            <div className="mt-2 ml-4 space-y-2">
               <Link 
                 to="/electrician" 
                 onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
               >
-                Electrician
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    Electrician
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Fixes, wiring, and electrical safety
+                  </div>
+                </div>
               </Link>
               <Link 
                 to="/cleaner" 
                 onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
               >
-                Cleaner
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    Cleaner
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Deep cleaning and maintenance
+                  </div>
+                </div>
               </Link>
               <Link 
                 to="/ac-doctor" 
                 onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
               >
-                AC Doctor
-              </Link>
-              <Link 
-                to="/catering" 
-                onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
-              >
-                Catering
-              </Link>
-              <Link 
-                to="/babysitter" 
-                onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
-              >
-                Babysitter
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <Wind className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    AC Doctor
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Installation, repair, and maintenance
+                  </div>
+                </div>
               </Link>
               <Link 
                 to="/pet-caring" 
                 onClick={() => closeMobile()} 
-                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
               >
-                Pet Caring
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    Pet Care
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Pet sitting and care services
+                  </div>
+                </div>
+              </Link>
+              <Link 
+                to="/catering" 
+                onClick={() => closeMobile()} 
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <UtensilsCrossed className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    Catering
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Event catering and meal prep
+                  </div>
+                </div>
+              </Link>
+              <Link 
+                to="/babysitter" 
+                onClick={() => closeMobile()} 
+                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                  <Baby className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                    Babysitter
+                  </div>
+                  <div className="text-xs text-muted-foreground leading-relaxed">
+                    Trusted childcare professionals
+                  </div>
+                </div>
               </Link>
             </div>
           </div>
@@ -398,9 +627,10 @@ const Header = () => {
         </div>
       </div>
 
-      <LoginDialog open={loginOpen} onOpenChange={(open) => (open ? openLogin() : closeLogin())} onSwitchToRegister={handleSwitchToRegister} />
-      <RegisterDialog open={registerOpen} onOpenChange={(open) => (open ? openRegister() : closeRegister())} onSwitchToLogin={handleSwitchToLogin} />
-    </header>
+        <LoginDialog open={loginOpen} onOpenChange={(open) => (open ? openLogin() : closeLogin())} onSwitchToRegister={handleSwitchToRegister} />
+        <RegisterDialog open={registerOpen} onOpenChange={(open) => (open ? openRegister() : closeRegister())} onSwitchToLogin={handleSwitchToLogin} />
+      </header>
+    </>
   );
 };
 
