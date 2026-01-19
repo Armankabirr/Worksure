@@ -313,21 +313,20 @@ const Header = () => {
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
             </Link>
 
-            <a 
-              href="#contact" 
-              onClick={(event) => handleScroll(event, "contact")} 
+            <Link 
+              to="/contact"
               className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                isActive("contact")
+                location.pathname === "/contact"
                   ? "text-primary"
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
               Contact
-              {isActive("contact") && (
+              {location.pathname === "/contact" && (
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
               )}
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
-            </a>
+            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -569,17 +568,17 @@ const Header = () => {
             About
           </Link>
 
-          <a 
-            href="#contact" 
-            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'contact'); closeMobile(); }} 
+          <Link 
+            to="/contact"
+            onClick={() => closeMobile()}
             className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
-              isActive("contact") 
-                ? "text-primary bg-primary/5" 
+              location.pathname === "/contact"
+                ? "text-primary bg-primary/5"
                 : "text-foreground/70 hover:text-primary hover:bg-primary/5"
             }`}
           >
             Contact
-          </a>
+          </Link>
 
           <div className="pt-4 mt-4 border-t border-border/40">
             {isAuthenticated ? (
