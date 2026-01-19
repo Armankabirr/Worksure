@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import worksureLogo from "@/assets/Logo.png";
 
 const Header = () => {
   const {
@@ -129,13 +130,14 @@ const Header = () => {
           <div className="flex items-center">
             <Link 
               to="/" 
-              className="group flex items-center gap-2 transition-all duration-200"
+              className="group flex items-center gap-2.5 transition-all duration-200"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/10 rounded-full blur-md group-hover:bg-primary/20 transition-all duration-200"></div>
-                <div className="relative w-2 h-2 bg-primary rounded-full"></div>
-              </div>
-              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all duration-200">
+              <img 
+                src={worksureLogo} 
+                alt="WorkSure" 
+                className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 object-contain transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm"
+              />
+              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm inline-block">
                 WorkSure
               </span>
             </Link>
