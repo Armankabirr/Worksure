@@ -27,6 +27,18 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
 import WorkerDetail from "./pages/WorkerDetail";
 import { CartProvider } from "./context/CartContext";
+import AdminDashboardLayout from "./pages/Dashboard/admin/AdminDashboardLayout";
+import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
+import AdminUsers from "./pages/Dashboard/admin/AdminUsers";
+import AdminWorkers from "./pages/Dashboard/admin/AdminWorkers";
+import AdminServices from "./pages/Dashboard/admin/AdminServices";
+import AdminBookings from "./pages/Dashboard/admin/AdminBookings";
+import AdminPayments from "./pages/Dashboard/admin/AdminPayments";
+import AdminReviews from "./pages/Dashboard/admin/AdminReviews";
+import AdminComplaints from "./pages/Dashboard/admin/AdminComplaints";
+import AdminAddresses from "./pages/Dashboard/admin/AdminAddresses";
+import AdminReports from "./pages/Dashboard/admin/AdminReports";
+import AdminSettings from "./pages/Dashboard/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +95,23 @@ const App = () => {
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/payment/failed" element={<PaymentFailed />} />
               <Route path="/payment/cancelled" element={<PaymentCancelled />} />
+              
+              {/* Admin Dashboard Routes */}
+              <Route path="/admin" element={<AdminDashboardLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="workers" element={<AdminWorkers />} />
+                <Route path="services" element={<AdminServices />} />
+                <Route path="bookings" element={<AdminBookings />} />
+                <Route path="payments" element={<AdminPayments />} />
+                <Route path="reviews" element={<AdminReviews />} />
+                <Route path="complaints" element={<AdminComplaints />} />
+                <Route path="addresses" element={<AdminAddresses />} />
+                <Route path="reports" element={<AdminReports />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
