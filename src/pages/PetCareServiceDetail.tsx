@@ -149,6 +149,10 @@ const PetCareServiceDetail = () => {
                     src={serviceData.heroImage} 
                     alt={serviceData.title}
                     className="w-full h-full object-cover aspect-[4/3]"
+                    onError={(e) => {
+                      // Pet-safe fallback: default pet care image
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=600&fit=crop&q=80";
+                    }}
                   />
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="rounded-2xl bg-white/90 backdrop-blur-sm border border-pink-200 px-6 py-4 shadow-lg">

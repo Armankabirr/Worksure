@@ -115,7 +115,7 @@ const PetCaring = () => {
       title: "Pet Sitting",
       description: "Loving care in the comfort of your pet's home. We'll keep them happy, safe, and stress-free while you're away.",
       price: "From ৳3,500",
-      image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop&q=80",
+      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop&q=80",
       slug: "pet-sitting",
       color: "from-pink-400 to-rose-400",
     },
@@ -318,30 +318,42 @@ const PetCaring = () => {
                   <div className="grid grid-cols-2 gap-3 p-3 bg-white">
                     <div className="relative h-64 rounded-3xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1583336663277-620dc1996580?w=600&h=800&fit=crop&q=80" 
-                        alt="Happy dog" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="relative h-64 rounded-3xl overflow-hidden">
-                      <img 
-                        src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=800&fit=crop&q=80" 
-                        alt="Cute cat" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="relative h-64 rounded-3xl overflow-hidden">
-                      <img 
                         src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=800&fit=crop&q=80" 
-                        alt="Pet care" 
+                        alt="Happy dog with caregiver" 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=800&fit=crop&q=80";
+                        }}
                       />
                     </div>
                     <div className="relative h-64 rounded-3xl overflow-hidden">
                       <img 
-                        src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&h=800&fit=crop&q=80" 
-                        alt="Happy pets" 
+                        src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=800&fit=crop&q=80" 
+                        alt="Cute cat being cared for" 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=800&fit=crop&q=80";
+                        }}
+                      />
+                    </div>
+                    <div className="relative h-64 rounded-3xl overflow-hidden">
+                      <img 
+                        src="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=800&fit=crop&q=80" 
+                        alt="Pet care professional" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=800&fit=crop&q=80";
+                        }}
+                      />
+                    </div>
+                    <div className="relative h-64 rounded-3xl overflow-hidden">
+                      <img 
+                        src="https://images.unsplash.com/photo-1583336663277-620dc1996580?w=600&h=800&fit=crop&q=80" 
+                        alt="Happy pets together" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=800&fit=crop&q=80";
+                        }}
                       />
                     </div>
                   </div>
@@ -395,6 +407,10 @@ const PetCaring = () => {
                       src={service.image} 
                       alt={service.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => {
+                        // Pet-safe fallback: default pet care image
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop&q=80";
+                      }}
                     />
                     <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-20 group-hover:opacity-30 transition-opacity duration-300`} />
                     

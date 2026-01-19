@@ -26,7 +26,7 @@ export const petCareServicesData: Record<string, PetCareServiceData> = {
     subtitle: "Loving care in the comfort of your pet's home",
     description: "Our compassionate pet sitting service ensures your beloved companion receives dedicated attention and care while you're away. We maintain their routine, provide companionship, and give you peace of mind knowing they're safe and happy at home.",
     startingPrice: "৳3,500",
-    heroImage: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1200&h=600&fit=crop&q=80",
+    heroImage: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=600&fit=crop&q=80",
     duration: "4-8 hours",
     included: [
       "Personalized care and attention",
