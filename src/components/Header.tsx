@@ -60,123 +60,338 @@ const Header = () => {
 
   const closeMobile = () => setMobileOpen(false);
 
+  const isActive = (hash: string) => {
+    return location.hash === `#${hash}` || (hash === "home" && !location.hash && location.pathname === "/");
+  };
+
   return (
-    <header className="bg-card py-4 px-6 shadow-sm fixed top-0 left-0 w-full z-50">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center">
-          <Link to="/" className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">WorkSure</Link>
-        </div>
-
-        <nav className="hidden md:flex items-center space-x-8">
-          <a href="#home" onClick={(event) => handleScroll(event, "home")} className="text-foreground hover:text-primary transition-colors cursor-pointer">Home</a>
-
-          <div className="relative group">
-            <a href="#service" onClick={(event) => handleScroll(event, "service")} className="text-foreground hover:text-primary transition-colors cursor-pointer">Service</a>
-            <div className="absolute left-0 mt-3 w-48 rounded-lg bg-card shadow-xl border border-border/50 backdrop-blur-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out z-20 overflow-hidden">
-              <Link to="/electrician" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 first:rounded-t-lg last:rounded-b-lg cursor-pointer">Electrician</Link>
-              <Link to="/cleaner" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Cleaner</Link>
-              <Link to="/ac-doctor" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">AC Doctor</Link>
-              <Link to="/catering" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Catering</Link>
-              <Link to="/babysitter" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Babysitter</Link>
-              <Link to="/pet-caring" className="block px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent/80 hover:text-primary transition-all duration-200 cursor-pointer">Pet Caring</Link>
-            </div>
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-20 items-center justify-between">
+          {/* Branding */}
+          <div className="flex items-center">
+            <Link 
+              to="/" 
+              className="group flex items-center gap-2 transition-all duration-200"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-md group-hover:bg-primary/20 transition-all duration-200"></div>
+                <div className="relative w-2 h-2 bg-primary rounded-full"></div>
+              </div>
+              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all duration-200">
+                WorkSure
+              </span>
+            </Link>
           </div>
 
-          <a href="#about" onClick={(event) => handleScroll(event, "about")} className="text-foreground hover:text-primary transition-colors cursor-pointer">About</a>
-          <a href="#contact" onClick={(event) => handleScroll(event, "contact")} className="text-foreground hover:text-primary transition-colors cursor-pointer">Contact</a>
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-1">
+            <a 
+              href="#home" 
+              onClick={(event) => handleScroll(event, "home")} 
+              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                isActive("home")
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-foreground"
+              }`}
+            >
+              Home
+              {isActive("home") && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+              )}
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
+            </a>
 
-        {/* Desktop: full icons (visible md+) */}
-        <div className="hidden md:flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent relative"
-            onClick={() => navigate("/cart")}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {totalItems > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            <div className="relative group">
+              <a 
+                href="#service" 
+                onClick={(event) => handleScroll(event, "service")} 
+                className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                  isActive("service")
+                    ? "text-primary"
+                    : "text-foreground/70 hover:text-foreground"
+                }`}
               >
-                {totalItems}
-              </Badge>
-            )}
-          </Button>
+                Service
+                {isActive("service") && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+                )}
+              </a>
+              <div className="absolute left-0 top-full mt-2 w-56 rounded-xl bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-border/50 backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out z-20 overflow-hidden">
+                <div className="p-1.5">
+                  <Link to="/electrician" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Electrician</Link>
+                  <Link to="/cleaner" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Cleaner</Link>
+                  <Link to="/ac-doctor" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">AC Doctor</Link>
+                  <Link to="/catering" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Catering</Link>
+                  <Link to="/babysitter" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Babysitter</Link>
+                  <Link to="/pet-caring" className="block px-4 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer">Pet Caring</Link>
+                </div>
+              </div>
+            </div>
 
-          {isAuthenticated ? (
-            <Button variant="default" size="icon" className="p-0 rounded-full overflow-hidden" type="button" aria-label="Profile" onClick={() => navigate("/profile")}>{user?.avatar ? (<Avatar className="h-10 w-10"><AvatarImage className="object-cover" src={user.avatar} alt={user.name} /><AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">{user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}</AvatarFallback></Avatar>) : (<div className="h-10 w-10 flex items-center justify-center"><User className="h-5 w-5" /></div>)}</Button>
-          ) : (
-            <>
-              <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary" type="button" onClick={openLogin}>Login</Button>
-              <Button variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg" type="button" onClick={openRegister}>Sign up</Button>
-            </>
-          )}
-        </div>
+            <a 
+              href="#about" 
+              onClick={(event) => handleScroll(event, "about")} 
+              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                isActive("about")
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-foreground"
+              }`}
+            >
+              About
+              {isActive("about") && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+              )}
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
+            </a>
 
-        {/* Mobile: only cart + hamburger (no profile icon in header) */}
-        <div className="flex md:hidden items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent relative"
-            onClick={() => navigate("/cart")}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {totalItems > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            <a 
+              href="#contact" 
+              onClick={(event) => handleScroll(event, "contact")} 
+              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
+                isActive("contact")
+                  ? "text-primary"
+                  : "text-foreground/70 hover:text-foreground"
+              }`}
+            >
+              Contact
+              {isActive("contact") && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+              )}
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
+            </a>
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingCart className="h-5 w-5 transition-transform duration-200 hover:scale-110" />
+              {totalItems > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold shadow-sm"
+                >
+                  {totalItems}
+                </Badge>
+              )}
+            </Button>
+
+            {isAuthenticated ? (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200" 
+                type="button" 
+                aria-label="Profile" 
+                onClick={() => navigate("/profile")}
               >
-                {totalItems}
-              </Badge>
+                {user?.avatar ? (
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage className="object-cover" src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                      {user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-full">
+                    <User className="h-5 w-5" />
+                  </div>
+                )}
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="h-10 px-5 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold" 
+                  type="button" 
+                  onClick={openLogin}
+                >
+                  Login
+                </Button>
+                <Button 
+                  variant="default" 
+                  className="h-10 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-semibold" 
+                  type="button" 
+                  onClick={openRegister}
+                >
+                  Sign up
+                </Button>
+              </>
             )}
-          </Button>
-          <button onClick={() => setMobileOpen((v) => !v)} aria-label="Toggle menu" className="p-2 rounded-md hover:bg-accent">{mobileOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="flex md:hidden items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold"
+                >
+                  {totalItems}
+                </Badge>
+              )}
+            </Button>
+            <button 
+              onClick={() => setMobileOpen((v) => !v)} 
+              aria-label="Toggle menu" 
+              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-primary/5 transition-all duration-200"
+            >
+              {mobileOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu panel */}
-      <div className={`md:hidden bg-card border-t border-border overflow-hidden transition-max-h duration-200 ${mobileOpen ? 'max-h-[80vh]' : 'max-h-0'}`}>
-        <div className="px-4 pt-4 pb-6 space-y-3">
-          <a href="#home" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'home'); closeMobile(); }} className="block text-foreground hover:text-primary">Home</a>
+      {/* Mobile Menu Panel */}
+      <div className={`md:hidden bg-white border-t border-border/40 overflow-hidden transition-all duration-200 ease-out ${
+        mobileOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <div className="px-4 pt-6 pb-8 space-y-1">
+          <a 
+            href="#home" 
+            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'home'); closeMobile(); }} 
+            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
+              isActive("home") 
+                ? "text-primary bg-primary/5" 
+                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+            }`}
+          >
+            Home
+          </a>
 
           <div>
-            <a href="#service" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service'); closeMobile(); }} className="block text-foreground hover:text-primary">Service</a>
-            <div className="mt-2 ml-3 space-y-1">
-              <Link to="/electrician" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Electrician</Link>
-              <Link to="/cleaner" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Cleaner</Link>
-              <Link to="/ac-doctor" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">AC Doctor</Link>
-              <Link to="/catering" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Catering</Link>
-              <Link to="/babysitter" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Babysitter</Link>
-              <Link to="/pet-caring" onClick={() => closeMobile()} className="block text-foreground hover:text-primary">Pet Caring</Link>
+            <a 
+              href="#service" 
+              onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service'); closeMobile(); }} 
+              className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
+                isActive("service") 
+                  ? "text-primary bg-primary/5" 
+                  : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+              }`}
+            >
+              Service
+            </a>
+            <div className="mt-1 ml-4 space-y-1">
+              <Link 
+                to="/electrician" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                Electrician
+              </Link>
+              <Link 
+                to="/cleaner" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                Cleaner
+              </Link>
+              <Link 
+                to="/ac-doctor" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                AC Doctor
+              </Link>
+              <Link 
+                to="/catering" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                Catering
+              </Link>
+              <Link 
+                to="/babysitter" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                Babysitter
+              </Link>
+              <Link 
+                to="/pet-caring" 
+                onClick={() => closeMobile()} 
+                className="block px-4 py-2.5 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-primary/5 rounded-lg transition-all duration-200"
+              >
+                Pet Caring
+              </Link>
             </div>
           </div>
 
-          <a href="#about" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'about'); closeMobile(); }} className="block text-foreground hover:text-primary">About</a>
-          <a href="#contact" onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'contact'); closeMobile(); }} className="block text-foreground hover:text-primary">Contact</a>
+          <a 
+            href="#about" 
+            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'about'); closeMobile(); }} 
+            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
+              isActive("about") 
+                ? "text-primary bg-primary/5" 
+                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+            }`}
+          >
+            About
+          </a>
 
-          <div className="pt-3 border-t border-border">
+          <a 
+            href="#contact" 
+            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'contact'); closeMobile(); }} 
+            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
+              isActive("contact") 
+                ? "text-primary bg-primary/5" 
+                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+            }`}
+          >
+            Contact
+          </a>
+
+          <div className="pt-4 mt-4 border-t border-border/40">
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                {/* compact avatar in mobile panel */}
+              <div className="flex items-center gap-3 px-4 py-3">
                 {user?.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="h-8 w-8 object-cover rounded-full" />
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name} 
+                    className="h-10 w-10 object-cover rounded-full ring-2 ring-primary/20" 
+                  />
                 ) : (
-                  <div className="h-8 w-8 flex items-center justify-center bg-primary rounded-full text-white">
-                    <User className="h-4 w-4" />
+                  <div className="h-10 w-10 flex items-center justify-center bg-primary rounded-full text-white">
+                    <User className="h-5 w-5" />
                   </div>
                 )}
-
                 <div className="flex-1">
-                  <button onClick={() => { navigate('/profile'); closeMobile(); }} className="w-full text-left text-sm font-medium text-foreground hover:text-primary">View profile</button>
+                  <button 
+                    onClick={() => { navigate('/profile'); closeMobile(); }} 
+                    className="text-left text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200"
+                  >
+                    View profile
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                <button onClick={() => { openLogin(); closeMobile(); }} className="w-full text-left">Login</button>
-                <button onClick={() => { openRegister(); closeMobile(); }} className="w-full text-left">Sign up</button>
+              <div className="flex flex-col gap-2 px-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-11 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold" 
+                  onClick={() => { openLogin(); closeMobile(); }}
+                >
+                  Login
+                </Button>
+                <Button 
+                  variant="default" 
+                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold" 
+                  onClick={() => { openRegister(); closeMobile(); }}
+                >
+                  Sign up
+                </Button>
               </div>
             )}
           </div>
