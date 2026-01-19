@@ -3,13 +3,26 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { BadgeCheck, Sparkles, Home, ShieldCheck, Droplet, Wind, ShoppingCart } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BadgeCheck, Sparkles, Home, ShieldCheck, Droplet, Wind, ShoppingCart, Eye } from "lucide-react";
 import heroImage from "@/assets/hero-workspace.jpg";
 import teamImage from "@/assets/cleaning-team.jpg";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
+
+type ServiceType = {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  price: string;
+  cta: string;
+  bgColor: string;
+  image: string;
+  navigateTo: string;
+  included: string[];
+};
 
 const Cleaner = () => {
   const navigate = useNavigate();
@@ -18,6 +31,8 @@ const Cleaner = () => {
   const [jobsCount, setJobsCount] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -92,7 +107,7 @@ const Cleaner = () => {
     },
   ];
 
-  const services = [
+  const services: ServiceType[] = [
     {
       icon: Sparkles,
 		title: "Deep Cleaning",
@@ -102,6 +117,14 @@ const Cleaner = () => {
       bgColor: "from-green-500 to-green-600",
       image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Complete room-by-room deep cleaning",
+        "Kitchen and bathroom sanitization",
+        "Baseboards and window sills",
+        "Inside appliances cleaning",
+        "Eco-friendly cleaning products",
+        "Post-cleaning inspection",
+      ],
     },
     {
       icon: Home,
@@ -112,6 +135,14 @@ const Cleaner = () => {
       bgColor: "from-blue-500 to-blue-600",
       image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Full interior deep cleaning",
+        "Cabinets and closets cleaned",
+        "All appliances cleaned inside and out",
+        "Windows and window frames",
+        "Carpet cleaning included",
+        "Move-out inspection report",
+      ],
     },
     {
       icon: Droplet,
@@ -122,6 +153,14 @@ const Cleaner = () => {
       bgColor: "from-yellow-500 to-yellow-600",
       image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Professional steam cleaning",
+        "Stain removal treatment",
+        "Deodorizing and sanitizing",
+        "Fabric protection application",
+        "Furniture moving and replacement",
+        "Quick-dry service available",
+      ],
     },
     {
       icon: Wind,
@@ -132,6 +171,14 @@ const Cleaner = () => {
       bgColor: "from-cyan-500 to-cyan-600",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Inside and outside window cleaning",
+        "Window frames and sills",
+        "Streak-free finish guarantee",
+        "Screen cleaning included",
+        "Hard-to-reach windows",
+        "Eco-friendly cleaning solutions",
+      ],
     },
     {
       icon: ShieldCheck,
@@ -142,6 +189,14 @@ const Cleaner = () => {
       bgColor: "from-purple-500 to-purple-600",
       image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Desk and workstation cleaning",
+        "Restroom sanitization",
+        "Kitchen and break room cleaning",
+        "Floor vacuuming and mopping",
+        "Trash removal and recycling",
+        "Flexible scheduling options",
+      ],
     },
     {
       icon: BadgeCheck,
@@ -152,8 +207,22 @@ const Cleaner = () => {
       bgColor: "from-orange-500 to-orange-600",
       image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop&q=80",
       navigateTo: "/search/workers?serviceType=cleaner",
+      included: [
+        "Regular vacuuming and mopping",
+        "Bathroom and kitchen cleaning",
+        "Dusting all surfaces",
+        "Trash removal",
+        "Consistent schedule",
+        "Same cleaner assigned",
+      ],
     },
   ];
+
+  const handleQuickView = (service: ServiceType, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedService(service);
+    setQuickViewOpen(true);
+  };
 
   const guarantees = [
     {
@@ -270,10 +339,23 @@ const Cleaner = () => {
                     <img 
                       src={service.image} 
                       alt={service.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
                     />
                     <div className={`absolute inset-0 bg-gradient-to-br ${service.bgColor} opacity-20 group-hover:opacity-30 transition-opacity duration-300`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                    
+                    {/* Quick View Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20 backdrop-blur-sm">
+                      <Button
+                        variant="default"
+                        size="lg"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 animate-in fade-in-0 zoom-in-95"
+                        onClick={(e) => handleQuickView(service, e)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Quick View
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Content Section - Flex Grow */}
@@ -307,6 +389,17 @@ const Cleaner = () => {
                           View Services
                         </Button>
                       )}
+                      
+                      {/* Mobile Quick View Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground md:hidden"
+                        onClick={(e) => handleQuickView(service, e)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Quick View
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -511,6 +604,83 @@ const Cleaner = () => {
 				</section>
 			</main>
 			<Footer />
+
+      {/* Quick View Modal */}
+      <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl p-0 gap-0">
+          {selectedService && (
+            <>
+              {/* Modal Image Section */}
+              <div className="relative h-64 md:h-80 overflow-hidden rounded-t-2xl">
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${selectedService.bgColor} opacity-20`} />
+              </div>
+
+              {/* Modal Content Section */}
+              <div className="p-6 md:p-8 space-y-6">
+                <DialogHeader className="space-y-3">
+                  <DialogTitle className="text-2xl md:text-3xl font-bold text-foreground">
+                    {selectedService.title}
+                  </DialogTitle>
+                  <DialogDescription className="text-base text-muted-foreground">
+                    {selectedService.description}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {/* Price Section */}
+                <div className="flex items-center gap-4 pb-4 border-b border-border">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Starting Price</p>
+                    <p className="text-3xl font-bold text-primary">{selectedService.price}</p>
+                  </div>
+                </div>
+
+                {/* Included Items */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">What&apos;s Included</h3>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {selectedService.included.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Button
+                    size="lg"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                    onClick={() => {
+                      setQuickViewOpen(false);
+                      handleBookNow();
+                    }}
+                  >
+                    Book Cleaner
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold py-6 rounded-xl"
+                    onClick={() => {
+                      setQuickViewOpen(false);
+                      navigate(selectedService.navigateTo);
+                    }}
+                  >
+                    View Full Details
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 		</div>
 	);
 };
