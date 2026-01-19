@@ -73,6 +73,8 @@ const Cleaner = () => {
     navigate(query);
   };
 
+  const handleBookNowClick = () => handleBookNow();
+
   const handleAddToCart = (service: typeof services[0]) => {
     // Extract numeric price from "From ৳580" format
     const priceMatch = service.price.match(/\d+/);
@@ -266,7 +268,7 @@ const Cleaner = () => {
               <div className="flex flex-wrap gap-4 pt-2">
                 <Button
                   size="lg"
-                  onClick={handleBookNow}
+                  onClick={handleBookNowClick}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 shadow-lg hover:shadow-xl transition-transform duration-200 hover:-translate-y-0.5"
                 >
                   Book a Cleaner
@@ -274,7 +276,7 @@ const Cleaner = () => {
                 <Button
                   size="lg"
                   variant="outline"
-                  onClick={handleBookNow}
+                  onClick={() => navigate("/cleaner/pricing")}
                   className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   View Pricing
@@ -317,7 +319,7 @@ const Cleaner = () => {
 					</div>
 				</section>
 
-        <section className="container mx-auto px-6 py-10">
+        <section id="services-section" className="container mx-auto px-6 py-10">
           <div className="text-center max-w-2xl mx-auto mb-12 animate-fade-up">
             <p className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">Our Services</p>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Professional Cleaning Services</h2>
@@ -409,7 +411,16 @@ const Cleaner = () => {
           </div>
 
           <div className="flex justify-center pt-8 animate-fade-up" style={{ animationDelay: "520ms" }}>
-            <Button className="rounded-full" variant="outline" onClick={handleBookNow}>
+            <Button 
+              className="rounded-full" 
+              variant="outline" 
+              onClick={() => {
+                const servicesSection = document.getElementById("services-section");
+                if (servicesSection) {
+                  servicesSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+            >
               View All Services
             </Button>
           </div>
@@ -444,8 +455,11 @@ const Cleaner = () => {
 						))}
             </div>
             <div className="flex justify-center pt-10 animate-fade-up" style={{ animationDelay: "260ms" }}>
-              <Button className="rounded-full px-6 bg-green-500 hover:bg-green-600 text-white" onClick={handleBookNow}>
-                View Service
+              <Button 
+                className="rounded-full px-6 bg-green-500 hover:bg-green-600 text-white" 
+                onClick={() => navigate("/cleaner/deep-cleaning")}
+              >
+                View Service Details
               </Button>
             </div>
           </div>
@@ -474,7 +488,7 @@ const Cleaner = () => {
                 size="lg"
                 variant="secondary"
                 className="mt-2 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                onClick={handleBookNow}
+                onClick={handleBookNowClick}
               >
                 Get Started
               </Button>
@@ -597,7 +611,7 @@ const Cleaner = () => {
               <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={() => navigate("/")}>
                 Contact Us Now
               </Button>
-              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={handleBookNow}>
+              <Button variant="outline" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={handleBookNowClick}>
                 Book a Cleaner
               </Button>
 						</div>
