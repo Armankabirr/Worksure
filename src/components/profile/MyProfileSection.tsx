@@ -127,7 +127,7 @@ const MyProfileSection = ({
             <div className="flex items-center gap-2 mb-4">
               <div className="h-2 w-2 rounded-full bg-green-500"></div>
               <p className="text-xs text-muted-foreground capitalize font-medium">
-                {userData.is_active ? "Active" : "Inactive"}
+                {userData.status}
               </p>
             </div>
 

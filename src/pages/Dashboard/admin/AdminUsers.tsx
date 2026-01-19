@@ -46,7 +46,7 @@ interface User {
   avatar: string | null;
   email: string;
   phone: string;
-  status: 'active' | 'inactive';
+  status: 'active' | 'suspended';
   bookingCount: number;
   joinedDate: string;
   gender: string;
@@ -172,10 +172,21 @@ const AdminUsers = () => {
    * Handle user suspension/activation with API call
    */
   const toggleUserStatusMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      // Call API to toggle user status
-      const response = await axiosPublic.patch(`/userRoutes/users/${userId}/toggle-status`);
-      return response.data;
+    mutationFn: async ({ userId, currentStatus }: { userId: string; currentStatus: 'active' | 'suspended' }) => {
+      // Use different endpoints based on current status
+      if (currentStatus === 'active') {
+        // Suspend the user
+        const response = await axiosPublic.patch(`/userRoutes/suspendUser/${userId}`, {
+          status: "suspended",
+        });
+        return response.data;
+      } else {
+        // Activate the user
+        const response = await axiosPublic.patch(`/userRoutes/activateUser/${userId}`, {
+          status: "active",
+        });
+        return response.data;
+      }
     },
     onSuccess: () => {
       // Refresh user list
@@ -194,8 +205,8 @@ const AdminUsers = () => {
     },
   });
 
-  const handleToggleStatus = (userId: string) => {
-    toggleUserStatusMutation.mutate(userId);
+  const handleToggleStatus = (userId: string, currentStatus: 'active' | 'suspended') => {
+    toggleUserStatusMutation.mutate({ userId, currentStatus });
   };
 
   /**
@@ -225,7 +236,7 @@ const AdminUsers = () => {
   /**
    * Get status badge styling
    */
-  const getStatusBadge = (status?: 'active' | 'inactive') => {
+  const getStatusBadge = (status?: 'active' | 'suspended') => {
     if (!status) {
       return (
         <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
@@ -239,8 +250,8 @@ const AdminUsers = () => {
         Active
       </Badge>
     ) : (
-      <Badge className="bg-gray-100 text-gray-600 hover:bg-gray-100">
-        Inactive
+      <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+        Suspended
       </Badge>
     );
   };
@@ -359,7 +370,7 @@ const AdminUsers = () => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -551,7 +562,7 @@ const AdminUsers = () => {
                               View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleToggleStatus(user.id)}
+                              onClick={() => handleToggleStatus(user.id, user.status)}
                               className={
                                 user.status === 'active'
                                   ? 'text-red-600'
@@ -562,7 +573,7 @@ const AdminUsers = () => {
                               {user.status === 'active' ? (
                                 <>
                                   <Ban className="w-4 h-4 mr-2" />
-                                  Deactivate User
+                                  Suspend User
                                 </>
                               ) : (
                                 <>

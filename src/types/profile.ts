@@ -17,7 +17,7 @@ export interface UserData {
   date_of_birth: string;
   role: string;
   profile_picture: string;
-  is_active: boolean;
+  status: string;
   addresses: Address[];
 }
 
