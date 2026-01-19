@@ -13,6 +13,8 @@ import PetCaring from "./pages/PetCaring";
 import Catering from "./pages/Catering";
 import Babysitter from "./pages/Babysitter";
 import ElectricalRepairs from "./pages/ElectricalRepairs";
+import DeepCleaning from "./pages/DeepCleaning";
+import CleaningPricing from "./pages/CleaningPricing";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -56,6 +58,8 @@ const App = () => {
               <Route path="/electrician/electrical-repairs" element={<ElectricalRepairs />} />
               <Route path="/ac-doctor" element={<ACDoctor />} />
               <Route path="/cleaner" element={<Cleaner />} />
+              <Route path="/cleaner/pricing" element={<CleaningPricing />} />
+              <Route path="/cleaner/:slug" element={<DeepCleaning />} />
               <Route path="/pet-caring" element={<PetCaring />} />
               <Route path="/catering" element={<Catering />} />
               <Route path="/babysitter" element={<Babysitter />} />
