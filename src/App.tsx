@@ -10,9 +10,16 @@ import Electrician from "./pages/Electrician";
 import Cleaner from "./pages/Cleaner";
 import ACDoctor from "./pages/ACDoctor";
 import PetCaring from "./pages/PetCaring";
+import PetCareServiceDetail from "./pages/PetCareServiceDetail";
 import Catering from "./pages/Catering";
 import Babysitter from "./pages/Babysitter";
 import ElectricalRepairs from "./pages/ElectricalRepairs";
+import DeepCleaning from "./pages/DeepCleaning";
+import CleaningPricing from "./pages/CleaningPricing";
+import ACDoctorServiceDetail from "./pages/ACDoctorServiceDetail";
+import ACDoctorPricing from "./pages/ACDoctorPricing";
+import ElectricianServiceDetail from "./pages/ElectricianServiceDetail";
+import ElectricianPricing from "./pages/ElectricianPricing";
 import UserRegister from "./pages/UserRegister";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
@@ -22,10 +29,12 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import Preloader from "./components/Preloader";
+import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Search from "./pages/Search";
 import WorkerDetail from "./pages/WorkerDetail";
+import About from "./pages/About";
 import { CartProvider } from "./context/CartContext";
 import AdminDashboardLayout from "./pages/Dashboard/admin/AdminDashboardLayout";
 import AdminDashboard from "./pages/Dashboard/admin/AdminDashboard";
@@ -62,13 +71,21 @@ const App = () => {
           <Sonner />
           {isLoading && <Preloader isLoading={isLoading} onComplete={() => setIsLoading(false)} />}
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
+              <Route path="/electrician/pricing" element={<ElectricianPricing />} />
               <Route path="/electrician/electrical-repairs" element={<ElectricalRepairs />} />
+              <Route path="/electrician/:slug" element={<ElectricianServiceDetail />} />
               <Route path="/ac-doctor" element={<ACDoctor />} />
+              <Route path="/ac-doctor/pricing" element={<ACDoctorPricing />} />
+              <Route path="/ac-doctor/:slug" element={<ACDoctorServiceDetail />} />
               <Route path="/cleaner" element={<Cleaner />} />
+              <Route path="/cleaner/pricing" element={<CleaningPricing />} />
+              <Route path="/cleaner/:slug" element={<DeepCleaning />} />
               <Route path="/pet-caring" element={<PetCaring />} />
+              <Route path="/pet-care/:slug" element={<PetCareServiceDetail />} />
               <Route path="/catering" element={<Catering />} />
               <Route path="/babysitter" element={<Babysitter />} />
               <Route path="/user/register" element={<UserRegister />} />
@@ -112,6 +129,7 @@ const App = () => {
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
               
+              <Route path="/about" element={<About />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

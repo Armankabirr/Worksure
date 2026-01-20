@@ -49,7 +49,7 @@ const Footer = () => {
 
         <div className="border-t border-secondary-foreground/20 pt-8 text-center">
           <p className="text-sm opacity-75">
-            © 2024 WorkSure. All Rights Reserved
+            © 2026 WorkSure. All Rights Reserved
           </p>
         </div>
       </div>
