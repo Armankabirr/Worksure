@@ -63,11 +63,12 @@ interface Worker {
   services_count: number;
   documents_count: number;
   has_address: boolean;
-  status: 'active' | 'suspended';
+  status: 'active' | 'inactive' | 'suspended';
   years_experience: number;
   total_hirings: number;
   created_at: string;
   last_login_at: string | null;
+  profile_picture?: string;
 }
 
 /**
@@ -172,38 +173,115 @@ const AdminWorkers = () => {
   const categories = Array.from(new Set(workers?.map((w) => w.category) || []));
 
   /**
-   * Handle worker suspension/activation with API call
+   * Handle worker suspension with API call
    */
-  const toggleWorkerStatusMutation = useMutation({
-    mutationFn: async ({ workerId, currentStatus }: { workerId: string; currentStatus: 'active' | 'suspended' }) => {
-      if (currentStatus === 'active') {
-        const response = await axiosPublic.patch(`/userRoutes/suspendUser/${workerId}`, {
-          status: 'suspended',
-        });
-        return response.data;
-      } else {
-        const response = await axiosPublic.patch(`/userRoutes/activateUser/${workerId}`);
-        return response.data;
-      }
+  const suspendWorkerMutation = useMutation({
+    mutationFn: async (workerId: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/suspendWorker/${workerId}`);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
       toast({
         title: 'Success',
-        description: 'Worker status updated successfully',
+        description: 'Worker suspended successfully',
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to update worker status',
+        description: error.response?.data?.message || 'Failed to suspend worker',
         variant: 'destructive',
       });
     },
   });
 
-  const handleToggleStatus = (workerId: string, currentStatus: 'active' | 'suspended') => {
-    toggleWorkerStatusMutation.mutate({ workerId, currentStatus });
+  /**
+   * Handle worker verification with API call
+   */
+  const verifyWorkerMutation = useMutation({
+    mutationFn: async (workerId: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/verifyWorker/${workerId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({
+        title: 'Success',
+        description: 'Worker verified successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to verify worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  /**
+   * Handle worker rejection with API call
+   */
+  const rejectWorkerMutation = useMutation({
+    mutationFn: async (workerId: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/rejectWorker/${workerId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({
+        title: 'Success',
+        description: 'Worker verification rejected',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to reject worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  /**
+   * Handle worker activation with API call
+   */
+  const activateWorkerMutation = useMutation({
+    mutationFn: async (workerId: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/activateWorker/${workerId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({
+        title: 'Success',
+        description: 'Worker activated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to activate worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleSuspendWorker = (workerId: string) => {
+    suspendWorkerMutation.mutate(workerId);
+  };
+
+  const handleVerifyWorker = (workerId: string) => {
+    verifyWorkerMutation.mutate(workerId);
+  };
+
+  const handleRejectWorker = (workerId: string) => {
+    rejectWorkerMutation.mutate(workerId);
+  };
+
+  const handleActivateWorker = (workerId: string) => {
+    activateWorkerMutation.mutate(workerId);
   };
 
   /**
@@ -266,16 +344,26 @@ const AdminWorkers = () => {
   /**
    * Get status badge styling
    */
-  const getStatusBadge = (status: 'active' | 'suspended') => {
-    return status === 'active' ? (
-      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-        Active
-      </Badge>
-    ) : (
-      <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-        Suspended
-      </Badge>
-    );
+  const getStatusBadge = (status: 'active' | 'inactive' | 'suspended') => {
+    if (status === 'active') {
+      return (
+        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          Active
+        </Badge>
+      );
+    } else if (status === 'inactive') {
+      return (
+        <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+          Inactive
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+          Suspended
+        </Badge>
+      );
+    }
   };
 
   /**
@@ -390,6 +478,7 @@ const AdminWorkers = () => {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
                   <SelectItem value="suspended">Suspended</SelectItem>
                 </SelectContent>
               </Select>
@@ -526,6 +615,7 @@ const AdminWorkers = () => {
                     <TableHead>Worker</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Verification</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Rating</TableHead>
                     <TableHead>Services</TableHead>
                     <TableHead>Documents</TableHead>
@@ -576,6 +666,9 @@ const AdminWorkers = () => {
 
                       {/* Verification Status */}
                       <TableCell>{getVerificationBadge(worker.verification)}</TableCell>
+
+                      {/* Status */}
+                      <TableCell>{getStatusBadge(worker.status)}</TableCell>
 
                       {/* Rating */}
                       <TableCell>
@@ -652,37 +745,44 @@ const AdminWorkers = () => {
                             </DropdownMenuItem>
                             {worker.verification === 'pending' && (
                               <>
-                                <DropdownMenuItem className="text-green-600">
+                                <DropdownMenuItem
+                                  onClick={() => handleVerifyWorker(worker.id)}
+                                  className="text-green-600"
+                                  disabled={verifyWorkerMutation.isPending}
+                                >
                                   <CheckCircle className="w-4 h-4 mr-2" />
                                   Verify Worker
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
+                                <DropdownMenuItem
+                                  onClick={() => handleRejectWorker(worker.id)}
+                                  className="text-red-600"
+                                  disabled={rejectWorkerMutation.isPending}
+                                >
                                   <XCircle className="w-4 h-4 mr-2" />
                                   Reject Verification
                                 </DropdownMenuItem>
                               </>
                             )}
-                            <DropdownMenuItem
-                              onClick={() => handleToggleStatus(worker.id, worker.status)}
-                              className={
-                                worker.status === 'active'
-                                  ? 'text-red-600'
-                                  : 'text-green-600'
-                              }
-                              disabled={toggleWorkerStatusMutation.isPending}
-                            >
-                              {worker.status === 'active' ? (
-                                <>
-                                  <Ban className="w-4 h-4 mr-2" />
-                                  Suspend Worker
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Activate Worker
-                                </>
-                              )}
-                            </DropdownMenuItem>
+                            {worker.status === 'active' && (
+                              <DropdownMenuItem
+                                onClick={() => handleSuspendWorker(worker.id)}
+                                className="text-red-600"
+                                disabled={suspendWorkerMutation.isPending}
+                              >
+                                <Ban className="w-4 h-4 mr-2" />
+                                Suspend Worker
+                              </DropdownMenuItem>
+                            )}
+                            {worker.status === 'suspended' && (
+                              <DropdownMenuItem
+                                onClick={() => handleActivateWorker(worker.id)}
+                                className="text-green-600"
+                                disabled={activateWorkerMutation.isPending}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Activate Worker
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
