@@ -30,60 +30,77 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import useAxiosPublic from '@/hooks/useAxiosPublic';
+import { log } from 'console';
 
 /**
- * WorkerDetails type definition (for detailed worker data)
+ * WorkerDetails type definition (based on API response)
  */
 interface WorkerDetails {
   id: string;
-  full_name: string;
+  fullName: string;
   email: string;
   phone: string;
-  profile_picture: string | null;
+  gender: string;
+  dateOfBirth: string | null;
+  nid: string | null;
+  profilePicture: string | null;
+  role: string;
   status: 'active' | 'suspended';
-  created_at: string;
-  last_login_at: string | null;
-  worker_profile: {
-    display_name: string;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
+  workerProfile: {
+    displayName: string;
     bio: string;
+    yearsExperience: number;
+    avgRating: number;
+    totalReviews: number;
     verification: 'verified' | 'pending' | 'rejected' | 'unverified';
-    years_experience: number;
-    avg_rating: number;
-    total_reviews: number;
-    total_hirings: number;
-  };
-  services: Array<{
-    id: string;
-    category: string;
-    section: string;
-    base_price: number;
-    price_unit: string;
-    skills: string[];
-    is_active: boolean;
-  }>;
-  documents: Array<{
-    id: string;
-    type: string;
-    status: 'verified' | 'pending' | 'rejected';
-    uploaded_at: string;
-  }>;
+    documentsCount: number;
+    profileCreatedAt: string;
+    profileUpdatedAt: string;
+  } | null;
   addresses: Array<{
     id: string;
-    label: string;
-    address_line1: string;
-    address_line2: string;
+    street: string;
     city: string;
-    state: string;
+    district: string;
     postal_code: string;
-    is_default: boolean;
+    lat: number;
+    lon: number;
+  }>;
+  services: Array<{
+    id: string;
+    basePrice: number;
+    priceUnit: string;
+    skills: string[];
+    category: string;
+    categorySlug: string;
+    categoryDescription: string;
+    createdAt: string;
+  }>;
+  availabilities: Array<any>;
+  verificationDocuments: Array<{
+    id: string;
+    document_type: string;
+    document_url: string;
+    verification_status: 'verified' | 'pending' | 'rejected';
+    uploaded_at: string;
+  }>;
+  recentReviews: Array<{
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    reviewer: {
+      name: string;
+      avatar: string | null;
+    };
   }>;
   statistics: {
-    total_bookings: number;
-    completed_bookings: number;
-    cancelled_bookings: number;
-    total_earnings: number;
-    total_reviews: number;
-    avg_rating: number;
+    totalHirings: number;
+    totalPayments: number;
+    totalReviews: number;
   };
 }
 
@@ -109,95 +126,14 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
   const axiosPublic = useAxiosPublic();
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Mock fetch - Replace with real API endpoint
+  // Fetch worker details from API
   const { data: workerDetails, isLoading, error } = useQuery<WorkerDetails>({
     queryKey: ['worker-details', workerId],
     queryFn: async () => {
       if (!workerId) throw new Error('Worker ID is required');
-      // TODO: Replace with actual API endpoint
-      // const response = await axiosPublic.get(`/workerRoutes/workers/${workerId}`);
-      // return response.data;
-      
-      // Mock data for now
-      return {
-        id: workerId,
-        full_name: 'Rahim Uddin',
-        email: 'rahim@example.com',
-        phone: '+880 1712-345678',
-        profile_picture: null,
-        status: 'active',
-        created_at: '2024-01-15T10:30:00Z',
-        last_login_at: '2026-01-19T14:20:00Z',
-        worker_profile: {
-          display_name: 'Rahim Electrician',
-          bio: 'Professional electrician with 10 years of experience',
-          verification: 'verified',
-          years_experience: 10,
-          avg_rating: 4.7,
-          total_reviews: 120,
-          total_hirings: 250,
-        },
-        services: [
-          {
-            id: '1',
-            category: 'Electrical',
-            section: 'Installation',
-            base_price: 500,
-            price_unit: 'per service',
-            skills: ['Wiring', 'Circuit Installation', 'Panel Upgrade'],
-            is_active: true,
-          },
-          {
-            id: '2',
-            category: 'Electrical',
-            section: 'Repair',
-            base_price: 300,
-            price_unit: 'per hour',
-            skills: ['Troubleshooting', 'Emergency Repair'],
-            is_active: true,
-          },
-        ],
-        documents: [
-          {
-            id: '1',
-            type: 'NID',
-            status: 'verified',
-            uploaded_at: '2024-01-16T10:00:00Z',
-          },
-          {
-            id: '2',
-            type: 'Trade License',
-            status: 'verified',
-            uploaded_at: '2024-01-16T10:00:00Z',
-          },
-          {
-            id: '3',
-            type: 'Certificate',
-            status: 'pending',
-            uploaded_at: '2026-01-18T10:00:00Z',
-          },
-        ],
-        addresses: [
-          {
-            id: '1',
-            label: 'Home',
-            address_line1: 'House 12, Road 5',
-            address_line2: 'Block A',
-            city: 'Dhaka',
-            state: 'Dhaka',
-            postal_code: '1212',
-            is_default: true,
-          },
-        ],
-        statistics: {
-          total_bookings: 250,
-          completed_bookings: 235,
-          cancelled_bookings: 15,
-          total_earnings: 125000,
-          total_reviews: 120,
-          avg_rating: 4.7,
-        },
-      } as WorkerDetails;
+      const response = await axiosPublic.get(`/workerRoutes/adminGetWorkerData/${workerId}`);
+      console.log(response.data);
+      return response.data;
     },
     enabled: !!workerId && open,
   });
@@ -273,18 +209,18 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
             {/* Worker Header */}
             <div className="flex items-start gap-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={workerDetails.profile_picture || undefined} alt={workerDetails.full_name} />
+                <AvatarImage src={workerDetails.profilePicture || undefined} alt={workerDetails.fullName} />
                 <AvatarFallback className="text-2xl bg-blue-100 text-blue-700">
-                  {getUserInitials(workerDetails.full_name)}
+                  {getUserInitials(workerDetails.fullName)}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-2xl font-bold text-gray-900">
-                    {workerDetails.worker_profile.display_name}
+                    {workerDetails.workerProfile?.displayName || workerDetails.fullName}
                   </h3>
-                  {getVerificationBadge(workerDetails.worker_profile.verification)}
+                  {workerDetails.workerProfile && getVerificationBadge(workerDetails.workerProfile.verification)}
                   <Badge className={workerDetails.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}>
                     {workerDetails.status === 'active' ? 'Active' : 'Suspended'}
                   </Badge>
@@ -301,61 +237,51 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
                     <Briefcase className="w-4 h-4" />
-                    <span>{workerDetails.worker_profile.years_experience} years experience</span>
+                    <span>{workerDetails.workerProfile?.yearsExperience || 0} years experience</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span>
-                      {workerDetails.worker_profile.avg_rating.toFixed(1)} ({workerDetails.worker_profile.total_reviews} reviews)
+                      {workerDetails.workerProfile?.avgRating.toFixed(1) || '0.0'} ({workerDetails.workerProfile?.totalReviews || 0} reviews)
                     </span>
                   </div>
                 </div>
 
-                {workerDetails.worker_profile.bio && (
-                  <p className="text-gray-600 text-sm">{workerDetails.worker_profile.bio}</p>
+                {workerDetails.workerProfile?.bio && (
+                  <p className="text-gray-600 text-sm">{workerDetails.workerProfile.bio}</p>
                 )}
               </div>
             </div>
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2 text-blue-600 mb-1">
                   <ClipboardList className="w-4 h-4" />
-                  <span className="text-sm font-medium">Total Bookings</span>
+                  <span className="text-sm font-medium">Total Hirings</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {workerDetails.statistics.total_bookings}
-                </p>
-              </div>
-              
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-2 text-green-600 mb-1">
-                  <CheckCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">Completed</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {workerDetails.statistics.completed_bookings}
+                  {workerDetails.statistics.totalHirings}
                 </p>
               </div>
               
               <div className="p-4 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-2 text-purple-600 mb-1">
                   <DollarSign className="w-4 h-4" />
-                  <span className="text-sm font-medium">Earnings</span>
+                  <span className="text-sm font-medium">Payments</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">
-                  ৳{workerDetails.statistics.total_earnings.toLocaleString()}
+                  {workerDetails.statistics.totalPayments}
                 </p>
               </div>
               
               <div className="p-4 bg-yellow-50 rounded-lg">
                 <div className="flex items-center gap-2 text-yellow-600 mb-1">
                   <Star className="w-4 h-4" />
-                  <span className="text-sm font-medium">Avg Rating</span>
+                  <span className="text-sm font-medium">Reviews</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {workerDetails.statistics.avg_rating.toFixed(1)}
+                  {workerDetails.statistics.totalReviews}
                 </p>
               </div>
             </div>
@@ -379,11 +305,31 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-gray-500">Full Name</label>
-                      <p className="text-gray-900">{workerDetails.full_name}</p>
+                      <p className="text-gray-900">{workerDetails.fullName}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Display Name</label>
-                      <p className="text-gray-900">{workerDetails.worker_profile.display_name}</p>
+                      <p className="text-gray-900">{workerDetails.workerProfile?.displayName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Gender</label>
+                      <p className="text-gray-900 capitalize">{workerDetails.gender || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Date of Birth</label>
+                      <p className="text-gray-900">
+                        {workerDetails.dateOfBirth
+                          ? new Date(workerDetails.dateOfBirth).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })
+                          : 'Not provided'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">NID</label>
+                      <p className="text-gray-900">{workerDetails.nid || 'Not provided'}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Worker ID</label>
@@ -391,12 +337,16 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Total Hirings</label>
-                      <p className="text-gray-900">{workerDetails.worker_profile.total_hirings}</p>
+                      <p className="text-gray-900">{workerDetails.statistics.totalHirings}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Role</label>
+                      <p className="text-gray-900 capitalize">{workerDetails.role}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Joined</label>
                       <p className="text-gray-900">
-                        {new Date(workerDetails.created_at).toLocaleDateString('en-US', {
+                        {new Date(workerDetails.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -406,8 +356,8 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                     <div>
                       <label className="text-sm font-medium text-gray-500">Last Login</label>
                       <p className="text-gray-900">
-                        {workerDetails.last_login_at
-                          ? new Date(workerDetails.last_login_at).toLocaleDateString('en-US', {
+                        {workerDetails.lastLoginAt
+                          ? new Date(workerDetails.lastLoginAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
@@ -435,23 +385,18 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h5 className="font-semibold text-gray-900">{service.category}</h5>
-                            <Badge variant="outline">{service.section}</Badge>
-                            {service.is_active ? (
-                              <Badge className="bg-green-100 text-green-800">Active</Badge>
-                            ) : (
-                              <Badge className="bg-gray-100 text-gray-600">Inactive</Badge>
-                            )}
+                            <Badge variant="outline">{service.categorySlug}</Badge>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <DollarSign className="w-4 h-4" />
-                            <span className="font-semibold">৳{service.base_price}</span>
-                            <span>/ {service.price_unit}</span>
+                            <span className="font-semibold">৳{service.basePrice}</span>
+                            <span>/ {service.priceUnit}</span>
                           </div>
                         </div>
                         <Button size="sm" variant="outline">Edit Price</Button>
                       </div>
                       
-                      {service.skills.length > 0 && (
+                      {service.skills && service.skills.length > 0 && (
                         <div>
                           <label className="text-sm font-medium text-gray-500 mb-2 block">Skills</label>
                           <div className="flex flex-wrap gap-2">
@@ -460,6 +405,9 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                             ))}
                           </div>
                         </div>
+                      )}
+                      {service.categoryDescription && (
+                        <p className="text-sm text-gray-600 mt-2">{service.categoryDescription}</p>
                       )}
                     </div>
                   ))}
@@ -470,26 +418,26 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
               <TabsContent value="documents" className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-lg font-semibold text-gray-900">
-                    Documents ({workerDetails.documents.length})
+                    Documents ({workerDetails.verificationDocuments.length})
                   </h4>
                 </div>
                 
                 <div className="space-y-3">
-                  {workerDetails.documents.map((doc) => (
+                  {workerDetails.verificationDocuments.map((doc) => (
                     <div key={doc.id} className="p-4 border rounded-lg flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <FileText className="w-8 h-8 text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-900">{doc.type}</p>
+                          <p className="font-medium text-gray-900">{doc.document_type}</p>
                           <p className="text-sm text-gray-500">
                             Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {doc.status === 'verified' ? (
+                        {doc.verification_status === 'verified' ? (
                           <Badge className="bg-green-100 text-green-800">Verified</Badge>
-                        ) : doc.status === 'pending' ? (
+                        ) : doc.verification_status === 'pending' ? (
                           <>
                             <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
                             <Button size="sm" variant="outline">Preview</Button>
@@ -511,41 +459,93 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                   Service Addresses ({workerDetails.addresses.length})
                 </h4>
                 
-                <div className="space-y-3">
-                  {workerDetails.addresses.map((address) => (
-                    <div key={address.id} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <MapPin className="w-4 h-4 text-gray-600" />
-                            <p className="font-medium text-gray-900">{address.label}</p>
-                            {address.is_default && (
-                              <Badge variant="outline" className="text-xs">Default</Badge>
-                            )}
+                {workerDetails.addresses.length > 0 ? (
+                  <div className="space-y-3">
+                    {workerDetails.addresses.map((address, index) => (
+                      <div key={address.id} className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MapPin className="w-4 h-4 text-gray-600" />
+                              <p className="font-medium text-gray-900">Address {index + 1}</p>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {address.street}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {address.city}, {address.district} {address.postal_code}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Coordinates: {address.lat.toFixed(4)}, {address.lon.toFixed(4)}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-600">
-                            {address.address_line1}
-                            {address.address_line2 && `, ${address.address_line2}`}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {address.city}, {address.state} {address.postal_code}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MapPin className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                    <p>No addresses added</p>
+                  </div>
+                )}
               </TabsContent>
 
               {/* Reviews Tab */}
               <TabsContent value="reviews" className="space-y-4">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  Customer Reviews
+                  Customer Reviews ({workerDetails.recentReviews.length})
                 </h4>
-                <div className="text-center py-8 text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                  <p>Reviews functionality coming soon</p>
-                </div>
+                
+                {workerDetails.recentReviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {workerDetails.recentReviews.map((review) => (
+                      <div key={review.id} className="p-4 border rounded-lg">
+                        <div className="flex items-start gap-3 mb-2">
+                          <Avatar>
+                            <AvatarImage src={review.reviewer.avatar || undefined} alt={review.reviewer.name} />
+                            <AvatarFallback className="bg-gray-100 text-gray-700">
+                              {getUserInitials(review.reviewer.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium text-gray-900">{review.reviewer.name}</p>
+                              <span className="text-sm text-gray-500">
+                                {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 mb-2">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="text-sm text-gray-600 ml-1">{review.rating}/5</span>
+                            </div>
+                            {review.comment && (
+                              <p className="text-sm text-gray-600">{review.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                    <p>No reviews yet</p>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
