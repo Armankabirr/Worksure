@@ -5,6 +5,7 @@ import WhyChooseUs from "@/components/WhyChooseUs";
 import HowItWorks from "@/components/HowItWorks";
 import SocialProof from "@/components/SocialProof";
 import SpecialHighlight from "@/components/SpecialHighlight";
+import Contact from "@/components/Contact";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 
@@ -19,6 +20,7 @@ const Index = () => {
         <HowItWorks />
         <SocialProof />
         <SpecialHighlight />
+        <Contact />
         <FinalCTA />
       </main>
       <Footer />
