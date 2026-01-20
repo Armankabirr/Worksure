@@ -72,6 +72,7 @@ interface Category {
   description: string;
   status: 'active' | 'disabled';
   sections_count: number;
+  workers_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -83,7 +84,7 @@ interface Section {
   slug: string;
   description: string;
   status: 'active' | 'disabled';
-  worker_services_count: number;
+  workers_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -155,10 +156,45 @@ const AdminServices = () => {
     queryKey: ['admin-categories'],
     queryFn: async () => {
       const response = await axiosPublic.get('/categoryRoutes/categories');
-      return response.data;
+      return response.data.data;
     },
     select: (data) => data || [],
   });
+
+  console.log("Categories: ",categories);
+
+  /**
+   * Fetch all sections to calculate workers per category
+   */
+  const { data: allSections } = useQuery<Section[]>({
+    queryKey: ['admin-all-sections'],
+    queryFn: async () => {
+      const response = await axiosPublic.get('/categoryRoutes/sections');
+      return response.data;
+    },
+    select: (data) => {
+      // Ensure data is always an array
+      if (!data) return [];
+      if (Array.isArray(data)) return data;
+      if (typeof data === 'object' && Array.isArray((data as any).sections)) {
+        return (data as any).sections;
+      }
+      if (typeof data === 'object' && Array.isArray((data as any).data)) {
+        return (data as any).data;
+      }
+      return [];
+    },
+  });
+
+  /**
+   * Calculate total workers for each category from sections
+   */
+  const getCategoryWorkersCount = (categoryId: string) => {
+    if (!allSections) return 0;
+    return allSections
+      .filter(section => section.category_id === categoryId)
+      .reduce((total, section) => total + (section.workers_count || 0), 0);
+  };
 
   /**
    * Fetch sections for selected category
@@ -188,6 +224,9 @@ const AdminServices = () => {
       return [];
     },
   });
+
+  console.log("Sections: ",sections);
+  
 
   /**
    * Auto-select first category on load
@@ -560,9 +599,15 @@ const AdminServices = () => {
                       </DropdownMenu>
                     </div>
                     <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FolderOpen className="w-4 h-4" />
-                        <span>{category.sections_count} sections</span>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <FolderOpen className="w-4 h-4" />
+                          <span>{category.sections_count} sections</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Users className="w-4 h-4" />
+                          <span>{getCategoryWorkersCount(category.id)} workers</span>
+                        </div>
                       </div>
                       {getStatusBadge(category.status)}
                     </div>
@@ -635,7 +680,7 @@ const AdminServices = () => {
                       <TableHead>Section Name</TableHead>
                       <TableHead>Slug</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Worker Services</TableHead>
+                      <TableHead>Workers</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -657,12 +702,12 @@ const AdminServices = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-gray-400" />
-                            <span>{section.worker_services_count}</span>
-                            {section.worker_services_count > 0 && section.status === 'disabled' && (
+                            <span>{section.workers_count}</span>
+                            {section.workers_count > 0 && section.status === 'disabled' && (
                               <div className="relative group">
                                 <AlertCircle className="w-4 h-4 text-yellow-500" />
                                 <span className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap">
-                                  Affects active services
+                                  Affects {section.workers_count} worker(s)
                                 </span>
                               </div>
                             )}
@@ -903,12 +948,12 @@ const AdminServices = () => {
               ) : (
                 <>
                   This will delete the section "<strong>{deletingItem?.name}</strong>".
-                  {sections?.find((s) => s.id === deletingItem?.id)?.worker_services_count! > 0 && (
+                  {sections?.find((s) => s.id === deletingItem?.id)?.workers_count! > 0 && (
                     <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                       <AlertCircle className="w-4 h-4 text-yellow-600 inline mr-2" />
                       <span className="text-sm text-yellow-800">
                         This section is used by{' '}
-                        {sections?.find((s) => s.id === deletingItem?.id)?.worker_services_count} worker service(s).
+                        {sections?.find((s) => s.id === deletingItem?.id)?.workers_count} worker(s).
                       </span>
                     </div>
                   )}
