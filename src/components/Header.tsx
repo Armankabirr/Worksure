@@ -10,6 +10,19 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import worksureLogo from "@/assets/Logo.png";
 
+// Helper function to get dashboard route based on user role
+const getDashboardRoute = (role: string): string => {
+  switch (role) {
+    case "admin":
+      return "/admin";
+    case "worker":
+      return "/worker/dashboard";
+    case "user":
+    default:
+      return "/profile";
+  }
+};
+
 const Header = () => {
   const {
     isAuthenticated,
@@ -358,7 +371,7 @@ const Header = () => {
                 className="h-10 w-10 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200" 
                 type="button" 
                 aria-label="Profile" 
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate(getDashboardRoute(user?.role || "user"))}
               >
                 {user?.avatar ? (
                   <Avatar className="h-10 w-10">
@@ -599,7 +612,7 @@ const Header = () => {
                 )}
                 <div className="flex-1">
                   <button 
-                    onClick={() => { navigate('/profile'); closeMobile(); }} 
+                    onClick={() => { navigate(getDashboardRoute(user?.role || "user")); closeMobile(); }} 
                     className="text-left text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200"
                   >
                     View profile
