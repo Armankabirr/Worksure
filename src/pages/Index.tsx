@@ -1,25 +1,25 @@
 import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import Services from "@/components/Services";
-import QualityServices from "@/components/QualityServices";
-import About from "@/components/About";
-import Testimonial from "@/components/Testimonial";
-import Contact from "@/components/Contact";
+import PremiumHero from "@/components/PremiumHero";
+import PremiumServices from "@/components/PremiumServices";
+import WhyChooseUs from "@/components/WhyChooseUs";
+import HowItWorks from "@/components/HowItWorks";
+import SocialProof from "@/components/SocialProof";
+import SpecialHighlight from "@/components/SpecialHighlight";
+import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background">
       <Header />
       <main id="home">
-        <Hero />
-        <div id="service">
-          <Services />
-        </div>
-        <QualityServices />
-        <About />
-        <Testimonial />
-        <Contact />
+        <PremiumHero />
+        <PremiumServices />
+        <WhyChooseUs />
+        <HowItWorks />
+        <SocialProof />
+        <SpecialHighlight />
+        <FinalCTA />
       </main>
       <Footer />
     </div>
