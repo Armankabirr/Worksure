@@ -230,7 +230,7 @@ export interface WorkerDetailsData {
   profile_picture?: string;
   created_at?: string;
   last_login_at?: string;
-  is_active?: boolean;
+  status?: string;
   worker_profiles?: WorkerProfile[];
   worker_services?: WorkerService[];
   availabilities?: WorkerAvailability[];

@@ -29,7 +29,7 @@ interface WorkerProfile {
      profile_picture: string;
      created_at: string;
      last_login_at: string | null;
-     is_active: boolean;
+     status: string;
      worker_profiles: {
           display_name: string;
           bio: string;
