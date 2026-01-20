@@ -30,7 +30,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import useAxiosPublic from '@/hooks/useAxiosPublic';
-import { log } from 'console';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { Ban, CheckCircle as CheckCircleIcon, XCircle as XCircleIcon } from 'lucide-react';
 
 /**
  * WorkerDetails type definition (based on API response)
@@ -124,6 +126,8 @@ interface WorkerDetailsDialogProps {
  */
 const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogProps) => {
   const axiosPublic = useAxiosPublic();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
 
   // Fetch worker details from API
@@ -136,6 +140,83 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
       return response.data;
     },
     enabled: !!workerId && open,
+  });
+
+  // Mutations for worker actions
+  const verifyWorkerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/verifyWorker/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['worker-details', workerId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({ title: 'Success', description: 'Worker verified successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to verify worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const rejectWorkerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/rejectWorker/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['worker-details', workerId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({ title: 'Success', description: 'Worker verification rejected' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to reject worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const suspendWorkerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/suspendWorker/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['worker-details', workerId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({ title: 'Success', description: 'Worker suspended successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to suspend worker',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const activateWorkerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axiosPublic.patch(`/workerRoutes/activateWorker/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['worker-details', workerId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-workers'] });
+      toast({ title: 'Success', description: 'Worker activated successfully' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to activate worker',
+        variant: 'destructive',
+      });
+    },
   });
 
   /**
@@ -251,6 +332,50 @@ const WorkerDetailsDialog = ({ workerId, open, onClose }: WorkerDetailsDialogPro
                   <p className="text-gray-600 text-sm">{workerDetails.workerProfile.bio}</p>
                 )}
               </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 p-4 bg-gray-50 rounded-lg">
+              {workerDetails.workerProfile?.verification === 'pending' && (
+                <>
+                  <Button
+                    onClick={() => workerId && verifyWorkerMutation.mutate(workerId)}
+                    disabled={verifyWorkerMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircleIcon className="w-4 h-4 mr-2" />
+                    Verify Worker
+                  </Button>
+                  <Button
+                    onClick={() => workerId && rejectWorkerMutation.mutate(workerId)}
+                    disabled={rejectWorkerMutation.isPending}
+                    variant="destructive"
+                  >
+                    <XCircleIcon className="w-4 h-4 mr-2" />
+                    Reject Verification
+                  </Button>
+                </>
+              )}
+              {workerDetails.status === 'active' && (
+                <Button
+                  onClick={() => workerId && suspendWorkerMutation.mutate(workerId)}
+                  disabled={suspendWorkerMutation.isPending}
+                  variant="destructive"
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  Suspend Worker
+                </Button>
+              )}
+              {workerDetails.status === 'suspended' && (
+                <Button
+                  onClick={() => workerId && activateWorkerMutation.mutate(workerId)}
+                  disabled={activateWorkerMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircleIcon className="w-4 h-4 mr-2" />
+                  Activate Worker
+                </Button>
+              )}
             </div>
 
             {/* Statistics Cards */}

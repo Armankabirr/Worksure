@@ -132,9 +132,9 @@ const AdminWorkers = () => {
     const matchesStatus =
       statusFilter === 'all' || worker.status === statusFilter;
 
-    // Category filter
+    // Category filter (case-insensitive)
     const matchesCategory =
-      categoryFilter === 'all' || worker.category === categoryFilter;
+      categoryFilter === 'all' || worker.category?.toLowerCase() === categoryFilter.toLowerCase();
 
     // Rating filter
     const matchesRating = (() => {
@@ -168,9 +168,18 @@ const AdminWorkers = () => {
   }, [searchQuery, verificationFilter, statusFilter, categoryFilter, ratingFilter, pageSize]);
 
   /**
-   * Get unique categories from workers
+   * Fixed categories for filtering
    */
-  const categories = Array.from(new Set(workers?.map((w) => w.category) || []));
+  const categories = [
+    { value: 'electrician', label: 'Electrician' },
+    { value: 'cleaning', label: 'Cleaning' },
+    { value: 'catering', label: 'Catering' },
+    { value: 'babysitting', label: 'Babysitting' },
+    { value: 'pet-caring', label: 'Pet Caring' },
+    { value: 'plumbing', label: 'Plumbing' },
+    { value: 'carpentry', label: 'Carpentry' },
+    { value: 'pest-control', label: 'Pest Control' },
+  ];
 
   /**
    * Handle worker suspension with API call
@@ -490,8 +499,8 @@ const AdminWorkers = () => {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -621,7 +630,7 @@ const AdminWorkers = () => {
                     <TableHead>Documents</TableHead>
                     <TableHead>Experience</TableHead>
                     <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right sticky right-0 bg-white shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.1)]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -710,7 +719,7 @@ const AdminWorkers = () => {
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="text-right">
+                      <TableCell className="text-right sticky right-0 bg-white shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.1)]">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
