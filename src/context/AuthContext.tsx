@@ -2,12 +2,14 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
 } from "react";
 import {
   getCurrentUser,
   loginUser,
+  registerUser,
   logoutUser,
   updateUserProfile,
   updateUserPassword,
@@ -31,6 +33,13 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: "user" | "worker";
+  }) => Promise<void>;
   logout: () => void;
   updateProfile: (updates: ProfileUpdateData) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -40,6 +49,8 @@ interface AuthContextValue {
   openRegister: () => void;
   closeLogin: () => void;
   closeRegister: () => void;
+  requireAuth: (action: () => void, mode?: "login" | "register") => void;
+  completeAuthAndResume: () => void;
   isLoading: boolean;
 }
 
@@ -50,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
   // Load user from localStorage on first mount
   useEffect(() => {
@@ -62,6 +74,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleLogin = async (email: string, password: string) => {
     const result: AuthResult = await loginUser(email, password);
+    const authUser: AuthUser = {
+      ...result.user,
+      token: result.token,
+    };
+    setUser(authUser);
+  };
+
+  const handleRegister: AuthContextValue["register"] = async (data) => {
+    const result = await registerUser({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role,
+      password: data.password,
+    });
+
     const authUser: AuthUser = {
       ...result.user,
       token: result.token,
@@ -96,25 +124,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await updateUserPassword(user.id, currentPassword, newPassword);
   };
 
+  const openLogin = () => {
+    setRegisterOpen(false);
+    setLoginOpen(true);
+  };
+
+  const openRegister = () => {
+    setLoginOpen(false);
+    setRegisterOpen(true);
+  };
+
+  const closeLogin = () => setLoginOpen(false);
+  const closeRegister = () => setRegisterOpen(false);
+
+  const requireAuth: AuthContextValue["requireAuth"] = (action, mode = "login") => {
+    pendingActionRef.current = action;
+    if (mode === "register") openRegister();
+    else openLogin();
+  };
+
+  const completeAuthAndResume: AuthContextValue["completeAuthAndResume"] = () => {
+    const action = pendingActionRef.current;
+    pendingActionRef.current = null;
+    setLoginOpen(false);
+    setRegisterOpen(false);
+    if (action) queueMicrotask(action);
+  };
+
   const value: AuthContextValue = {
     isAuthenticated: !!user,
     user,
     login: handleLogin,
+    register: handleRegister,
     logout: handleLogout,
     updateProfile: handleUpdateProfile,
     changePassword: handleChangePassword,
     loginOpen,
     registerOpen,
-    openLogin: () => {
-      setRegisterOpen(false);
-      setLoginOpen(true);
-    },
-    openRegister: () => {
-      setLoginOpen(false);
-      setRegisterOpen(true);
-    },
-    closeLogin: () => setLoginOpen(false),
-    closeRegister: () => setRegisterOpen(false),
+    openLogin,
+    openRegister,
+    closeLogin,
+    closeRegister,
+    requireAuth,
+    completeAuthAndResume,
     isLoading,
   };
 

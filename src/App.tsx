@@ -48,6 +48,7 @@ import AdminComplaints from "./pages/Dashboard/admin/AdminComplaints";
 import AdminAddresses from "./pages/Dashboard/admin/AdminAddresses";
 import AdminReports from "./pages/Dashboard/admin/AdminReports";
 import AdminSettings from "./pages/Dashboard/admin/AdminSettings";
+import AuthModal from "./components/auth/AuthModal";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => {
           {isLoading && <Preloader isLoading={isLoading} onComplete={() => setIsLoading(false)} />}
           <BrowserRouter>
             <ScrollToTop />
+            <AuthModal />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
