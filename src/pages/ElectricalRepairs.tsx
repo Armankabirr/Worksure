@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
+import { useProtectedAction } from "@/hooks/useProtectedAction";
 import { toast } from "sonner";
 import { Sparkles, ShieldCheck, Clock, PlugZap, ShoppingCart } from "lucide-react";
 import { useMemo, useCallback, useState } from "react";
@@ -744,9 +745,9 @@ const ElectricalRepairs = () => {
     }
   }, []);
 
-  const handleBookNow = () => {
+  const handleBookNow = useProtectedAction(() => {
     navigate("/search/workers?serviceType=electrician&category=repairs");
-  };
+  });
 
   const handleSchedule = (serviceName: string) => {
     setCurrentService(serviceName);

@@ -44,25 +44,38 @@ const Header = () => {
   const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Smooth scroll helper that accounts for the fixed header height
+  const scrollToSection = (targetId: string) => {
+    const element = document.getElementById(targetId);
+    if (!element) return false;
+
+    const headerEl = document.querySelector("header");
+    const headerHeight = headerEl instanceof HTMLElement ? headerEl.getBoundingClientRect().height : 96;
+    const elementTop = element.getBoundingClientRect().top + window.scrollY;
+    const offsetPosition = elementTop - headerHeight;
+
+    window.scrollTo({
+      top: offsetPosition >= 0 ? offsetPosition : 0,
+      behavior: "smooth",
+    });
+    return true;
+  };
+
   // Handle scrolling to hash targets when location changes
   useEffect(() => {
     if (location.hash) {
       const targetId = location.hash.slice(1);
-      const element = document.getElementById(targetId);
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
-      }
+      // Delay to allow DOM render on route change before measuring
+      setTimeout(() => {
+        scrollToSection(targetId);
+      }, 120);
     }
   }, [location.hash]);
 
   const handleScroll = (event: MouseEvent<HTMLAnchorElement>, targetId: string) => {
     event.preventDefault();
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
+    const scrolled = scrollToSection(targetId);
+    if (!scrolled) {
       navigate(`/#${targetId}`);
     }
   };

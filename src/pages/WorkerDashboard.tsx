@@ -82,6 +82,7 @@ const WorkerDashboard = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+
   // UI State
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
@@ -306,7 +307,19 @@ const WorkerDashboard = () => {
       setWorkHistoryLoading(true);
       try {
         const res = await axiosPublic.get(`/workerRoutes/hirings/${user?.email}`);
-        const items = res.data?.data || res.data || [];
+        const rawData = res.data?.data || res.data;
+        
+        // Normalize data to always be an array
+        let items: ApiServiceRequest[] = [];
+        if (Array.isArray(rawData)) {
+          items = rawData;
+        } else if (rawData && typeof rawData === 'object') {
+          // If it's a single object, wrap it in an array
+          items = [rawData];
+        } else {
+          items = [];
+        }
+        
         setWorkHistory(items);
       } catch (err) {
         console.error("Error fetching work history:", err);
@@ -323,7 +336,19 @@ const WorkerDashboard = () => {
       setServiceRequestsLoading(true);
       try {
         const res = await axiosPublic.get(`/workerRoutes/hirings/requests/${user?.email}`);
-        const items = res.data?.data || res.data || [];
+        const rawData = res.data?.data || res.data;
+        
+        // Normalize data to always be an array
+        let items: ApiServiceRequest[] = [];
+        if (Array.isArray(rawData)) {
+          items = rawData;
+        } else if (rawData && typeof rawData === 'object') {
+          // If it's a single object, wrap it in an array
+          items = [rawData];
+        } else {
+          items = [];
+        }
+        
         setServiceRequests(items);
       } catch (err) {
         console.error("Error fetching service requests:", err);
@@ -423,13 +448,16 @@ const WorkerDashboard = () => {
 
     try {
       setIsPasswordSaving(true);
-      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      const { error } = await changePassword(passwordForm.newPassword);
+      if (error) {
+        setPasswordError(error.message);
+        return;
+      }
       toast({ title: "Success", description: "Password updated successfully." });
       setChangePasswordOpen(false);
       resetPasswordDialog();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to update password.";
-      setPasswordError(message);
+    } catch {
+      setPasswordError("Failed to update password.");
     } finally {
       setIsPasswordSaving(false);
     }
@@ -743,6 +771,31 @@ const WorkerDashboard = () => {
 
   // Content Renderer
   const renderContent = () => {
+    // Show loading state if user is not loaded or role check is pending
+    if (!user) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          <span className="ml-2 text-gray-600">Loading...</span>
+        </div>
+      );
+    }
+
+    // Show access denied message if user is not a worker
+    if (user.role !== "worker") {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <Card className="p-8 max-w-md text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-6">You don't have permission to access the Worker Dashboard.</p>
+            <Button onClick={() => navigate("/")} className="bg-orange-500 hover:bg-orange-600 text-white">
+              Go to Home
+            </Button>
+          </Card>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case "dashboard":
         return (
@@ -845,7 +898,13 @@ const WorkerDashboard = () => {
           </div>
         );
       default:
-        return null;
+        return (
+          <div className="flex items-center justify-center py-20">
+            <Card className="p-8 text-center">
+              <p className="text-gray-500">Content not found</p>
+            </Card>
+          </div>
+        );
     }
   };
 

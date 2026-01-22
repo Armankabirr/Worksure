@@ -63,7 +63,22 @@ export const getDefaultWorkTimes = (): { startTime: string; endTime: string } =>
 };
 
 // Data filtering utilities
-export const filterWorkHistory = (workHistory: ApiServiceRequest[]) => {
+export const filterWorkHistory = (workHistory: ApiServiceRequest[] | null | undefined) => {
+  // Safety check: ensure workHistory is always an array
+  if (!Array.isArray(workHistory)) {
+    console.warn("filterWorkHistory: workHistory is not an array. Received:", typeof workHistory, workHistory);
+    return {
+      todaysWorks: [],
+      upcomingWorks: [],
+      confirmedWorks: [],
+      inProgressWorks: [],
+      pendingWorks: [],
+      completedWorks: [],
+      cancelledWorks: [],
+      awaitingConfirmationWorks: [],
+    };
+  }
+
   const todaysWorks = workHistory.filter((w) => isToday(w.selected_date) && isConfirmedStatus(w.status));
   const upcomingWorks = workHistory.filter(
     (w) => isFuture(w.selected_date) && !isToday(w.selected_date) && isConfirmedStatus(w.status)

@@ -249,14 +249,14 @@ const Profile = () => {
         throw new Error("Phone number is required.");
       }
 
-      // Update profile
-      await updateProfile({
+      const { error } = await updateProfile({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         bio: formData.bio.trim() || undefined,
         avatar: formData.avatar || undefined,
         address: formData.address.trim() || undefined,
       });
+      if (error) throw error;
 
       setSuccess("Profile updated successfully!");
       setIsEditing(false);

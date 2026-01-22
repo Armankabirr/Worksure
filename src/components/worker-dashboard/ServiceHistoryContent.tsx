@@ -42,11 +42,22 @@ export const ServiceHistoryContent = ({
   onStartWork,
   onConfirmPayment,
 }: ServiceHistoryContentProps) => {
+  // Safety: ensure workHistory is always an array
+  const safeWorkHistory = Array.isArray(workHistory) ? workHistory : [];
+  const safeConfirmedWorks = Array.isArray(confirmedWorks) ? confirmedWorks : [];
+  const safeInProgressWorks = Array.isArray(inProgressWorks) ? inProgressWorks : [];
+  const safeAwaitingConfirmationWorks = Array.isArray(awaitingConfirmationWorks) ? awaitingConfirmationWorks : [];
+  const safeCompletedWorks = Array.isArray(completedWorks) ? completedWorks : [];
+  const safeCancelledWorks = Array.isArray(cancelledWorks) ? cancelledWorks : [];
+
   const renderHistoryTable = (
     data: ApiServiceRequest[],
     emptyMessage: string,
     showActions: boolean = false
-  ) => (
+  ) => {
+    // Safety: ensure data is always an array
+    const safeData = Array.isArray(data) ? data : [];
+    return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -75,7 +86,7 @@ export const ServiceHistoryContent = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.length === 0 ? (
+            {safeData.length === 0 ? (
               <tr>
                 <td colSpan={showActions ? 6 : 5} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center justify-center">
@@ -85,7 +96,7 @@ export const ServiceHistoryContent = ({
                 </td>
               </tr>
             ) : (
-              data.map((item) => (
+              safeData.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -247,7 +258,8 @@ export const ServiceHistoryContent = ({
         </table>
       </div>
     </Card>
-  );
+    );
+  };
 
   return (
     <div>
@@ -260,44 +272,44 @@ export const ServiceHistoryContent = ({
       ) : (
         <Tabs defaultValue="all" className="w-full ">
           <TabsList className="grid w-full grid-cols-6 mb-6 bg-gray-200 rounded-lg">
-            <TabsTrigger value="all">All ({workHistory.length})</TabsTrigger>
+            <TabsTrigger value="all">All ({safeWorkHistory.length})</TabsTrigger>
             <TabsTrigger value="confirmed">
-              Upcoming ({confirmedWorks.length})
+              Upcoming ({safeConfirmedWorks.length})
             </TabsTrigger>
             <TabsTrigger value="inprogress" className="text-blue-600">
-              In progress ({inProgressWorks.length})
+              In progress ({safeInProgressWorks.length})
             </TabsTrigger>
             <TabsTrigger value="awaiting" className="text-amber-600">
-              Awaiting ({awaitingConfirmationWorks.length})
+              Awaiting ({safeAwaitingConfirmationWorks.length})
             </TabsTrigger>
             <TabsTrigger value="completed" className="text-green-600">
-              Completed ({completedWorks.length})
+              Completed ({safeCompletedWorks.length})
             </TabsTrigger>
             <TabsTrigger value="cancelled" className="text-red-600">
-              Cancelled ({cancelledWorks.length})
+              Cancelled ({safeCancelledWorks.length})
             </TabsTrigger>
           </TabsList>
           <TabsContent value="all">
-            {renderHistoryTable(workHistory, "No work history available", true)}
+            {renderHistoryTable(safeWorkHistory, "No work history available", true)}
           </TabsContent>
           <TabsContent value="confirmed">
-            {renderHistoryTable(confirmedWorks, "No upcoming works", true)}
+            {renderHistoryTable(safeConfirmedWorks, "No upcoming works", true)}
           </TabsContent>
           <TabsContent value="inprogress">
-            {renderHistoryTable(inProgressWorks, "No works in progress", true)}
+            {renderHistoryTable(safeInProgressWorks, "No works in progress", true)}
           </TabsContent>
           <TabsContent value="awaiting">
             {renderHistoryTable(
-              awaitingConfirmationWorks,
+              safeAwaitingConfirmationWorks,
               "No works awaiting user confirmation",
               true
             )}
           </TabsContent>
           <TabsContent value="completed">
-            {renderHistoryTable(completedWorks, "No completed works", true)}
+            {renderHistoryTable(safeCompletedWorks, "No completed works", true)}
           </TabsContent>
           <TabsContent value="cancelled">
-            {renderHistoryTable(cancelledWorks, "No cancelled works")}
+            {renderHistoryTable(safeCancelledWorks, "No cancelled works")}
           </TabsContent>
         </Tabs>
       )}

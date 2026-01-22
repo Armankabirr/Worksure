@@ -64,29 +64,18 @@ const UserLogin = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!validate()) return;
-
+    setIsSubmitting(true);
+    setErrors((prev) => ({ ...prev, general: undefined }));
     try {
-      setIsSubmitting(true);
-      await login(formData.email, formData.password);
-      
-      // Get user from localStorage to check role
-      const currentUserStr = localStorage.getItem("mock_current_user");
-      if (currentUserStr) {
-        const currentUser = JSON.parse(currentUserStr);
-        
-        // Redirect based on role
-        if (currentUser.role === "worker") {
-          navigate("/worker/dashboard");
-        } else {
-          navigate("/profile");
-        }
+      const { error } = await login(formData.email.trim(), formData.password);
+      if (error) {
+        setErrors({ general: error.message });
+        return;
       }
-    } catch (error) {
-      setErrors({
-        general: error instanceof Error ? error.message : "Login failed. Please try again.",
-      });
+      navigate("/", { replace: true });
+    } catch {
+      setErrors({ general: "Login failed. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
