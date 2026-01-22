@@ -1,9 +1,12 @@
 import { Booking, BookingStats } from '@/types/booking';
 
-export const mockBookings: Booking[] = [
+// Note: This mock data uses a legacy structure for development purposes
+// It will be replaced with real API data in production
+export const mockBookings = [
   {
     id: '1',
     bookingNumber: 'BK-2026-0001',
+    bookingId: 'BK-2026-0001',
     user: {
       id: 'u1',
       name: 'Rahul Ahmed',
@@ -372,15 +375,39 @@ export const mockBookings: Booking[] = [
       { status: 'pending', timestamp: '2026-01-22T13:15:00Z' }
     ]
   }
-];
+] as any as Booking[]; // Type assertion for mock data compatibility
 
 export const calculateBookingStats = (bookings: Booking[]): BookingStats => {
+  const statusCounts = [
+    { status: 'pending', count: bookings.filter(b => b.status === 'pending').length },
+    { status: 'accepted', count: bookings.filter(b => b.status === 'accepted').length },
+    { status: 'in_progress', count: bookings.filter(b => b.status === 'in_progress' || (b.status as any) === 'ongoing').length },
+    { status: 'completed', count: bookings.filter(b => b.status === 'completed').length },
+    { status: 'cancelled', count: bookings.filter(b => b.status === 'cancelled').length },
+    { status: 'disputed', count: bookings.filter(b => b.status === 'disputed').length },
+    { status: 'awaiting', count: bookings.filter(b => b.status === 'awaiting').length },
+  ];
+
+  const totalRevenue = bookings
+    .filter(b => b.paymentStatus === 'paid')
+    .reduce((sum, b) => sum + (b.amount || b.totalAmount || 0), 0);
+
   return {
-    total: bookings.length,
-    pending: bookings.filter(b => b.status === 'pending').length,
-    ongoing: bookings.filter(b => b.status === 'ongoing').length,
-    completed: bookings.filter(b => b.status === 'completed').length,
-    cancelled: bookings.filter(b => b.status === 'cancelled').length
+    totalBookings: bookings.length,
+    totalRevenue,
+    statusCounts,
+    paymentStats: [
+      {
+        paymentCompleted: true,
+        count: bookings.filter(b => b.paymentStatus === 'paid').length,
+        totalAmount: totalRevenue
+      },
+      {
+        paymentCompleted: false,
+        count: bookings.filter(b => b.paymentStatus === 'unpaid').length,
+        totalAmount: 0
+      }
+    ]
   };
 };
 

@@ -1,5 +1,5 @@
-export type BookingStatus = 'pending' | 'accepted' | 'ongoing' | 'completed' | 'cancelled';
-export type PaymentStatus = 'paid' | 'unpaid' | 'refunded';
+export type BookingStatus = 'pending' | 'accepted' | 'in_progress' | 'completed' | 'cancelled' | 'disputed' | 'awaiting';
+export type PaymentStatus = 'paid' | 'unpaid';
 export type ServiceCategory = 'cleaning' | 'electrician' | 'plumbing' | 'catering' | 'babysitting' | 'pet-care' | 'ac-doctor';
 
 export interface BookingUser {
@@ -7,55 +7,69 @@ export interface BookingUser {
   name: string;
   phone: string;
   email: string;
-  rating: number;
-  address: string;
-  location?: {
-    lat: number;
-    lng: number;
-  };
+  profilePicture?: string;
 }
 
 export interface BookingWorker {
   id: string;
   name: string;
   phone: string;
-  verified: boolean;
-  rating: number;
-  completedJobs: number;
-  specialization: string[];
+  email: string;
+  profilePicture?: string;
+  displayName: string;
+  rating: string;
+}
+
+export interface PaymentDetails {
+  id: string;
+  amount: string;
+  status: string;
+  payment_method: string;
+  trx_id?: string;
+  paid_at?: string;
 }
 
 export interface Booking {
-  id: string;
-  bookingNumber: string;
+  bookingId: string;
+  id?: string; // Backward compatibility with mock data
+  bookingNumber?: string; // Backward compatibility with mock data
   user: BookingUser;
   worker: BookingWorker | null;
-  serviceCategory: ServiceCategory;
-  serviceSection: string;
-  serviceName: string;
-  scheduledDate: string;
-  scheduledTime: string;
+  service: any; // Service details from order items
+  scheduled: string;
+  scheduledDate?: string; // Backward compatibility
+  scheduledTime?: string; // Backward compatibility
   status: BookingStatus;
   paymentStatus: PaymentStatus;
-  paymentMethod?: 'bkash' | 'nagad' | 'card' | 'cash';
-  transactionId?: string;
-  totalAmount: number;
+  paymentDetails?: PaymentDetails;
+  amount: number;
+  totalAmount?: number; // Backward compatibility
   createdAt: string;
   updatedAt: string;
-  adminNotes?: string;
-  statusHistory: {
-    status: BookingStatus;
-    timestamp: string;
-    note?: string;
-  }[];
+  address: string;
+  description?: string;
+  adminNotes?: string; // Backward compatibility
+  cancelReason?: string | null;
+  canceledBy?: string | null;
+  // Mock data specific fields
+  serviceCategory?: string;
+  serviceName?: string;
+  serviceSection?: string;
+  statusHistory?: any[];
 }
 
 export interface BookingStats {
-  total: number;
-  pending: number;
-  ongoing: number;
-  completed: number;
-  cancelled: number;
+  totalBookings: number;
+  totalRevenue: number;
+  statusCounts: {
+    status: string;
+    count: number;
+  }[];
+  paymentStats: {
+    paymentCompleted: boolean;
+    count: number;
+    totalAmount: number;
+  }[];
 }
 
 export interface BookingFilters {
@@ -65,4 +79,11 @@ export interface BookingFilters {
   paymentStatus: PaymentStatus | 'all';
   dateFrom: string;
   dateTo: string;
+}
+
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
 }

@@ -35,6 +35,10 @@ import { format } from 'date-fns';
 
 interface BookingTableProps {
   bookings: Booking[];
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
   onViewDetails: (booking: Booking) => void;
   onAssignWorker: (booking: Booking) => void;
   onChangeStatus: (booking: Booking, newStatus: BookingStatus) => void;
@@ -42,21 +46,22 @@ interface BookingTableProps {
   onRefundPayment: (booking: Booking) => void;
 }
 
-const ITEMS_PER_PAGE = 8;
-
 const BookingTable = ({
   bookings,
+  currentPage,
+  totalPages,
+  totalCount,
+  onPageChange,
   onViewDetails,
   onAssignWorker,
   onChangeStatus,
   onCancelBooking,
   onRefundPayment,
 }: BookingTableProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Booking>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  // Sorting logic
+  // Sorting logic (client-side for current page only)
   const sortedBookings = [...bookings].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
@@ -69,12 +74,6 @@ const BookingTable = ({
     
     return 0;
   });
-
-  // Pagination logic
-  const totalPages = Math.ceil(sortedBookings.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentBookings = sortedBookings.slice(startIndex, endIndex);
 
   const handleSort = (field: keyof Booking) => {
     if (sortField === field) {
@@ -89,9 +88,11 @@ const BookingTable = ({
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', label: 'Pending' },
       accepted: { color: 'bg-blue-100 text-blue-800 border-blue-300', label: 'Accepted' },
-      ongoing: { color: 'bg-purple-100 text-purple-800 border-purple-300', label: 'Ongoing' },
+      in_progress: { color: 'bg-purple-100 text-purple-800 border-purple-300', label: 'In Progress' },
       completed: { color: 'bg-green-100 text-green-800 border-green-300', label: 'Completed' },
       cancelled: { color: 'bg-red-100 text-red-800 border-red-300', label: 'Cancelled' },
+      disputed: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'Disputed' },
+      awaiting: { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'Awaiting' },
     };
 
     const config = statusConfig[status];
@@ -106,7 +107,6 @@ const BookingTable = ({
     const paymentConfig = {
       paid: { color: 'bg-green-100 text-green-800 border-green-300', label: 'Paid' },
       unpaid: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'Unpaid' },
-      refunded: { color: 'bg-gray-100 text-gray-800 border-gray-300', label: 'Refunded' },
     };
 
     const config = paymentConfig[paymentStatus as keyof typeof paymentConfig];
@@ -139,6 +139,9 @@ const BookingTable = ({
     );
   }
 
+  console.log(bookings);
+  
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-white shadow-sm">
@@ -147,7 +150,7 @@ const BookingTable = ({
             <TableRow className="bg-gray-50">
               <TableHead 
                 className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('bookingNumber')}
+                onClick={() => handleSort('bookingId')}
               >
                 Booking ID
               </TableHead>
@@ -156,7 +159,7 @@ const BookingTable = ({
               <TableHead>Service</TableHead>
               <TableHead 
                 className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('scheduledDate')}
+                onClick={() => handleSort('scheduled')}
               >
                 Scheduled
               </TableHead>
@@ -173,10 +176,10 @@ const BookingTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentBookings.map((booking) => (
-              <TableRow key={booking.id} className="hover:bg-gray-50">
+            {sortedBookings.map((booking) => (
+              <TableRow key={booking.bookingId || booking.bookingNumber} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
-                  {booking.bookingNumber}
+                  {(booking.bookingId || booking.bookingNumber || '').substring(0, 8)}...
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
@@ -189,10 +192,8 @@ const BookingTable = ({
                     <div className="flex items-center gap-2">
                       <div>
                         <div className="font-medium flex items-center gap-1">
-                          {booking.worker.name}
-                          {booking.worker.verified && (
-                            <ShieldCheck className="h-4 w-4 text-green-600" />
-                          )}
+                          {booking.worker.displayName || booking.worker.name}
+                          <ShieldCheck className="h-4 w-4 text-green-600" />
                         </div>
                         <div className="text-xs text-gray-500">
                           ⭐ {booking.worker.rating}
@@ -209,26 +210,28 @@ const BookingTable = ({
                 <TableCell>
                   <div className="space-y-1">
                     <div className="font-medium text-sm">
-                      {getCategoryDisplay(booking.serviceCategory)}
+                      Service
                     </div>
-                    <div className="text-xs text-gray-500">{booking.serviceSection}</div>
+                    <div className="text-xs text-gray-500">{booking.address ? booking.address.substring(0, 20) + '...' : 'N/A'}</div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     <div className="text-sm font-medium">
-                      {format(new Date(booking.scheduledDate), 'MMM dd, yyyy')}
+                      {booking.scheduled || booking.scheduledDate ? format(new Date(booking.scheduled || booking.scheduledDate), 'MMM dd, yyyy') : 'N/A'}
                     </div>
-                    <div className="text-xs text-gray-500">{booking.scheduledTime}</div>
+                    <div className="text-xs text-gray-500">
+                      {booking.scheduled ? format(new Date(booking.scheduled), 'HH:mm') : (booking.scheduledTime || 'N/A')}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(booking.status)}</TableCell>
                 <TableCell>{getPaymentBadge(booking.paymentStatus)}</TableCell>
                 <TableCell className="text-right font-medium">
-                  ৳{booking.totalAmount.toLocaleString()}
+                  ৳{booking?.amount.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">
-                  {format(new Date(booking.createdAt), 'MMM dd, HH:mm')}
+                  {booking.createdAt ? format(new Date(booking.createdAt), 'MMM dd, HH:mm') : 'N/A'}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -292,35 +295,49 @@ const BookingTable = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing {startIndex + 1} to {Math.min(endIndex, bookings.length)} of {bookings.length} bookings
+            Showing page {currentPage} of {totalPages} ({totalCount} total bookings)
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
             <div className="flex gap-1">
-              {[...Array(totalPages)].map((_, i) => (
-                <Button
-                  key={i}
-                  variant={currentPage === i + 1 ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setCurrentPage(i + 1)}
-                  className="w-8"
-                >
-                  {i + 1}
-                </Button>
-              ))}
+              {[...Array(Math.min(totalPages, 10))].map((_, i) => {
+                // Show first 5 and last 5 pages if there are more than 10 pages
+                let pageNum;
+                if (totalPages <= 10) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 4) {
+                  pageNum = totalPages - 9 + i;
+                } else {
+                  pageNum = currentPage - 4 + i;
+                }
+                
+                return (
+                  <Button
+                    key={i}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => onPageChange(pageNum)}
+                    className="w-8"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
             >
               Next

@@ -68,7 +68,7 @@ const BookingDetailsDrawer = ({
     setIsSavingNotes(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    onUpdateNotes(booking.id, adminNotes);
+    onUpdateNotes(booking.bookingId, adminNotes);
     setIsSavingNotes(false);
   };
 
@@ -76,11 +76,13 @@ const BookingDetailsDrawer = ({
     const colors = {
       pending: 'text-yellow-600 bg-yellow-50',
       accepted: 'text-blue-600 bg-blue-50',
-      ongoing: 'text-purple-600 bg-purple-50',
+      in_progress: 'text-purple-600 bg-purple-50',
       completed: 'text-green-600 bg-green-50',
       cancelled: 'text-red-600 bg-red-50',
+      disputed: 'text-orange-600 bg-orange-50',
+      awaiting: 'text-gray-600 bg-gray-50',
     };
-    return colors[status];
+    return colors[status] || 'text-gray-600 bg-gray-50';
   };
 
   return (
@@ -89,50 +91,29 @@ const BookingDetailsDrawer = ({
         <SheetHeader>
           <SheetTitle className="text-2xl">Booking Details</SheetTitle>
           <SheetDescription>
-            Complete information about booking {booking.bookingNumber}
+            Complete information about booking {booking.bookingId}
           </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
-          {/* Booking Status Timeline */}
+          {/* Booking Status */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5" />
-                Booking Status Timeline
+                Current Booking Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {booking.statusHistory.map((history, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
-                      history.status === 'completed' ? 'bg-green-500' :
-                      history.status === 'cancelled' ? 'bg-red-500' :
-                      history.status === 'ongoing' ? 'bg-purple-500' :
-                      history.status === 'accepted' ? 'bg-blue-500' :
-                      'bg-yellow-500'
-                    }`} />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(history.status)} variant="outline">
-                          {history.status.charAt(0).toUpperCase() + history.status.slice(1)}
-                        </Badge>
-                        <span className="text-sm text-gray-500">
-                          {format(new Date(history.timestamp), 'MMM dd, yyyy HH:mm')}
-                        </span>
-                      </div>
-                      {history.note && (
-                        <p className="text-sm text-gray-600 mt-1">{history.note}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2 mb-4">
+                <Badge className={getStatusColor(booking.status)} variant="outline">
+                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                </Badge>
               </div>
 
               {/* Status Change Control */}
               {booking.status !== 'completed' && booking.status !== 'cancelled' && (
-                <div className="mt-4 pt-4 border-t">
+                <div className="pt-4 border-t">
                   <label className="text-sm font-medium mb-2 block">
                     Change Booking Status
                   </label>
@@ -146,9 +127,11 @@ const BookingDetailsDrawer = ({
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="accepted">Accepted</SelectItem>
-                      <SelectItem value="ongoing">Ongoing</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="awaiting">Awaiting</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="disputed">Disputed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -165,37 +148,18 @@ const BookingDetailsDrawer = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Service Category</p>
-                  <p className="font-medium capitalize">{booking.serviceCategory.replace('-', ' ')}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Service Section</p>
-                  <p className="font-medium">{booking.serviceSection}</p>
-                </div>
-              </div>
               <div>
-                <p className="text-sm text-gray-500">Service Name</p>
-                <p className="font-medium">{booking.serviceName}</p>
+                <p className="text-sm text-gray-500">Service Details</p>
+                <p className="font-medium">{JSON.stringify(booking.service)}</p>
               </div>
               <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Scheduled Date</p>
-                    <p className="font-medium">
-                      {format(new Date(booking.scheduledDate), 'MMMM dd, yyyy')}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Scheduled Time</p>
-                    <p className="font-medium">{booking.scheduledTime}</p>
-                  </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-500">Scheduled</p>
+                  <p className="font-medium">
+                    {format(new Date(booking.scheduled), 'MMMM dd, yyyy HH:mm')}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -233,15 +197,8 @@ const BookingDetailsDrawer = ({
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-1" />
                 <div>
-                  <p className="text-sm text-gray-500">Address</p>
-                  <p className="font-medium">{booking.user.address}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Customer Rating</p>
-                  <p className="font-medium">{booking.user.rating} / 5.0</p>
+                  <p className="text-sm text-gray-500">Booking Address</p>
+                  <p className="font-medium">{booking.address}</p>
                 </div>
               </div>
             </CardContent>
@@ -259,13 +216,7 @@ const BookingDetailsDrawer = ({
               {booking.worker ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium">{booking.worker.name}</p>
-                    {booking.worker.verified && (
-                      <Badge className="bg-green-100 text-green-800 border-green-300">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Verified
-                      </Badge>
-                    )}
+                    <p className="font-medium">{booking.worker.displayName}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
@@ -281,20 +232,6 @@ const BookingDetailsDrawer = ({
                         <p className="text-sm text-gray-500">Rating</p>
                         <p className="font-medium">{booking.worker.rating} / 5.0</p>
                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Completed Jobs</p>
-                    <p className="font-medium">{booking.worker.completedJobs}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">Specialization</p>
-                    <div className="flex flex-wrap gap-2">
-                      {booking.worker.specialization.map((spec, index) => (
-                        <Badge key={index} variant="secondary">
-                          {spec}
-                        </Badge>
-                      ))}
                     </div>
                   </div>
                 </div>
@@ -323,8 +260,6 @@ const BookingDetailsDrawer = ({
                     className={
                       booking.paymentStatus === 'paid'
                         ? 'bg-green-100 text-green-800 border-green-300'
-                        : booking.paymentStatus === 'refunded'
-                        ? 'bg-gray-100 text-gray-800 border-gray-300'
                         : 'bg-orange-100 text-orange-800 border-orange-300'
                     }
                     variant="outline"
@@ -334,25 +269,29 @@ const BookingDetailsDrawer = ({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="font-bold text-lg">৳{booking.totalAmount.toLocaleString()}</p>
+                  <p className="font-bold text-lg">৳{booking.amount.toLocaleString()}</p>
                 </div>
               </div>
-              {booking.paymentMethod && (
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Payment Method</p>
-                    <p className="font-medium capitalize">{booking.paymentMethod}</p>
-                  </div>
-                </div>
-              )}
-              {booking.transactionId && (
-                <div>
-                  <p className="text-sm text-gray-500">Transaction ID</p>
-                  <p className="font-mono text-sm bg-gray-100 p-2 rounded">
-                    {booking.transactionId}
-                  </p>
-                </div>
+              {booking.paymentDetails && (
+                <>
+                  {booking.paymentDetails.payment_method && (
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Payment Method</p>
+                        <p className="font-medium capitalize">{booking.paymentDetails.payment_method}</p>
+                      </div>
+                    </div>
+                  )}
+                  {booking.paymentDetails.trx_id && (
+                    <div>
+                      <p className="text-sm text-gray-500">Transaction ID</p>
+                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">
+                        {booking.paymentDetails.trx_id}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -367,9 +306,9 @@ const BookingDetailsDrawer = ({
               <CardDescription>Internal notes (not visible to customer or worker)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {booking.adminNotes && (
+              {booking.description && (
                 <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-                  <p className="text-sm text-blue-900">{booking.adminNotes}</p>
+                  <p className="text-sm text-blue-900">{booking.description}</p>
                 </div>
               )}
               <Textarea

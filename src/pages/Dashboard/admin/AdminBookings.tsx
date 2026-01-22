@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { mockBookings, calculateBookingStats } from '@/lib/mockBookingData';
-import { Booking, BookingFilters, BookingStatus } from '@/types/booking';
+import { Booking, BookingFilters, BookingStatus, BookingStats } from '@/types/booking';
+import { bookingService } from '@/services/bookingService';
 import BookingStatsCards from '@/components/admin/BookingStatsCards';
 import BookingFiltersComponent from '@/components/admin/BookingFilters';
 import BookingTable from '@/components/admin/BookingTable';
@@ -21,10 +22,14 @@ import {
 
 const AdminBookings = () => {
   const { toast } = useToast();
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [stats, setStats] = useState<BookingStats | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [actionDialog, setActionDialog] = useState<{
     isOpen: boolean;
     type: 'cancel' | 'refund' | 'assign' | null;
@@ -40,54 +45,53 @@ const AdminBookings = () => {
     dateTo: '',
   });
 
-  // Filter bookings based on active filters
+  // Fetch bookings and stats from API
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      console.log('🔄 Fetching bookings from API...');
+      const [bookingsResponse, statsResponse] = await Promise.all([
+        bookingService.getAllBookings(filters, currentPage, 10),
+        bookingService.getBookingStats(filters.dateFrom, filters.dateTo)
+      ]);
+
+      console.log('✅ API Response:', { bookingsResponse, statsResponse });
+
+      if (bookingsResponse.success) {
+        console.log('📊 Setting bookings:', bookingsResponse.data?.length, 'items');
+        setBookings(bookingsResponse.data || []);
+        setTotalPages(bookingsResponse.pagination?.totalPages || 1);
+        setTotalCount(bookingsResponse.pagination?.totalCount || 0);
+      }
+
+      if (statsResponse.success) {
+        console.log('📈 Setting stats:', statsResponse.data);
+        setStats(statsResponse.data || null);
+      }
+    } catch (error) {
+      console.error('❌ API Error - Falling back to mock data:', error);
+      // Fallback to mock data if API fails
+      setBookings(mockBookings as any);
+      setStats(calculateBookingStats(mockBookings as any));
+      toast({
+        title: 'Using Demo Data',
+        description: 'Could not connect to server. Showing demo bookings.',
+        variant: 'default',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch bookings on mount and when filters/page change
+  useEffect(() => {
+    fetchBookings();
+  }, [filters, currentPage]);
+
+  // For local display only (API handles filtering)
   const filteredBookings = useMemo(() => {
-    return bookings.filter((booking) => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchesSearch =
-          booking.bookingNumber.toLowerCase().includes(searchLower) ||
-          booking.user.name.toLowerCase().includes(searchLower) ||
-          booking.user.phone.toLowerCase().includes(searchLower) ||
-          booking.worker?.name.toLowerCase().includes(searchLower);
-
-        if (!matchesSearch) return false;
-      }
-
-      // Status filter
-      if (filters.status !== 'all' && booking.status !== filters.status) {
-        return false;
-      }
-
-      // Category filter
-      if (filters.category !== 'all' && booking.serviceCategory !== filters.category) {
-        return false;
-      }
-
-      // Payment status filter
-      if (filters.paymentStatus !== 'all' && booking.paymentStatus !== filters.paymentStatus) {
-        return false;
-      }
-
-      // Date range filter
-      if (filters.dateFrom) {
-        const bookingDate = new Date(booking.scheduledDate);
-        const fromDate = new Date(filters.dateFrom);
-        if (bookingDate < fromDate) return false;
-      }
-
-      if (filters.dateTo) {
-        const bookingDate = new Date(booking.scheduledDate);
-        const toDate = new Date(filters.dateTo);
-        if (bookingDate > toDate) return false;
-      }
-
-      return true;
-    });
-  }, [bookings, filters]);
-
-  const stats = useMemo(() => calculateBookingStats(filteredBookings), [filteredBookings]);
+    return bookings;
+  }, [bookings]);
 
   const handleClearFilters = () => {
     setFilters({
@@ -98,6 +102,12 @@ const AdminBookings = () => {
       dateFrom: '',
       dateTo: '',
     });
+    setCurrentPage(1); // Reset to first page when filters are cleared
+  };
+
+  const handleFiltersChange = (newFilters: BookingFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
   };
 
   const handleViewDetails = (booking: Booking) => {
@@ -109,31 +119,27 @@ const AdminBookings = () => {
     setActionDialog({ isOpen: true, type: 'assign', booking });
   };
 
-  const handleChangeStatus = (booking: Booking, newStatus: BookingStatus) => {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === booking.id
-          ? {
-              ...b,
-              status: newStatus,
-              updatedAt: new Date().toISOString(),
-              statusHistory: [
-                ...b.statusHistory,
-                {
-                  status: newStatus,
-                  timestamp: new Date().toISOString(),
-                  note: `Status changed by admin`,
-                },
-              ],
-            }
-          : b
-      )
-    );
-
-    toast({
-      title: 'Status Updated',
-      description: `Booking ${booking.bookingNumber} status changed to ${newStatus}`,
-    });
+  const handleChangeStatus = async (booking: Booking, newStatus: BookingStatus) => {
+    try {
+      const response = await bookingService.updateBookingStatus(
+        booking.bookingId || booking.id || '',
+        newStatus
+      );
+      
+      if (response.success) {
+        toast({
+          title: 'Status Updated',
+          description: `Booking ${booking.bookingId || booking.bookingNumber} status changed to ${newStatus}`,
+        });
+        fetchBookings();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update booking status. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCancelBooking = (booking: Booking) => {
@@ -144,99 +150,105 @@ const AdminBookings = () => {
     setActionDialog({ isOpen: true, type: 'refund', booking });
   };
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!actionDialog.booking) return;
 
-    if (actionDialog.type === 'cancel') {
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === actionDialog.booking!.id
-            ? {
-                ...b,
-                status: 'cancelled' as BookingStatus,
-                updatedAt: new Date().toISOString(),
-                statusHistory: [
-                  ...b.statusHistory,
-                  {
-                    status: 'cancelled' as BookingStatus,
-                    timestamp: new Date().toISOString(),
-                    note: 'Cancelled by admin',
-                  },
-                ],
-              }
-            : b
-        )
-      );
+    try {
+      if (actionDialog.type === 'cancel') {
+        const response = await bookingService.cancelBooking(
+          actionDialog.booking.bookingId || actionDialog.booking.id || '',
+          'Cancelled by admin'
+        );
 
+        if (response.success) {
+          toast({
+            title: 'Booking Cancelled',
+            description: `Booking ${actionDialog.booking.bookingId || actionDialog.booking.bookingNumber} has been cancelled`,
+            variant: 'destructive',
+          });
+          fetchBookings();
+        }
+      } else if (actionDialog.type === 'refund') {
+        const response = await bookingService.processRefund(
+          actionDialog.booking.bookingId || actionDialog.booking.id || '',
+          actionDialog.booking.amount || actionDialog.booking.totalAmount || 0
+        );
+
+        if (response.success) {
+          toast({
+            title: 'Refund Processed',
+            description: `Refund of ৳${actionDialog.booking.totalAmount || actionDialog.booking.amount} has been processed`,
+          });
+          fetchBookings();
+        }
+      } else if (actionDialog.type === 'assign') {
+        toast({
+          title: 'Worker Assignment',
+          description: 'Worker assignment feature will be implemented',
+        });
+      }
+    } catch (error) {
       toast({
-        title: 'Booking Cancelled',
-        description: `Booking ${actionDialog.booking.bookingNumber} has been cancelled`,
+        title: 'Error',
+        description: `Failed to ${actionDialog.type} booking. Please try again.`,
         variant: 'destructive',
-      });
-    } else if (actionDialog.type === 'refund') {
-      setBookings((prev) =>
-        prev.map((b) =>
-          b.id === actionDialog.booking!.id
-            ? {
-                ...b,
-                paymentStatus: 'refunded',
-                updatedAt: new Date().toISOString(),
-              }
-            : b
-        )
-      );
-
-      toast({
-        title: 'Refund Processed',
-        description: `Refund of ৳${actionDialog.booking.totalAmount} has been processed`,
-      });
-    } else if (actionDialog.type === 'assign') {
-      toast({
-        title: 'Worker Assignment',
-        description: 'Worker assignment feature will be implemented',
       });
     }
 
     setActionDialog({ isOpen: false, type: null, booking: null });
   };
 
-  const handleUpdateNotes = (bookingId: string, notes: string) => {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === bookingId
-          ? {
-              ...b,
-              adminNotes: notes,
-              updatedAt: new Date().toISOString(),
-            }
-          : b
-      )
-    );
-
-    toast({
-      title: 'Notes Saved',
-      description: 'Admin notes have been updated successfully',
-    });
+  const handleUpdateNotes = async (bookingId: string, notes: string) => {
+    try {
+      const response = await bookingService.updateAdminNotes(bookingId, notes);
+      
+      if (response.success) {
+        toast({
+          title: 'Notes Saved',
+          description: 'Admin notes have been updated successfully',
+        });
+        fetchBookings();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save notes. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleRefreshData = () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: 'Data Refreshed',
-        description: 'Booking data has been updated',
-      });
-    }, 1000);
+    fetchBookings();
   };
 
-  const handleExportData = () => {
-    toast({
-      title: 'Export Started',
-      description: 'Booking data is being exported to CSV',
-    });
-    // Export logic would go here
+  const handleExportData = async () => {
+    try {
+      const response = await bookingService.exportBookings(filters);
+      
+      if (response.success && response.data) {
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bookings-export-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        toast({
+          title: 'Export Successful',
+          description: 'Booking data has been exported to CSV',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export booking data. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -270,7 +282,7 @@ const AdminBookings = () => {
       {/* Filters */}
       <BookingFiltersComponent
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={handleFiltersChange}
         onClearFilters={handleClearFilters}
       />
 
@@ -285,6 +297,10 @@ const AdminBookings = () => {
 
         <BookingTable
           bookings={filteredBookings}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          onPageChange={setCurrentPage}
           onViewDetails={handleViewDetails}
           onAssignWorker={handleAssignWorker}
           onChangeStatus={handleChangeStatus}

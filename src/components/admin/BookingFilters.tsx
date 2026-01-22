@@ -83,9 +83,11 @@ const BookingFiltersComponent = ({
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="accepted">Accepted</SelectItem>
-                    <SelectItem value="ongoing">Ongoing</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="disputed">Disputed</SelectItem>
+                    <SelectItem value="awaiting">Awaiting</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -127,7 +129,6 @@ const BookingFiltersComponent = ({
                     <SelectItem value="all">All Payment</SelectItem>
                     <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="unpaid">Unpaid</SelectItem>
-                    <SelectItem value="refunded">Refunded</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
