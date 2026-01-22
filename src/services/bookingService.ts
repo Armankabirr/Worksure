@@ -152,5 +152,16 @@ export const bookingService = {
       console.error('Error exporting bookings:', error);
       throw error;
     }
+  },
+
+  // Get booking details by ID
+  async getBookingById(bookingId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await axiosPublic.get(`/admin/bookings/${bookingId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching booking details:', error);
+      throw error;
+    }
   }
 };

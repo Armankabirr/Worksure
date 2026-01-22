@@ -25,8 +25,27 @@ const BookingFiltersComponent = ({
 }: BookingFiltersProps) => {
   const [showFilters, setShowFilters] = useState(true);
 
+  // Validate date string format (YYYY-MM-DD)
+  const isValidDate = (dateString: string): boolean => {
+    // Check if date string matches YYYY-MM-DD format
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    
+    // Check if it's a valid date
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date.getTime());
+  };
+
   const handleFilterChange = (key: keyof BookingFilters, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
+    // For date fields, only update if the date is valid or empty
+    if (key === 'dateFrom' || key === 'dateTo') {
+      if (value === '' || isValidDate(value)) {
+        onFiltersChange({ ...filters, [key]: value });
+      }
+      // If invalid, don't update the filter (prevents malformed dates from being sent)
+    } else {
+      onFiltersChange({ ...filters, [key]: value });
+    }
   };
 
   const hasActiveFilters = 

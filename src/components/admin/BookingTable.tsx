@@ -192,7 +192,7 @@ const BookingTable = ({
                     <div className="flex items-center gap-2">
                       <div>
                         <div className="font-medium flex items-center gap-1">
-                          {booking.worker.displayName || booking.worker.name}
+                          {booking.worker.name ||booking.worker.displayName}
                           <ShieldCheck className="h-4 w-4 text-green-600" />
                         </div>
                         <div className="text-xs text-gray-500">
@@ -209,10 +209,8 @@ const BookingTable = ({
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="font-medium text-sm">
-                      Service
-                    </div>
-                    <div className="text-xs text-gray-500">{booking.address ? booking.address.substring(0, 20) + '...' : 'N/A'}</div>
+                    <div className="text-xs text-gray-500">{booking.serviceSection.name
+}</div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -228,7 +226,7 @@ const BookingTable = ({
                 <TableCell>{getStatusBadge(booking.status)}</TableCell>
                 <TableCell>{getPaymentBadge(booking.paymentStatus)}</TableCell>
                 <TableCell className="text-right font-medium">
-                  ৳{booking?.amount.toLocaleString()}
+                  ৳{booking?.amount}
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">
                   {booking.createdAt ? format(new Date(booking.createdAt), 'MMM dd, HH:mm') : 'N/A'}

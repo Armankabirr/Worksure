@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { mockBookings, calculateBookingStats } from '@/lib/mockBookingData';
 import { Booking, BookingFilters, BookingStatus, BookingStats } from '@/types/booking';
 import { bookingService } from '@/services/bookingService';
 import BookingStatsCards from '@/components/admin/BookingStatsCards';
 import BookingFiltersComponent from '@/components/admin/BookingFilters';
 import BookingTable from '@/components/admin/BookingTable';
-import BookingDetailsDrawer from '@/components/admin/BookingDetailsDrawer';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -22,10 +22,9 @@ import {
 
 const AdminBookings = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -111,8 +110,7 @@ const AdminBookings = () => {
   };
 
   const handleViewDetails = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setIsDetailsDrawerOpen(true);
+    navigate(`/admin/bookings/${booking.bookingId || booking.id}`);
   };
 
   const handleAssignWorker = (booking: Booking) => {
@@ -309,17 +307,7 @@ const AdminBookings = () => {
         />
       </div>
 
-      {/* Booking Details Drawer */}
-      <BookingDetailsDrawer
-        booking={selectedBooking}
-        isOpen={isDetailsDrawerOpen}
-        onClose={() => {
-          setIsDetailsDrawerOpen(false);
-          setSelectedBooking(null);
-        }}
-        onUpdateStatus={handleChangeStatus}
-        onUpdateNotes={handleUpdateNotes}
-      />
+
 
       {/* Confirmation Dialogs */}
       <AlertDialog
