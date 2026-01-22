@@ -240,104 +240,106 @@ const AdminBookings = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bookings Management</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage all service bookings</p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleRefreshData}
-            disabled={isLoading}
-            className="gap-2"
-          >
-            <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button onClick={handleExportData} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export Data
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <BookingStatsCards stats={stats} isLoading={isLoading} />
-
-      {/* Filters */}
-      <BookingFiltersComponent
-        filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={handleClearFilters}
-      />
-
-      {/* Bookings Table */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold">All Bookings</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Showing {filteredBookings.length} of {bookings.length} bookings
-          </p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Bookings Management</h1>
+            <p className="text-gray-600 mt-1">Monitor and manage all service bookings</p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefreshData}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button onClick={handleExportData} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export Data
+            </Button>
+          </div>
         </div>
 
-        <BookingTable
-          bookings={filteredBookings}
-          onViewDetails={handleViewDetails}
-          onAssignWorker={handleAssignWorker}
-          onChangeStatus={handleChangeStatus}
-          onCancelBooking={handleCancelBooking}
-          onRefundPayment={handleRefundPayment}
+        {/* Statistics Cards */}
+        <BookingStatsCards stats={stats} isLoading={isLoading} />
+
+        {/* Filters */}
+        <BookingFiltersComponent
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClearFilters={handleClearFilters}
         />
+
+        {/* Bookings Table */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">All Bookings</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Showing {filteredBookings.length} of {bookings.length} bookings
+            </p>
+          </div>
+
+          <BookingTable
+            bookings={filteredBookings}
+            onViewDetails={handleViewDetails}
+            onAssignWorker={handleAssignWorker}
+            onChangeStatus={handleChangeStatus}
+            onCancelBooking={handleCancelBooking}
+            onRefundPayment={handleRefundPayment}
+          />
+        </div>
+
+        {/* Booking Details Drawer */}
+        <BookingDetailsDrawer
+          booking={selectedBooking}
+          isOpen={isDetailsDrawerOpen}
+          onClose={() => {
+            setIsDetailsDrawerOpen(false);
+            setSelectedBooking(null);
+          }}
+          onUpdateStatus={handleChangeStatus}
+          onUpdateNotes={handleUpdateNotes}
+        />
+
+        {/* Confirmation Dialogs */}
+        <AlertDialog
+          open={actionDialog.isOpen}
+          onOpenChange={(open) =>
+            !open && setActionDialog({ isOpen: false, type: null, booking: null })
+          }
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {actionDialog.type === 'cancel' && 'Cancel Booking'}
+                {actionDialog.type === 'refund' && 'Process Refund'}
+                {actionDialog.type === 'assign' && 'Assign Worker'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {actionDialog.type === 'cancel' &&
+                  `Are you sure you want to cancel booking ${actionDialog.booking?.bookingNumber}? This action cannot be undone.`}
+                {actionDialog.type === 'refund' &&
+                  `Are you sure you want to process a refund of ৳${actionDialog.booking?.totalAmount} for booking ${actionDialog.booking?.bookingNumber}?`}
+                {actionDialog.type === 'assign' &&
+                  `Worker assignment functionality will open a worker selection dialog. This feature is ready to be integrated with your worker management system.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAction}>
+                {actionDialog.type === 'cancel' && 'Yes, Cancel Booking'}
+                {actionDialog.type === 'refund' && 'Process Refund'}
+                {actionDialog.type === 'assign' && 'Assign Worker'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      {/* Booking Details Drawer */}
-      <BookingDetailsDrawer
-        booking={selectedBooking}
-        isOpen={isDetailsDrawerOpen}
-        onClose={() => {
-          setIsDetailsDrawerOpen(false);
-          setSelectedBooking(null);
-        }}
-        onUpdateStatus={handleChangeStatus}
-        onUpdateNotes={handleUpdateNotes}
-      />
-
-      {/* Confirmation Dialogs */}
-      <AlertDialog
-        open={actionDialog.isOpen}
-        onOpenChange={(open) =>
-          !open && setActionDialog({ isOpen: false, type: null, booking: null })
-        }
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {actionDialog.type === 'cancel' && 'Cancel Booking'}
-              {actionDialog.type === 'refund' && 'Process Refund'}
-              {actionDialog.type === 'assign' && 'Assign Worker'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {actionDialog.type === 'cancel' &&
-                `Are you sure you want to cancel booking ${actionDialog.booking?.bookingNumber}? This action cannot be undone.`}
-              {actionDialog.type === 'refund' &&
-                `Are you sure you want to process a refund of ৳${actionDialog.booking?.totalAmount} for booking ${actionDialog.booking?.bookingNumber}?`}
-              {actionDialog.type === 'assign' &&
-                `Worker assignment functionality will open a worker selection dialog. This feature is ready to be integrated with your worker management system.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmAction}>
-              {actionDialog.type === 'cancel' && 'Yes, Cancel Booking'}
-              {actionDialog.type === 'refund' && 'Process Refund'}
-              {actionDialog.type === 'assign' && 'Assign Worker'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
