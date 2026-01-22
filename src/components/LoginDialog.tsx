@@ -75,36 +75,19 @@ const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: LoginDialogProp
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!validate()) return;
-
     setIsSubmitting(true);
-
+    setErrors((prev) => ({ ...prev, general: undefined }));
     try {
-      await login(formData.email.trim(), formData.password);
+      const { error } = await login(formData.email.trim(), formData.password);
+      if (error) {
+        setErrors((prev) => ({ ...prev, general: error.message }));
+        return;
+      }
       onOpenChange(false);
-      
-      // Get user from localStorage to check role
-      const currentUserStr = localStorage.getItem("mock_current_user");
-      if (currentUserStr) {
-        const currentUser = JSON.parse(currentUserStr);
-        
-        // Redirect based on role
-        if (currentUser.role === "worker") {
-          navigate("/worker/dashboard");
-        } else {
-          navigate("/profile");
-        }
-      }
-    } catch (error) {
-      let message = "Login failed. Please try again.";
-      if (error instanceof Error) {
-        message = error.message;
-      }
-      setErrors((prev) => ({
-        ...prev,
-        general: message,
-      }));
+      navigate("/", { replace: true });
+    } catch {
+      setErrors((prev) => ({ ...prev, general: "Login failed. Please try again." }));
     } finally {
       setIsSubmitting(false);
     }

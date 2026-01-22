@@ -32,6 +32,7 @@ import Preloader from "./components/Preloader";
 import ScrollToTop from "./components/ScrollToTop";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Search from "./pages/Search";
 import WorkerDetail from "./pages/WorkerDetail";
 import About from "./pages/About";
@@ -48,7 +49,7 @@ import AdminComplaints from "./pages/Dashboard/admin/AdminComplaints";
 import AdminAddresses from "./pages/Dashboard/admin/AdminAddresses";
 import AdminReports from "./pages/Dashboard/admin/AdminReports";
 import AdminSettings from "./pages/Dashboard/admin/AdminSettings";
-import AuthModal from "./components/auth/AuthModal";
+import AuthRedirectHandler from "./components/AuthRedirectHandler";
 
 const queryClient = new QueryClient();
 
@@ -72,9 +73,10 @@ const App = () => {
           <Sonner />
           {isLoading && <Preloader isLoading={isLoading} onComplete={() => setIsLoading(false)} />}
           <BrowserRouter>
-            <ScrollToTop />
-            <AuthModal />
-            <Routes>
+            <ErrorBoundary>
+              <ScrollToTop />
+              <AuthRedirectHandler />
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/electrician" element={<Electrician />} />
               <Route path="/electrician/pricing" element={<ElectricianPricing />} />
@@ -98,7 +100,7 @@ const App = () => {
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute role="user">
                     <Profile />
                   </ProtectedRoute>
                 }
@@ -106,8 +108,10 @@ const App = () => {
               <Route
                 path="/worker/dashboard"
                 element={
-                  <ProtectedRoute>
-                    <WorkerDashboard />
+                  <ProtectedRoute role="worker">
+                    <ErrorBoundary>
+                      <WorkerDashboard />
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -116,7 +120,14 @@ const App = () => {
               <Route path="/payment/cancelled" element={<PaymentCancelled />} />
               
               {/* Admin Dashboard Routes */}
-              <Route path="/admin" element={<AdminDashboardLayout />}>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute role="admin">
+                    <AdminDashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<AdminDashboard />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
@@ -135,12 +146,15 @@ const App = () => {
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </ErrorBoundary>
           </BrowserRouter>
           <ScrollToTopButton />
         </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
+
+  
 };
 
 export default App;
