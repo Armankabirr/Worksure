@@ -30,7 +30,7 @@ const popularServices = [
   { 
     title: "Hourly babysitting", 
     desc: "Flexible hourly rates for short-term care needs.", 
-    image: "https://images.unsplash.com/photo-1503482851512-e9c3529bee87?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-1.jpg",
     icon: Clock,
     benefits: ["Flexible scheduling", "Affordable rates"],
     color: "from-orange-400"
@@ -38,7 +38,7 @@ const popularServices = [
   { 
     title: "Full day care", 
     desc: "Complete daylong supervision and activities.", 
-    image: "https://images.unsplash.com/photo-1503454537706-aa4d37b7d31e?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-2.png",
     icon: Sun,
     benefits: ["Full supervision", "Meal planning"],
     color: "from-yellow-400"
@@ -46,7 +46,7 @@ const popularServices = [
   { 
     title: "Night care", 
     desc: "Experienced overnight caregivers for peace of mind.", 
-    image: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-3.webp",
     icon: Moon,
     benefits: ["24/7 monitoring", "Safe environment"],
     color: "from-indigo-400"
@@ -54,7 +54,7 @@ const popularServices = [
   { 
     title: "Newborn care", 
     desc: "Specialized care for newborns and infants.", 
-    image: "https://images.unsplash.com/photo-1522138537540-10b335e92f3d?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-4.jfif",
     icon: Baby,
     benefits: ["Professional training", "Gentle care"],
     color: "from-pink-400"
@@ -62,7 +62,7 @@ const popularServices = [
   { 
     title: "Playing & Activities", 
     desc: "Engaging games, crafts, and educational activities.", 
-    image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-5.jfif",
     icon: Play,
     benefits: ["Creative play", "Learning fun"],
     color: "from-green-400"
@@ -70,7 +70,7 @@ const popularServices = [
   { 
     title: "Homework help", 
     desc: "Tutoring and educational support for school assignments.", 
-    image: "https://images.unsplash.com/photo-1427504494785-cdda9147db4c?w=600&h=400&fit=crop",
+    image: "src/assets/baby-images/baby-6.webp",
     icon: GraduationCap,
     benefits: ["Expert tutoring", "Academic growth"],
     color: "from-blue-400"
