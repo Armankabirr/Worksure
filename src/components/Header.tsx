@@ -390,7 +390,9 @@ const Header = () => {
                   <Avatar className="h-10 w-10">
                     <AvatarImage className="object-cover" src={user.avatar} alt={user.name} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                      {user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                      {user.name && typeof user.name === "string"
+                        ? user.name.split(" ").map((n) => n[0] || "").join("").toUpperCase().slice(0, 2) || "U"
+                        : "U"}
                     </AvatarFallback>
                   </Avatar>
                 ) : (

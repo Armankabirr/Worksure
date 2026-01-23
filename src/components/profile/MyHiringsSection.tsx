@@ -289,11 +289,12 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
 
   // Format status label
   const formatStatus = (status: string) => {
-    if (!status) return "Unknown";
+    if (!status || typeof status !== "string") return "Unknown";
     return status
       .replace(/-/g, " ")
       .replace(/_/g, " ")
       .split(" ")
+      .filter((word) => word.length > 0)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
   };
@@ -307,21 +308,19 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
           <div className="flex items-center gap-3 flex-1">
             {worker && (
               <Avatar className="h-10 w-10 flex-shrink-0 border border-slate-200">
-                <AvatarImage src={worker.profile_picture} alt={worker.full_name} />
+                <AvatarImage src={worker.profile_picture} alt={worker.full_name || "Worker"} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                  {worker.full_name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
+                  {worker.full_name && typeof worker.full_name === "string"
+                    ? worker.full_name.split(" ").map((n) => n[0] || "").join("").toUpperCase().slice(0, 2) || "W"
+                    : "W"}
                 </AvatarFallback>
               </Avatar>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-foreground text-sm truncate">{hiring.description}</h3>
+              <h3 className="font-semibold text-foreground text-sm truncate">{hiring.description || "Service"}</h3>
               <div className="flex items-center gap-2 mt-1">
                 {worker && (
-                  <span className="text-xs text-muted-foreground">{worker.full_name}</span>
+                  <span className="text-xs text-muted-foreground">{worker.full_name || "Worker"}</span>
                 )}
                 <span className="text-xs text-muted-foreground">•</span>
                 <span className="text-xs font-semibold text-foreground">৳{hiring.total_amount}</span>
@@ -404,18 +403,16 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
         <div className="border-b border-slate-200 pb-4 mb-4">
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10 flex-shrink-0 border border-slate-200">
-              <AvatarImage src={worker.profile_picture} alt={worker.full_name} />
+              <AvatarImage src={worker.profile_picture} alt={worker.full_name || "Worker"} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                {worker.full_name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
+                {worker.full_name && typeof worker.full_name === "string"
+                  ? worker.full_name.split(" ").map((n) => n[0] || "").join("").toUpperCase().slice(0, 2) || "W"
+                  : "W"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-foreground text-sm">{worker.full_name}</p>
+                <p className="font-semibold text-foreground text-sm">{worker.full_name || "Worker"}</p>
                 {worker.worker_profiles && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
                     <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
@@ -432,7 +429,7 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1">
                     <Phone className="h-3 w-3" />
-                    {worker.phone}
+                    {worker.phone || "N/A"}
                   </span>
                   {worker.worker_profiles && (
                     <span className="flex items-center gap-1">
@@ -453,7 +450,7 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
           <MapPin className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-muted-foreground text-xs">Location</p>
-            <p className="text-foreground font-medium">{hiring.address}</p>
+            <p className="text-foreground font-medium">{hiring.address || "Not specified"}</p>
           </div>
         </div>
 
@@ -471,7 +468,7 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
           <p className="text-muted-foreground text-xs mb-0.5">Amount</p>
           <p className="text-foreground font-semibold flex items-center gap-1">
             <DollarSign className="h-3 w-3" />
-            {hiring.total_amount}
+            {hiring.total_amount ?? "N/A"}
           </p>
         </div>
 

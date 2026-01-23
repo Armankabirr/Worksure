@@ -114,8 +114,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
+      
+      if (event === "SIGNED_IN" && session?.user) {
+        try {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .upsert(
+              {
+                id: session.user.id,
+                email: session.user.email || "",
+              },
+              { onConflict: "id" }
+            );
+          if (profileError) {
+            console.error("Failed to ensure profile exists on sign in:", profileError);
+          }
+        } catch (profileErr) {
+          console.error("Error ensuring profile exists:", profileErr);
+        }
+      }
+      
       setSession(session?.user ?? null);
     });
 
@@ -231,12 +251,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const verifyOtp = useCallback(
     async (email: string, token: string): Promise<{ error: Error | null }> => {
       try {
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
           email: email.trim(),
           token: token.trim(),
           type: "email",
         });
-        return { error: error ? new Error(error.message) : null };
+        if (error) return { error: new Error(error.message) };
+        
+        if (data?.user) {
+          try {
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .upsert(
+                {
+                  id: data.user.id,
+                  email: data.user.email || email.trim(),
+                },
+                { onConflict: "id" }
+              );
+            if (profileError) {
+              console.error("Failed to create profile after signup:", profileError);
+            }
+          } catch (profileErr) {
+            console.error("Error creating profile:", profileErr);
+          }
+        }
+        
+        return { error: null };
       } catch (e) {
         return {
           error: e instanceof Error ? e : new Error("Verification failed"),
@@ -271,10 +312,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }): Promise<{ error: Error | null }> => {
       try {
         const { data: cur } = await supabase.auth.getUser();
-        const existing = (cur.user?.user_metadata ?? {}) as Record<string, unknown>;
+        if (!cur.user) {
+          return { error: new Error("User not found") };
+        }
+        
+        const existing = (cur.user.user_metadata ?? {}) as Record<string, unknown>;
         const next = { ...existing, name: data.name, phone: data.phone, role: data.role };
         const { error } = await supabase.auth.updateUser({ data: next });
         if (error) return { error: new Error(error.message) };
+        
+        try {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .upsert(
+              {
+                id: cur.user.id,
+                email: cur.user.email || "",
+                full_name: data.name,
+                phone: data.phone,
+                role: data.role,
+              },
+              { onConflict: "id" }
+            );
+          if (profileError) {
+            console.error("Failed to update profile after signup:", profileError);
+          }
+        } catch (profileErr) {
+          console.error("Error updating profile:", profileErr);
+        }
+        
         const u = cur.user ?? null;
         setUser(mapUser(u));
         return { error: null };

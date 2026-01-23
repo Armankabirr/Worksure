@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Camera, 
   Phone, 
@@ -17,12 +24,13 @@ import {
 import { UserData, Address, ProfileFormData } from "@/types/profile";
 
 interface MyProfileSectionProps {
-  userData: UserData;
+  userData: UserData | null;
   formData: ProfileFormData;
   isEditing: boolean;
   isEditingAddresses: boolean;
   isSaving: boolean;
   editingAddresses: Address[];
+  userEmail: string;
   onEditToggle: () => void;
   onAddressEditToggle: () => void;
   onInputChange: (field: keyof ProfileFormData, value: string) => void;
@@ -50,6 +58,7 @@ const MyProfileSection = ({
   isEditingAddresses,
   isSaving,
   editingAddresses,
+  userEmail,
   onEditToggle,
   onAddressEditToggle,
   onInputChange,
@@ -60,8 +69,17 @@ const MyProfileSection = ({
 }: MyProfileSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Safety check - should not happen but handle gracefully
+  if (!userData) {
+    return (
+      <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden p-6">
+        <p className="text-muted-foreground text-center">Profile data not available</p>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden">
+    <Card className="bg-white border-slate-200 shadow-lg rounded-xl overflow-hidden">
       {/* Profile Header with Background */}
       <div className="bg-gradient-to-r from-primary/5 via-primary/3 to-transparent p-5 border-b border-slate-200">
         <div className="flex justify-between items-start">
@@ -73,10 +91,10 @@ const MyProfileSection = ({
             <Button
               onClick={onEditToggle}
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all text-sm"
+              className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium"
             >
               <Settings className="h-3 w-3 mr-1.5" />
-              Edit
+              Edit Profile
             </Button>
           )}
         </div>
@@ -94,7 +112,11 @@ const MyProfileSection = ({
                   <AvatarImage src={formData.avatar} alt={userData.full_name} />
                 ) : null}
                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-3xl font-bold">
-                  {userData.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                  {(userData.full_name && typeof userData.full_name === "string" && userData.full_name.trim())
+                    ? userData.full_name.split(" ").filter((n) => n.length > 0).map((n) => n[0] || "").join("").toUpperCase().slice(0, 2) || "U"
+                    : (formData.name && formData.name.trim())
+                    ? formData.name.split(" ").filter((n) => n.length > 0).map((n) => n[0] || "").join("").toUpperCase().slice(0, 2) || "U"
+                    : "U"}
                 </AvatarFallback>
               </Avatar>
               {isEditing && (
@@ -123,18 +145,20 @@ const MyProfileSection = ({
 
           {/* Name and Role */}
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-foreground mb-1">{userData.full_name}</h3>
+            <h3 className="text-xl font-bold text-foreground mb-1">
+              {userData.full_name || formData.name || "User"}
+            </h3>
             <div className="flex items-center gap-2 mb-4">
               <div className="h-2 w-2 rounded-full bg-green-500"></div>
               <p className="text-xs text-muted-foreground capitalize font-medium">
-                {userData.status}
+                {userData.status || "active"}
               </p>
             </div>
 
             {/* Contact Information - Grid Layout */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Full Name */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Settings className="h-3 w-3 text-primary" />
@@ -146,15 +170,17 @@ const MyProfileSection = ({
                     value={formData.name}
                     onChange={(e) => onInputChange("name", e.target.value)}
                     placeholder="Full name"
-                    className="border-slate-300 bg-white text-sm h-8"
+                    className="border-slate-300 bg-white text-sm h-8 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 ) : (
-                  <p className="text-foreground font-semibold text-sm">{userData.full_name}</p>
+                  <p className="text-foreground font-semibold text-sm">
+                    {userData.full_name || formData.name || "Not provided"}
+                  </p>
                 )}
               </div>
 
               {/* Phone */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Phone className="h-3 w-3 text-primary" />
@@ -167,27 +193,31 @@ const MyProfileSection = ({
                     value={formData.phone}
                     onChange={(e) => onInputChange("phone", e.target.value)}
                     placeholder="Phone number"
-                    className="border-slate-300 bg-white text-sm h-8"
+                    className="border-slate-300 bg-white text-sm h-8 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 ) : (
-                  <p className="text-foreground font-semibold text-sm">{userData.phone}</p>
+                  <p className="text-foreground font-semibold text-sm">
+                    {userData.phone || formData.phone || "Not provided"}
+                  </p>
                 )}
               </div>
 
               {/* Email */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Mail className="h-3 w-3 text-primary" />
                   </div>
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Email</p>
                 </div>
-                <p className="text-foreground font-semibold text-sm">{userData.email}</p>
-                {!isEditing && <p className="text-xs text-muted-foreground mt-0.5">Read-only</p>}
+                <p className="text-foreground font-semibold text-sm">
+                  {userEmail || userData.email || "Loading..."}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Read-only</p>
               </div>
 
               {/* Gender */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Settings className="h-3 w-3 text-primary" />
@@ -195,21 +225,28 @@ const MyProfileSection = ({
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Gender</p>
                 </div>
                 {isEditing ? (
-                  <Input
-                    value={formData.gender}
-                    onChange={(e) => onInputChange("gender", e.target.value)}
-                    placeholder="Gender"
-                    className="border-slate-300 bg-white text-sm h-8"
-                  />
+                  <Select
+                    value={formData.gender || ""}
+                    onValueChange={(value) => onInputChange("gender", value)}
+                  >
+                    <SelectTrigger className="border-slate-300 bg-white text-sm h-8 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Rather not to say">Rather not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
                 ) : (
                   <p className="text-foreground font-semibold text-sm">
-                    {userData.gender || <span className="text-muted-foreground">Not provided</span>}
+                    {userData.gender || formData.gender || <span className="text-muted-foreground">Not provided</span>}
                   </p>
                 )}
               </div>
 
               {/* Date of Birth */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <Settings className="h-3 w-3 text-primary" />
@@ -221,7 +258,7 @@ const MyProfileSection = ({
                     type="date"
                     value={formData.date_of_birth}
                     onChange={(e) => onInputChange("date_of_birth", e.target.value)}
-                    className="border-slate-300 bg-white text-sm h-8"
+                    className="border-slate-300 bg-white text-sm h-8 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 ) : (
                   <p className="text-foreground font-semibold text-sm">
@@ -231,7 +268,7 @@ const MyProfileSection = ({
               </div>
 
               {/* Address */}
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 sm:col-span-2">
+              <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 hover:border-primary/30 transition-colors duration-200 shadow-sm sm:col-span-2">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="p-1.5 bg-primary/10 rounded-lg">
                     <MapPin className="h-3 w-3 text-primary" />
@@ -243,7 +280,7 @@ const MyProfileSection = ({
                     value={formData.address}
                     onChange={(e) => onInputChange("address", e.target.value)}
                     placeholder="Address"
-                    className="border-slate-300 bg-white text-sm h-8"
+                    className="border-slate-300 bg-white text-sm h-8 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 ) : (
                   <p className="text-foreground font-semibold text-sm">
@@ -299,7 +336,7 @@ const MyProfileSection = ({
                 <Button
                   onClick={onAddressEditToggle}
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all text-sm"
+                  className="bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   <Settings className="h-3 w-3 mr-1.5" />
                   Edit
@@ -380,7 +417,7 @@ const MyProfileSection = ({
                   disabled={isSaving}
                   variant="outline"
                   size="sm"
-                  className="border-slate-300 gap-1.5 text-sm"
+                  className="border-slate-300 gap-1.5 text-sm hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium"
                 >
                   <X className="h-3 w-3" />
                   Cancel
@@ -389,10 +426,10 @@ const MyProfileSection = ({
                   onClick={onSaveAddresses}
                   disabled={isSaving}
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all text-sm"
+                  className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="h-3 w-3" />
-                  {isSaving ? "Saving..." : "Save"}
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             )}
@@ -400,7 +437,7 @@ const MyProfileSection = ({
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end pt-2">
           {isEditing ? (
             <>
               <Button
@@ -408,19 +445,27 @@ const MyProfileSection = ({
                 disabled={isSaving}
                 variant="outline"
                 size="sm"
-                className="border-slate-300 gap-1.5 text-sm"
+                className="border-slate-300 gap-1.5 text-sm hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 font-medium"
               >
                 <X className="h-3 w-3" />
                 Cancel
               </Button>
               <Button
-                onClick={onSave}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Save button clicked", { isSaving, onSave: typeof onSave });
+                  if (!isSaving && onSave) {
+                    onSave();
+                  }
+                }}
                 disabled={isSaving}
                 size="sm"
-                className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all text-sm"
+                type="button"
+                className="bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-3 w-3" />
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? "Saving..." : "Save Changes"}
               </Button>
             </>
           ) : null}

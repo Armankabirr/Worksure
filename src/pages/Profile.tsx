@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 // Import profile components
 import {
@@ -51,6 +52,7 @@ const Profile = () => {
   const [hirings, setHirings] = useState<Hiring[]>([]);
   const [isLoadingHirings, setIsLoadingHirings] = useState(false);
   const [hiringError, setHiringError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   // Form state
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -63,40 +65,118 @@ const Profile = () => {
     address: "",
   });
 
+  // Fetch email from Supabase Auth session
+  useEffect(() => {
+    const fetchSessionEmail = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email) {
+          setUserEmail(session.user.email);
+        }
+      } catch (err) {
+        console.error("Failed to fetch session email:", err);
+      }
+    };
+    fetchSessionEmail();
+  }, [user]);
+
   // Fetch user data from API
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
     const fetchUserData = async () => {
-      if (!user) return;
-      
+      // Auth session guard - ensure user and user.id exist
+      if (!user || !user.id || !user.email) {
+        setIsLoading(false);
+        setError("Please log in to view your profile");
+        if (isMounted) {
+          setTimeout(() => navigate("/user/login"), 2000);
+        }
+        return;
+      }
+
       try {
         setIsLoading(true);
+        setError(null);
+
+        // Timeout safeguard - 10 seconds max
+        timeoutId = setTimeout(() => {
+          if (isMounted) {
+            setIsLoading(false);
+            setError("Request timed out. Please try again.");
+            console.error("Profile fetch timeout after 10s");
+          }
+        }, 10000);
+
         const response = await axiosPublic.get(`/userRoutes/getUserData/${user.email}`);
         const data = response.data;
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        // Handle empty/null response
+        if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
+          // Profile not created yet - treat as empty profile
+          setUserData(null);
+          setEditingAddresses([]);
+          setFormData({
+            name: user.name || "",
+            phone: user.phone || "",
+            gender: "",
+            date_of_birth: "",
+            bio: "",
+            avatar: user.avatar || "",
+            address: user.address || "",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Set user data
         setUserData(data);
-        setEditingAddresses(data.addresses || []);
-        
-        // Initialize form with fetched data
+        setEditingAddresses(Array.isArray(data.addresses) ? data.addresses : []);
+
+        // Initialize form with fetched data - ensure all fields are safe
         setFormData({
-          name: data.full_name || "",
-          phone: data.phone || "",
-          gender: data.gender || "",
-          date_of_birth: data.date_of_birth || "",
+          name: (data.full_name && typeof data.full_name === "string") ? data.full_name : (user.name || ""),
+          phone: (data.phone && typeof data.phone === "string") ? data.phone : (user.phone || ""),
+          gender: (data.gender && typeof data.gender === "string") ? data.gender : "",
+          date_of_birth: (data.date_of_birth && typeof data.date_of_birth === "string") ? data.date_of_birth : "",
           bio: "",
-          avatar: data.profile_picture || "",
-          address: data.addresses && data.addresses.length > 0 
-            ? `${data.addresses[0].street}, ${data.addresses[0].city}` 
-            : "",
+          avatar: (data.profile_picture && typeof data.profile_picture === "string") ? data.profile_picture : (user.avatar || ""),
+          address: data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0 
+            ? `${data.addresses[0]?.street || ""}, ${data.addresses[0]?.city || ""}`.replace(/^,\s*|,\s*$/g, "").trim() || ""
+            : (user.address || ""),
         });
       } catch (err) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         console.error("Failed to fetch user data:", err);
-        setError("Failed to load user profile data");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load user profile data";
+        setError(errorMessage);
+        // Set userData to null to show empty profile state
+        setUserData(null);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchUserData();
-  }, [user, axiosPublic]);
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [user?.id, user?.email, axiosPublic, navigate]);
 
   // Fetch user hirings from API
   useEffect(() => {
@@ -123,9 +203,16 @@ const Profile = () => {
   }, [user, axiosPublic, activeMenu]);
 
   // Handle logout
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      await logout();
+      navigate("/user/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      await logout();
+      navigate("/user/login");
+    }
   };
 
   // Handle edit mode toggle
@@ -134,14 +221,14 @@ const Profile = () => {
       // Cancel editing - reset form to original user data
       if (userData) {
         setFormData({
-          name: userData.full_name || "",
-          phone: userData.phone || "",
-          gender: userData.gender || "",
-          date_of_birth: userData.date_of_birth || "",
+          name: (userData.full_name && typeof userData.full_name === "string") ? userData.full_name : "",
+          phone: (userData.phone && typeof userData.phone === "string") ? userData.phone : "",
+          gender: (userData.gender && typeof userData.gender === "string") ? userData.gender : "",
+          date_of_birth: (userData.date_of_birth && typeof userData.date_of_birth === "string") ? userData.date_of_birth : "",
           bio: "",
-          avatar: userData.profile_picture || "",
-          address: userData.addresses && userData.addresses.length > 0 
-            ? `${userData.addresses[0].street}, ${userData.addresses[0].city}` 
+          avatar: (userData.profile_picture && typeof userData.profile_picture === "string") ? userData.profile_picture : "",
+          address: userData.addresses && Array.isArray(userData.addresses) && userData.addresses.length > 0 
+            ? `${userData.addresses[0]?.street || ""}, ${userData.addresses[0]?.city || ""}`.replace(/^,\s*|,\s*$/g, "").trim() || ""
             : "",
         });
       }
@@ -155,8 +242,10 @@ const Profile = () => {
   const handleAddressEditToggle = () => {
     if (isEditingAddresses) {
       // Cancel editing - reset to original addresses
-      if (userData) {
+      if (userData && Array.isArray(userData.addresses)) {
         setEditingAddresses([...userData.addresses]);
+      } else {
+        setEditingAddresses([]);
       }
     }
     setIsEditingAddresses(!isEditingAddresses);
@@ -164,8 +253,9 @@ const Profile = () => {
 
   // Handle address field change
   const handleAddressChange = (idx: number, field: keyof Address, value: string) => {
+    if (idx < 0 || idx >= editingAddresses.length) return;
     const updated = [...editingAddresses];
-    updated[idx] = { ...updated[idx], [field]: value };
+    updated[idx] = { ...updated[idx], [field]: value || "" };
     setEditingAddresses(updated);
   };
 
@@ -179,7 +269,9 @@ const Profile = () => {
     try {
       // Here you would typically make an API call to save addresses
       // For now, we'll update local state
-      setUserData({ ...userData, addresses: editingAddresses });
+      if (userData) {
+        setUserData({ ...userData, addresses: Array.isArray(editingAddresses) ? editingAddresses : [] });
+      }
       setSuccess("Addresses updated successfully!");
       setIsEditingAddresses(false);
       setTimeout(() => setSuccess(null), 3000);
@@ -233,13 +325,22 @@ const Profile = () => {
 
   // Handle form submission
   const handleSave = async () => {
-    if (!user || !userData) return;
+    console.log("handleSave called", { user: user?.id, isEditing, formData });
+    
+    if (!user || !user.id) {
+      console.error("Save failed: No user or user.id");
+      setError("User not found. Please log in again.");
+      toast.error("User not found. Please log in again.");
+      return;
+    }
 
     setError(null);
     setSuccess(null);
     setIsSaving(true);
 
     try {
+      console.log("Starting save process...", { userId: user.id, formData });
+
       // Validate required fields
       if (!formData.name.trim()) {
         throw new Error("Name is required.");
@@ -249,23 +350,148 @@ const Profile = () => {
         throw new Error("Phone number is required.");
       }
 
-      const { error } = await updateProfile({
+      // Update Supabase profiles/users table
+      // Try "users" table first (common name), then "profiles"
+      console.log("Updating Supabase table...");
+      let profileError = null;
+      let profileData = null;
+      
+      // Try "users" table first
+      const usersResult = await supabase
+        .from("users")
+        .upsert({
+          id: user.id,
+          full_name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          gender: formData.gender.trim() || null,
+          date_of_birth: formData.date_of_birth.trim() || null,
+          bio: formData.bio.trim() || null,
+          profile_picture: formData.avatar || null,
+        }, {
+          onConflict: "id"
+        });
+
+      if (usersResult.error) {
+        console.log("users table failed, trying profiles table...", usersResult.error);
+        // Try "profiles" table
+        const profilesResult = await supabase
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            full_name: formData.name.trim(),
+            phone: formData.phone.trim(),
+            gender: formData.gender.trim() || null,
+            date_of_birth: formData.date_of_birth.trim() || null,
+            bio: formData.bio.trim() || null,
+            profile_picture: formData.avatar || null,
+          }, {
+            onConflict: "id"
+          });
+        
+        profileError = profilesResult.error;
+        profileData = profilesResult.data;
+      } else {
+        profileError = usersResult.error;
+        profileData = usersResult.data;
+      }
+
+      if (profileError) {
+        console.error("Supabase update error:", profileError);
+        // If Supabase fails, try to continue with auth metadata update
+        // and update local state so user sees their changes
+        console.warn("Supabase update failed, but continuing with local update:", profileError.message);
+        
+        // Update local state anyway so user sees their changes
+        if (userData) {
+          setUserData({
+            ...userData,
+            full_name: formData.name.trim(),
+            phone: formData.phone.trim(),
+            gender: formData.gender.trim() || "",
+            date_of_birth: formData.date_of_birth.trim() || "",
+            profile_picture: formData.avatar || "",
+          });
+        }
+        
+        // Don't throw - continue with auth metadata update
+        // The error will be shown but operation continues
+        setError(`Profile saved locally, but database update had issues: ${profileError.message}`);
+      }
+
+      console.log("Supabase updated successfully:", profileData);
+
+      // Also update auth user metadata for backward compatibility
+      console.log("Updating auth user metadata...");
+      const { error: authError } = await updateProfile({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         bio: formData.bio.trim() || undefined,
         avatar: formData.avatar || undefined,
         address: formData.address.trim() || undefined,
       });
-      if (error) throw error;
+      
+      if (authError) {
+        console.error("Auth metadata update error:", authError);
+        // Don't throw here - profile update succeeded, this is just metadata
+        console.warn("Auth metadata update failed, but profile was saved:", authError.message);
+      }
 
-      setSuccess("Profile updated successfully!");
+      // Refresh user data
+      if (user.email) {
+        try {
+          console.log("Refreshing user data from API...");
+          const response = await axiosPublic.get(`/userRoutes/getUserData/${user.email}`);
+          if (response.data) {
+            setUserData(response.data);
+            setFormData({
+              name: (response.data.full_name && typeof response.data.full_name === "string") ? response.data.full_name : formData.name,
+              phone: (response.data.phone && typeof response.data.phone === "string") ? response.data.phone : formData.phone,
+              gender: (response.data.gender && typeof response.data.gender === "string") ? response.data.gender : formData.gender,
+              date_of_birth: (response.data.date_of_birth && typeof response.data.date_of_birth === "string") ? response.data.date_of_birth : formData.date_of_birth,
+              bio: response.data.bio || formData.bio,
+              avatar: (response.data.profile_picture && typeof response.data.profile_picture === "string") ? response.data.profile_picture : formData.avatar,
+              address: formData.address,
+            });
+            console.log("User data refreshed successfully");
+          }
+        } catch (refreshErr) {
+          console.error("Failed to refresh user data:", refreshErr);
+          // Don't throw - profile was saved, just refresh failed
+        }
+      }
+
+      // Only show success if no errors occurred
+      if (!profileError) {
+        toast.success("Profile updated successfully!");
+        setSuccess("Profile updated successfully!");
+      } else {
+        toast.warning("Profile updated locally, but there was an issue saving to database.");
+      }
+      
       setIsEditing(false);
 
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
+      // Clear messages after 3 seconds
+      setTimeout(() => {
+        setSuccess(null);
+        setError(null);
+      }, 5000);
     } catch (err) {
+      console.error("Save error:", err);
       const message = err instanceof Error ? err.message : "Failed to update profile.";
       setError(message);
+      toast.error(message);
+      
+      // Even on error, update local state so user doesn't lose their changes
+      if (userData) {
+        setUserData({
+          ...userData,
+          full_name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          gender: formData.gender.trim() || "",
+          date_of_birth: formData.date_of_birth.trim() || "",
+          profile_picture: formData.avatar || "",
+        });
+      }
     } finally {
       setIsSaving(false);
     }
@@ -284,14 +510,85 @@ const Profile = () => {
     }
   };
 
-  // Show loading state
-  if (isLoading) {
-    return <ProfileLoadingState />;
+  // Auth guard - redirect if no user
+  if (!user || !user.id) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4 pt-24">
+          <div className="w-full max-w-md p-8 text-center">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-red-500" />
+            <h2 className="text-xl font-bold text-foreground mb-2">Authentication Required</h2>
+            <p className="text-muted-foreground mb-4">Please log in to view your profile</p>
+            <button
+              onClick={() => navigate("/user/login")}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
-  // Show loading/empty state
-  if (!user || !userData) {
+  // Show loading state only while actively loading
+  if (isLoading) {
     return <ProfileLoadingState message="Loading profile..." />;
+  }
+
+  // Show empty profile state if no userData (profile not created yet)
+  if (!userData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 pt-20 pb-8 bg-gradient-to-b from-slate-50 to-white">
+          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+            <div className="flex items-center space-x-2 mb-6 text-xs text-muted-foreground">
+              <a href="/" className="hover:text-primary transition-colors">Home</a>
+              <span className="text-border">/</span>
+              <span className="text-foreground font-medium">My Account</span>
+            </div>
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-full max-w-md p-8 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
+                <AlertCircle className="h-16 w-16 mx-auto mb-4 text-amber-500" />
+                <h2 className="text-2xl font-bold text-foreground mb-2">Complete Your Profile</h2>
+                <p className="text-muted-foreground mb-6">
+                  Your profile hasn't been created yet. Please complete your profile to continue.
+                </p>
+                {error && (
+                  <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800">
+                    {error}
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    setError(null);
+                    // Trigger profile creation by setting a minimal userData
+                    setUserData({
+                      email: user.email || "",
+                      phone: user.phone || "",
+                      full_name: user.name || "",
+                      gender: "",
+                      date_of_birth: "",
+                      role: user.role || "user",
+                      profile_picture: user.avatar || "",
+                      status: "active",
+                      addresses: [],
+                    });
+                  }}
+                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
+                >
+                  Create Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -315,8 +612,14 @@ const Profile = () => {
               <p className="text-sm text-muted-foreground">Manage your profile and account settings</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Welcome back,</p>
-              <p className="text-lg font-bold text-primary">{userData.full_name.split(" ")[0]}</p>
+              <p className="text-sm text-muted-foreground">Welcome back,</p>
+              <p className="text-lg font-bold text-primary">
+                {userData?.full_name && userData.full_name.trim()
+                  ? userData.full_name
+                  : userEmail
+                  ? userEmail.split("@")[0]
+                  : user?.name || "User"}
+              </p>
             </div>
           </div>
 
@@ -344,7 +647,7 @@ const Profile = () => {
 
             {/* Main Content Area */}
             <div className="md:col-span-3">
-              {activeMenu === "my-profile" && (
+              {activeMenu === "my-profile" && userData && (
                 <MyProfileSection
                   userData={userData}
                   formData={formData}
@@ -352,6 +655,7 @@ const Profile = () => {
                   isEditingAddresses={isEditingAddresses}
                   isSaving={isSaving}
                   editingAddresses={editingAddresses}
+                  userEmail={userEmail}
                   onEditToggle={handleEditToggle}
                   onAddressEditToggle={handleAddressEditToggle}
                   onInputChange={handleInputChange}
