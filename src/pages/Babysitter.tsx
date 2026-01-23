@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
+import { useNavigate } from "react-router-dom";
 import {
   Activity,
   Baby,
@@ -105,6 +106,12 @@ const testimonials = [
 ];
 
 const Babysitter = () => {
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    navigate("/search/workers?serviceType=babysitter");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/70 via-white to-purple-50/40 flex flex-col">
       <Header />
@@ -191,7 +198,7 @@ const Babysitter = () => {
                   </div>
                 ))}
               </div>
-              <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">Schedule</Button>
+              <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600" onClick={handleBookNow}>Schedule</Button>
             </div>
             <div className="relative flex justify-center md:justify-end">
               <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 shadow-lg ring-1 ring-white/60">
@@ -258,6 +265,7 @@ const Babysitter = () => {
                   <CardContent className="mt-auto">
                     <Button 
                       size="sm" 
+                      onClick={handleBookNow}
                       className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-medium"
                     >
                       Schedule Now
@@ -297,7 +305,11 @@ const Babysitter = () => {
                       <div className="font-semibold text-foreground">${sitter.price}</div>
                       <p className="text-xs text-muted-foreground">per hour</p>
                     </div>
-                    <Button size="sm" className="bg-orange-500 text-white shadow-sm hover:bg-orange-600">
+                    <Button 
+                      size="sm" 
+                      onClick={handleBookNow}
+                      className="bg-orange-500 text-white shadow-sm hover:bg-orange-600"
+                    >
                       Schedule
                     </Button>
                   </div>
