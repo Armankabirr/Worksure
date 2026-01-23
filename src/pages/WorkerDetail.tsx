@@ -84,30 +84,50 @@ const DatePickerComponent = ({ selectedDate, onDateChange, minDate, maxDate }: a
      const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
      const emptyDays = getDay(monthStart);
 
-     const minDateObj = new Date(minDate);
-     const maxDateObj = new Date(maxDate);
+     // Parse min/max dates properly to avoid timezone issues
+     const [minYear, minMonth, minDay] = minDate.split("-").map(Number);
+     const minDateObj = new Date(minYear, minMonth - 1, minDay);
+     
+     const [maxYear, maxMonth, maxDay] = maxDate.split("-").map(Number);
+     const maxDateObj = new Date(maxYear, maxMonth - 1, maxDay);
 
      const handleDateSelect = (day: number) => {
           const selected = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-          const dateString = selected.toISOString().split("T")[0];
+          // Use local date formatting to avoid timezone issues
+          const year = selected.getFullYear();
+          const month = String(selected.getMonth() + 1).padStart(2, "0");
+          const dayStr = String(selected.getDate()).padStart(2, "0");
+          const dateString = `${year}-${month}-${dayStr}`;
           onDateChange(dateString);
           setShowCalendar(false);
      };
 
      const isPastDate = (day: number) => {
           const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-          return date < minDateObj;
+          // Set time to start of day for proper comparison
+          date.setHours(0, 0, 0, 0);
+          const minDateCopy = new Date(minDateObj);
+          minDateCopy.setHours(0, 0, 0, 0);
+          return date < minDateCopy;
      };
 
      const isFutureDate = (day: number) => {
           const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-          return date > maxDateObj;
+          // Set time to start of day for proper comparison
+          date.setHours(0, 0, 0, 0);
+          const maxDateCopy = new Date(maxDateObj);
+          maxDateCopy.setHours(0, 0, 0, 0);
+          return date > maxDateCopy;
      };
 
      const isSelected = (day: number) => {
           if (!selectedDate) return false;
           const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-          const dateString = date.toISOString().split("T")[0];
+          // Use local date formatting to avoid timezone issues
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const dayStr = String(date.getDate()).padStart(2, "0");
+          const dateString = `${year}-${month}-${dayStr}`;
           return dateString === selectedDate;
      };
 
@@ -371,6 +391,8 @@ const WorkerDetail = () => {
      const [selectedAddress, setSelectedAddress] = useState("");
      const [showHireDialog, setShowHireDialog] = useState(false);
      const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+     const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+     const [availabilityStatus, setAvailabilityStatus] = useState<{ available: boolean; message: string } | null>(null);
 
 
      useEffect(() => {
@@ -428,10 +450,11 @@ const WorkerDetail = () => {
 
           setIsSubmittingOrder(true);
           try {
+               const mergedDateTime = `${selectedDate}T${selectedTime}`;
                const orderData = {
                     client_email: user.email,
                     worker_id: worker.id,
-                    selected_time: dateTime.toISOString(),
+                    selected_time: mergedDateTime,
                     address: selectedAddress.trim(),
                     description: description.trim(),
                     total_amount: worker.worker_services[0]?.base_price || "0",
@@ -453,6 +476,45 @@ const WorkerDetail = () => {
                toast.error(err instanceof Error ? err.message : "Failed to create order. Please try again.");
           } finally {
                setIsSubmittingOrder(false);
+          }
+     };
+
+     const handleCheckAvailability = async () => {
+          if (!selectedDate || !selectedTime) {
+               toast.error("Please select both date and time");
+               return;
+          }
+
+          if (!worker) {
+               toast.error("Worker information not found");
+               return;
+          }
+
+          setIsCheckingAvailability(true);
+          try {
+               const mergedDateTime = `${selectedDate}T${selectedTime}`;
+               const response = await axiosPublic.post("/userRoutes/checkWorkerAvailability", {
+                    workerId: worker.id,
+                    selectedTime: mergedDateTime,
+               });
+
+               const data = response.data;
+               setAvailabilityStatus({
+                    available: data.available,
+                    message: data.message,
+               });
+
+               if (data.available) {
+                    toast.success(data.message);
+               } else {
+                    toast.error(data.message);
+               }
+          } catch (err) {
+               console.error("Error checking availability:", err);
+               toast.error("Failed to check availability. Please try again.");
+               setAvailabilityStatus(null);
+          } finally {
+               setIsCheckingAvailability(false);
           }
      };
 
@@ -517,13 +579,13 @@ const WorkerDetail = () => {
           timeZone: "UTC"
      });
 
-     // Get min date (today)
-     const today = new Date().toISOString().split("T")[0];
+     // Get min date (today) - use local date formatting to avoid timezone issues
+     const now = new Date();
+     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-     // Get max date (30 days from today)
-     const maxDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0];
+     // Get max date (15 days from today) - use local date formatting
+     const maxDateObj = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+     const maxDate = `${maxDateObj.getFullYear()}-${String(maxDateObj.getMonth() + 1).padStart(2, "0")}-${String(maxDateObj.getDate()).padStart(2, "0")}`;
 
      // Get current time in HH:MM format
      const getCurrentTime = () => {
@@ -777,12 +839,12 @@ const WorkerDetail = () => {
                                                             Hire Now
                                                        </Button>
                                                   </DialogTrigger>
-                                                  <DialogContent className="max-w-2xl">
+                                                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                                                        <DialogHeader>
                                                             <DialogTitle>Schedule Your Booking</DialogTitle>
                                                        </DialogHeader>
 
-                                                       <div className="space-y-6 py-4">
+                                                       <div className="space-y-4 py-4">
                                                             {/* Date and Time Selection */}
                                                             <div className="grid grid-cols-2 gap-6 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 shadow-md">
                                                                  {/* Date Selection - Calendar Picker */}
@@ -803,6 +865,45 @@ const WorkerDetail = () => {
                                                                       getCurrentTime={getCurrentTime}
                                                                  />
                                                             </div>
+
+                                                            {/* Check Availability Button */}
+                                                            {selectedDate && selectedTime && (
+                                                                 <div className="flex gap-2">
+                                                                      <Button
+                                                                           onClick={handleCheckAvailability}
+                                                                           disabled={isCheckingAvailability}
+                                                                           className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                                                      >
+                                                                           {isCheckingAvailability ? (
+                                                                                <>
+                                                                                     <BeatLoader color="#ffffff" size={4} />
+                                                                                     <span className="ml-2">Checking...</span>
+                                                                                </>
+                                                                           ) : (
+                                                                                "Check Availability"
+                                                                           )}
+                                                                      </Button>
+                                                                 </div>
+                                                            )}
+
+                                                            {/* Availability Status */}
+                                                            {availabilityStatus && (
+                                                                 <div
+                                                                      className={`p-3 rounded-lg border ${
+                                                                           availabilityStatus.available
+                                                                                ? "bg-green-50 border-green-200"
+                                                                                : "bg-red-50 border-red-200"
+                                                                      }`}
+                                                                 >
+                                                                      <p
+                                                                           className={`text-sm font-medium ${
+                                                                                availabilityStatus.available ? "text-green-700" : "text-red-700"
+                                                                           }`}
+                                                                      >
+                                                                           {availabilityStatus.available ? "✓" : "✗"} {availabilityStatus.message}
+                                                                      </p>
+                                                                 </div>
+                                                            )}
 
                                                             {/* Address Input */}
                                                             <div className="space-y-2">
