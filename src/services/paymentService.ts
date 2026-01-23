@@ -161,7 +161,7 @@ export const paymentService = {
   ): Promise<any> {
     try {
       const response = await axiosPublic.post(
-        `/admin/payments/${paymentId}/refund`,
+        `/paymentRoutes/refund/${paymentId}`,
         {
           refundReason,
           ...(refundAmount && { refundAmount }),

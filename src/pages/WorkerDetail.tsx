@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from "date-fns";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertCircle, MapPin, Phone, Mail, Star, CheckCircle2, Calendar, Clock } from "lucide-react";
+import { AlertCircle, MapPin, Phone, Mail, Star, CheckCircle2, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { BeatLoader } from "react-spinners";
 import { useCart } from "@/hooks/useCart";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
@@ -73,6 +73,288 @@ interface WorkerProfile {
      }>;
      reviews_reviews_worker_idTousers: Array<any>;
 }
+
+// Beautiful Date Picker Component
+const DatePickerComponent = ({ selectedDate, onDateChange, minDate, maxDate }: any) => {
+     const [currentMonth, setCurrentMonth] = useState(new Date());
+     const [showCalendar, setShowCalendar] = useState(false);
+
+     const monthStart = startOfMonth(currentMonth);
+     const monthEnd = endOfMonth(currentMonth);
+     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+     const emptyDays = getDay(monthStart);
+
+     const minDateObj = new Date(minDate);
+     const maxDateObj = new Date(maxDate);
+
+     const handleDateSelect = (day: number) => {
+          const selected = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+          const dateString = selected.toISOString().split("T")[0];
+          onDateChange(dateString);
+          setShowCalendar(false);
+     };
+
+     const isPastDate = (day: number) => {
+          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+          return date < minDateObj;
+     };
+
+     const isFutureDate = (day: number) => {
+          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+          return date > maxDateObj;
+     };
+
+     const isSelected = (day: number) => {
+          if (!selectedDate) return false;
+          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+          const dateString = date.toISOString().split("T")[0];
+          return dateString === selectedDate;
+     };
+
+     return (
+          <div className="space-y-2 relative">
+               <Label className="font-semibold text-gray-700 flex items-center">
+                    <Calendar className="w-5 h-5 inline-block mr-2 text-blue-600" />
+                    Select Date
+               </Label>
+               <button
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    className="w-full px-4 py-2.5 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-blue-400 transition-colors text-left font-medium text-gray-700"
+               >
+                    {selectedDate ? format(new Date(selectedDate), "MMM dd, yyyy") : "Select a date"}
+               </button>
+               {showCalendar && (
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-blue-300 rounded-lg shadow-lg p-4 z-50 w-full">
+                         <div className="flex justify-between items-center mb-4">
+                              <h3 className="font-semibold text-gray-800">{format(currentMonth, "MMMM yyyy")}</h3>
+                              <div className="flex gap-1">
+                                   <button
+                                        onClick={() => setCurrentMonth(addDays(currentMonth, -7))}
+                                        className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
+                                   >
+                                        <ChevronLeft className="w-4 h-4 text-blue-600" />
+                                   </button>
+                                   <button
+                                        onClick={() => setCurrentMonth(addDays(currentMonth, 7))}
+                                        className="p-1 hover:bg-blue-100 rounded-lg transition-colors"
+                                   >
+                                        <ChevronRight className="w-4 h-4 text-blue-600" />
+                                   </button>
+                              </div>
+                         </div>
+                         <div className="grid grid-cols-7 gap-2 mb-2">
+                              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                                   <div key={day} className="text-center text-xs font-semibold text-gray-600 h-8 flex items-center justify-center">
+                                        {day}
+                                   </div>
+                              ))}
+                         </div>
+                         <div className="grid grid-cols-7 gap-2">
+                              {Array.from({ length: emptyDays }).map((_, i) => (
+                                   <div key={`empty-${i}`} className="h-8"></div>
+                              ))}
+                              {daysInMonth.map((date, i) => {
+                                   const day = date.getDate();
+                                   const past = isPastDate(day);
+                                   const future = isFutureDate(day);
+                                   const selected = isSelected(day);
+
+                                   return (
+                                        <button
+                                             key={day}
+                                             onClick={() => !past && !future && handleDateSelect(day)}
+                                             disabled={past || future}
+                                             className={`h-8 rounded-lg font-medium text-sm transition-colors ${
+                                                  selected
+                                                       ? "bg-blue-600 text-white"
+                                                       : past || future
+                                                       ? "text-gray-300 cursor-not-allowed"
+                                                       : "text-gray-700 hover:bg-blue-100"
+                                             }`}
+                                        >
+                                             {day}
+                                        </button>
+                                   );
+                              })}
+                         </div>
+                    </div>
+               )}
+               <p className="text-xs text-gray-500">Select from today up to 15 days</p>
+          </div>
+     );
+};
+
+// Beautiful Time Picker Component
+const TimePickerComponent = ({ selectedTime, onTimeChange, selectedDate, today, minTime, getCurrentTime }: any) => {
+     const [showTimePicker, setShowTimePicker] = useState(false);
+     const [hour, setHour] = useState(selectedTime ? parseInt(selectedTime.split(":")[0]) : 9);
+     const [minute, setMinute] = useState(selectedTime ? parseInt(selectedTime.split(":")[1]) : 0);
+
+     const handleTimeSelect = (h: number, m: number) => {
+          // Validate that the time is not in the past for today
+          if (selectedDate === today) {
+               const currentTimeObj = new Date(`2000-01-01T${minTime}`);
+               const selectedTimeObj = new Date(`2000-01-01T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+               if (selectedTimeObj < currentTimeObj) {
+                    toast.error("Cannot select a time in the past");
+                    return;
+               }
+          }
+
+          const timeString = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          onTimeChange(timeString);
+          setShowTimePicker(false);
+     };
+
+     useEffect(() => {
+          if (selectedTime) {
+               const [h, m] = selectedTime.split(":").map(Number);
+               setHour(h);
+               setMinute(m);
+          }
+     }, [selectedTime]);
+
+     const hours = Array.from({ length: 24 }, (_, i) => i);
+     const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+     // Check if a time is valid (not in the past for today)
+     const isTimeValid = (h: number, m: number) => {
+          if (selectedDate !== today) return true;
+          const currentTimeObj = new Date(`2000-01-01T${minTime}`);
+          const selectedTimeObj = new Date(`2000-01-01T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+          return selectedTimeObj >= currentTimeObj;
+     };
+
+     // Check if hour is valid
+     const isHourValid = (h: number) => {
+          if (selectedDate !== today) return true;
+          const minHour = parseInt(minTime.split(":")[0]);
+          return h > minHour || (h === minHour && minute >= parseInt(minTime.split(":")[1]));
+     };
+
+     // Check if minute is valid for current hour
+     const isMinuteValid = (m: number) => {
+          if (selectedDate !== today) return true;
+          const minHour = parseInt(minTime.split(":")[0]);
+          const minMinute = parseInt(minTime.split(":")[1]);
+          
+          if (hour > minHour) return true;
+          if (hour === minHour) return m >= minMinute;
+          return false;
+     };
+
+     return (
+          <div className="space-y-2 relative">
+               <Label className="font-semibold text-gray-700 flex items-center">
+                    <Clock className="w-5 h-5 inline-block mr-2 text-indigo-600" />
+                    Select Time
+               </Label>
+               <button
+                    onClick={() => setShowTimePicker(!showTimePicker)}
+                    disabled={!selectedDate}
+                    className={`w-full px-4 py-2.5 border rounded-lg transition-colors font-medium text-left ${
+                         !selectedDate
+                              ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+                              : "border-indigo-300 bg-white hover:border-indigo-400 focus:ring-2 focus:ring-indigo-500 text-gray-700"
+                    }`}
+               >
+                    {selectedTime || "Select a time"}
+               </button>
+               {showTimePicker && selectedDate && (
+                    <div className="absolute top-full left-0 mt-2 bg-white border border-indigo-300 rounded-lg shadow-lg p-4 z-50 w-full">
+                         <div className="flex justify-between items-center mb-3">
+                              <h3 className="font-semibold text-gray-800">Select Time</h3>
+                              <button
+                                   onClick={() => setShowTimePicker(false)}
+                                   className="text-gray-500 hover:text-gray-700"
+                              >
+                                   ✕
+                              </button>
+                         </div>
+                         <div className="flex gap-4 justify-center items-center">
+                              {/* Hour Picker */}
+                              <div className="flex flex-col items-center">
+                                   <p className="text-xs text-gray-600 mb-2">Hour</p>
+                                   <div className="border border-indigo-300 rounded-lg overflow-hidden flex flex-col h-32">
+                                        <div className="overflow-y-auto flex flex-col">
+                                             {hours.map((h) => {
+                                                  const isValid = isHourValid(h);
+                                                  return (
+                                                       <button
+                                                            key={h}
+                                                            onClick={() => setHour(h)}
+                                                            disabled={!isValid}
+                                                            className={`px-3 py-2 text-sm font-medium transition-colors ${
+                                                                 hour === h
+                                                                      ? "bg-indigo-600 text-white"
+                                                                      : !isValid
+                                                                      ? "text-gray-300 cursor-not-allowed"
+                                                                      : "text-gray-700 hover:bg-indigo-100"
+                                                            }`}
+                                                       >
+                                                            {String(h).padStart(2, "0")}
+                                                       </button>
+                                                  );
+                                             })}
+                                        </div>
+                                   </div>
+                              </div>
+                              <div className="text-2xl font-bold text-gray-400">:</div>
+                              {/* Minute Picker */}
+                              <div className="flex flex-col items-center">
+                                   <p className="text-xs text-gray-600 mb-2">Minute</p>
+                                   <div className="border border-indigo-300 rounded-lg overflow-hidden flex flex-col h-32">
+                                        <div className="overflow-y-auto flex flex-col">
+                                             {minutes.map((m) => {
+                                                  const isValid = isMinuteValid(m);
+                                                  return (
+                                                       <button
+                                                            key={m}
+                                                            onClick={() => setMinute(m)}
+                                                            disabled={!isValid}
+                                                            className={`px-3 py-2 text-sm font-medium transition-colors ${
+                                                                 minute === m
+                                                                      ? "bg-indigo-600 text-white"
+                                                                      : !isValid
+                                                                      ? "text-gray-300 cursor-not-allowed"
+                                                                      : "text-gray-700 hover:bg-indigo-100"
+                                                            }`}
+                                                       >
+                                                            {String(m).padStart(2, "0")}
+                                                       </button>
+                                                  );
+                                             })}
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                         <div className="flex gap-2 mt-4">
+                              <button
+                                   onClick={() => setShowTimePicker(false)}
+                                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                              >
+                                   Cancel
+                              </button>
+                              <button
+                                   onClick={() => handleTimeSelect(hour, minute)}
+                                   disabled={!isTimeValid(hour, minute)}
+                                   className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors ${
+                                        isTimeValid(hour, minute)
+                                             ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                   }`}
+                              >
+                                   Confirm
+                              </button>
+                         </div>
+                    </div>
+               )}
+               <p className="text-xs text-gray-500">
+                    {!selectedDate ? "Select a date first" : selectedDate === today ? `From ${getCurrentTime()} onwards` : "Any time available"}
+               </p>
+          </div>
+     );
+};
 
 const WorkerDetail = () => {
      const { id } = useParams<{ id: string }>();
@@ -137,6 +419,12 @@ const WorkerDetail = () => {
 
           // Combine date and time
           const dateTime = new Date(`${selectedDate}T${selectedTime}`);
+
+          // Validate that booking time is not in the past
+          if (dateTime < new Date()) {
+               toast.error("Cannot book in the past. Please select a future date and time.");
+               return;
+          }
 
           setIsSubmittingOrder(true);
           try {
@@ -237,11 +525,27 @@ const WorkerDetail = () => {
           .toISOString()
           .split("T")[0];
 
+     // Get current time in HH:MM format
+     const getCurrentTime = () => {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, "0");
+          const minutes = String(now.getMinutes()).padStart(2, "0");
+          return `${hours}:${minutes}`;
+     };
+
+     // Calculate minimum allowed time based on selected date
+     const getMinTime = () => {
+          if (selectedDate === today) {
+               return getCurrentTime();
+          }
+          return "00:00";
+     };
+
      return (
           <div className="min-h-screen flex flex-col">
                <Header />
 
-               <main className="flex-1 py-8 px-4 md:px-8">
+               <main className="flex-1 py-8 px-4 md:px-8 pt-28">
                     <div className="max-w-6xl mx-auto">
                          {/* Back Button */}
                          <button
@@ -473,41 +777,30 @@ const WorkerDetail = () => {
                                                             Hire Now
                                                        </Button>
                                                   </DialogTrigger>
-                                                  <DialogContent className="max-w-md">
+                                                  <DialogContent className="max-w-2xl">
                                                        <DialogHeader>
                                                             <DialogTitle>Schedule Your Booking</DialogTitle>
                                                        </DialogHeader>
 
-                                                       <div className="space-y-4 py-4">
-                                                            {/* Date Selection */}
-                                                            <div className="space-y-2">
-                                                                 <Label htmlFor="booking-date" className="font-semibold">
-                                                                      <Calendar className="w-4 h-4 inline-block mr-2" />
-                                                                      Select Date
-                                                                 </Label>
-                                                                 <Input
-                                                                      id="booking-date"
-                                                                      type="date"
-                                                                      value={selectedDate}
-                                                                      onChange={(e) => setSelectedDate(e.target.value)}
-                                                                      min={today}
-                                                                      max={maxDate}
-                                                                      className="w-full"
+                                                       <div className="space-y-6 py-4">
+                                                            {/* Date and Time Selection */}
+                                                            <div className="grid grid-cols-2 gap-6 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 shadow-md">
+                                                                 {/* Date Selection - Calendar Picker */}
+                                                                 <DatePickerComponent 
+                                                                      selectedDate={selectedDate} 
+                                                                      onDateChange={setSelectedDate}
+                                                                      minDate={today}
+                                                                      maxDate={maxDate}
                                                                  />
-                                                            </div>
 
-                                                            {/* Time Selection */}
-                                                            <div className="space-y-2">
-                                                                 <Label htmlFor="booking-time" className="font-semibold">
-                                                                      <Clock className="w-4 h-4 inline-block mr-2" />
-                                                                      Select Time
-                                                                 </Label>
-                                                                 <Input
-                                                                      id="booking-time"
-                                                                      type="time"
-                                                                      value={selectedTime}
-                                                                      onChange={(e) => setSelectedTime(e.target.value)}
-                                                                      className="w-full"
+                                                                 {/* Time Selection - Time Picker */}
+                                                                 <TimePickerComponent 
+                                                                      selectedTime={selectedTime}
+                                                                      onTimeChange={setSelectedTime}
+                                                                      selectedDate={selectedDate}
+                                                                      today={today}
+                                                                      minTime={getMinTime()}
+                                                                      getCurrentTime={getCurrentTime}
                                                                  />
                                                             </div>
 

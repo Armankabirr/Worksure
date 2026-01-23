@@ -142,6 +142,7 @@ const AdminPayments: React.FC = () => {
   const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [showFlagDialog, setShowFlagDialog] = useState(false);
   const [refundReason, setRefundReason] = useState('');
+  const [refundAmount, setRefundAmount] = useState<number | string>('');
   const [flagReason, setFlagReason] = useState('');
   const [noteText, setNoteText] = useState('');
   const [refunding, setRefunding] = useState(false);
@@ -283,13 +284,25 @@ const AdminPayments: React.FC = () => {
   };
 
   const handleRefund = async () => {
-    if (!selectedPayment || !refundReason.trim()) return;
+    if (!selectedPayment || !refundReason.trim() || !refundAmount) return;
+
+    const amount = typeof refundAmount === 'string' ? parseFloat(refundAmount) : refundAmount;
+    
+    if (isNaN(amount) || amount <= 0 || amount > selectedPayment.amount) {
+      toast({
+        title: 'Invalid Amount',
+        description: 'Please enter a valid refund amount between 0 and ৳' + selectedPayment.amount.toLocaleString(),
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setRefunding(true);
     try {
       await paymentService.refundPayment(
         selectedPayment.payment_id,
-        refundReason
+        refundReason,
+        amount
       );
 
       toast({
@@ -301,6 +314,7 @@ const AdminPayments: React.FC = () => {
       loadData();
       setShowRefundDialog(false);
       setRefundReason('');
+      setRefundAmount('');
       setShowDetailModal(false);
     } catch (error: any) {
       toast({
@@ -840,6 +854,22 @@ const AdminPayments: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Refund Amount (৳)</label>
+              <Input
+                type="number"
+                placeholder="Enter refund amount"
+                value={refundAmount}
+                onChange={(e) => setRefundAmount(e.target.value)}
+                min="0"
+                max={selectedPayment?.amount}
+                step="0.01"
+                className="text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                Max amount: ৳{selectedPayment?.amount.toLocaleString()}
+              </p>
+            </div>
             <Textarea
               placeholder="Enter reason for refund..."
               value={refundReason}
@@ -850,7 +880,7 @@ const AdminPayments: React.FC = () => {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <Button
                 onClick={handleRefund}
-                disabled={!refundReason.trim() || refunding}
+                disabled={!refundReason.trim() || !refundAmount || refunding}
                 className="bg-red-600 hover:bg-red-700"
               >
                 {refunding ? (
