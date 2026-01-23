@@ -203,7 +203,7 @@ const AdminPayments: React.FC = () => {
       // Load payments
       const paymentsResponse = await paymentService.getPayments(filters);
       console.log("Payment details: ", paymentsResponse);
-      
+
       // Handle paginated response format
       if (paymentsResponse.data && paymentsResponse.pagination) {
         // Paginated response with pagination metadata
@@ -435,7 +435,7 @@ const AdminPayments: React.FC = () => {
           <CardTitle className="text-lg">Filter & Search</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -505,22 +505,7 @@ const AdminPayments: React.FC = () => {
                 <SelectItem value="status">Status</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="mt-3 flex items-center justify-between text-sm">
-            <p className="text-gray-600">
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Loading payments...
-                </span>
-              ) : (
-                <>
-                  Showing {paginatedPayments.length > 0 ? 1 : 0} to{' '}
-                  {Math.min(itemsPerPage, filteredPayments.length)} of {filteredPayments.length} payments
-                </>
-              )}
-            </p>
+            <div className="text-sm">
             <Button
               variant="outline"
               size="sm"
@@ -529,6 +514,7 @@ const AdminPayments: React.FC = () => {
               <ArrowUpDown className="w-4 h-4 mr-1" />
               {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
             </Button>
+          </div>
           </div>
         </CardContent>
       </Card>
@@ -644,7 +630,7 @@ const AdminPayments: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Pagination */}
+{/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
           Page {currentPage} of {totalPages || 1} • Total: {totalCount} payments
@@ -770,7 +756,7 @@ const AdminPayments: React.FC = () => {
                 </div>
               )}
 
-              {/* Admin Notes */}
+              {/* Admin Notes
               <div className="bg-green-50 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">Admin Notes</h4>
                 <div className="space-y-2">
@@ -805,7 +791,7 @@ const AdminPayments: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Action Buttons */}
               <div className="flex gap-2 flex-wrap">
@@ -820,14 +806,14 @@ const AdminPayments: React.FC = () => {
                       Refund
                     </Button>
 
-                    <Button
+                    {/* <Button
                       size="sm"
                       variant="outline"
                       onClick={() => setShowFlagDialog(true)}
                     >
                       <Flag className="w-4 h-4 mr-2" />
                       Flag Payment
-                    </Button>
+                    </Button> */}
                   </>
                 )}
 
