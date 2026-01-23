@@ -194,9 +194,17 @@ const Babysitter = () => {
               <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">Schedule</Button>
             </div>
             <div className="relative flex justify-center md:justify-end">
-              <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 p-4 shadow-md">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-white/20" />
-                <img src={pregnantImage} alt="Pregnancy Assistance" className="relative h-64 w-64 max-w-full object-contain" />
+              <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 shadow-lg ring-1 ring-white/60">
+                <iframe 
+                  width="100%"
+                  height="320"
+                  src="https://www.youtube.com/embed/gscjA46is7I?autoplay=1&mute=1&loop=1&playlist=gscjA46is7I"
+                  title="Pregnancy Assistance Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="relative rounded-[24px] max-w-md"
+                />
               </div>
             </div>
           </div>
