@@ -1,5 +1,5 @@
 import { MouseEvent, useEffect, useState, useRef } from "react";
-import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby } from "lucide-react";
+import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby, LogOut } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
@@ -10,39 +10,42 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import worksureLogo from "@/assets/Logo.png";
 
-// Helper function to get dashboard route based on user role
-const getDashboardRoute = (role: string): string => {
-  switch (role) {
-    case "admin":
-      return "/admin";
-    case "worker":
-      return "/worker/dashboard";
-    case "user":
-    default:
-      return "/profile";
-  }
-};
-
 const Header = () => {
   const {
     isAuthenticated,
-    user,
     loginOpen,
     registerOpen,
     openLogin,
     openRegister,
     closeLogin,
     closeRegister,
+    logout,
   } = useAuth();
   const { totalItems } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const [localUser, setLocalUser] = useState<any>(null);
   const serviceDropdownRef = useRef<HTMLDivElement>(null);
   const serviceTriggerRef = useRef<HTMLAnchorElement>(null);
   const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Get user from localStorage
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setLocalUser(JSON.parse(storedUser));
+      } else {
+        setLocalUser(null);
+      }
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      setLocalUser(null);
+    }
+  }, []);
 
   // Smooth scroll helper that accounts for the fixed header height
   const scrollToSection = (targetId: string) => {
@@ -91,6 +94,24 @@ const Header = () => {
   };
 
   const closeMobile = () => setMobileOpen(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+    setMobileOpen(false);
+  };
+
+  const getDashboardRoute = (role: string): string => {
+    switch (role) {
+      case "admin":
+        return "/admin";
+      case "worker":
+        return "/worker/dashboard";
+      case "client":
+      default:
+        return "/profile";
+    }
+  };
 
   const isActive = (hash: string) => {
     return location.hash === `#${hash}` || (hash === "home" && !location.hash && location.pathname === "/");
@@ -152,507 +173,516 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-20 items-center justify-between">
-          {/* Branding */}
-          <div className="flex items-center">
-            <Link 
-              to="/" 
-              className="group flex items-center gap-2.5 transition-all duration-200"
-            >
-              <img 
-                src={worksureLogo} 
-                alt="WorkSure" 
-                className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 object-contain transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm"
-              />
-              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm inline-block">
-                WorkSure
-              </span>
-            </Link>
-          </div>
+            {/* Branding */}
+            <div className="flex items-center">
+              <Link
+                to="/"
+                className="group flex items-center gap-2.5 transition-all duration-200"
+              >
+                <img
+                  src={worksureLogo}
+                  alt="WorkSure"
+                  className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0 object-contain transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm"
+                />
+                <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-sm inline-block">
+                  WorkSure
+                </span>
+              </Link>
+            </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 relative">
-            <a 
-              href="#home" 
-              onClick={(event) => handleScroll(event, "home")} 
-              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                isActive("home")
-                  ? "text-primary"
-                  : "text-foreground/70 hover:text-foreground"
-              }`}
-            >
-              Home
-              {isActive("home") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
-              )}
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
-            </a>
-
-            <div 
-              className="relative"
-              onMouseEnter={handleServiceMouseEnter}
-              onMouseLeave={handleServiceMouseLeave}
-            >
-              <a 
-                ref={serviceTriggerRef}
-                href="#service" 
-                onClick={(event) => handleScroll(event, "service")} 
-                className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                  isActive("service")
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1 relative">
+              <a
+                href="#home"
+                onClick={(event) => handleScroll(event, "home")}
+                className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${isActive("home")
                     ? "text-primary"
                     : "text-foreground/70 hover:text-foreground"
-                } ${serviceDropdownOpen ? "text-primary" : ""}`}
+                  }`}
               >
-                Service
-                {isActive("service") && (
+                Home
+                {isActive("home") && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
                 )}
-                <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-center ${
-                  serviceDropdownOpen ? "scale-x-100" : "scale-x-0"
-                }`}></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
               </a>
-              <div 
-                ref={serviceDropdownRef}
-                className={`absolute left-1/2 -translate-x-1/2 top-[calc(100%+0.5rem)] w-[520px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] border border-border/40 z-[100] overflow-hidden transition-all duration-200 ease-out ${
-                  serviceDropdownOpen
-                    ? "opacity-100 visible translate-y-0 pointer-events-auto"
-                    : "opacity-0 invisible translate-y-[-4px] pointer-events-none"
-                }`}
+
+              <div
+                className="relative"
+                onMouseEnter={handleServiceMouseEnter}
+                onMouseLeave={handleServiceMouseLeave}
               >
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Link 
-                      to="/electrician" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <Zap className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          Electrician
+                <a
+                  ref={serviceTriggerRef}
+                  href="#service"
+                  onClick={(event) => handleScroll(event, "service")}
+                  className={`relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${isActive("service")
+                      ? "text-primary"
+                      : "text-foreground/70 hover:text-foreground"
+                    } ${serviceDropdownOpen ? "text-primary" : ""}`}
+                >
+                  Service
+                  {isActive("service") && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+                  )}
+                  <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-transform duration-200 origin-center ${serviceDropdownOpen ? "scale-x-100" : "scale-x-0"
+                    }`}></span>
+                </a>
+                <div
+                  ref={serviceDropdownRef}
+                  className={`absolute left-1/2 -translate-x-1/2 top-[calc(100%+0.5rem)] w-[520px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] border border-border/40 z-[100] overflow-hidden transition-all duration-200 ease-out ${serviceDropdownOpen
+                      ? "opacity-100 visible translate-y-0 pointer-events-auto"
+                      : "opacity-0 invisible translate-y-[-4px] pointer-events-none"
+                    }`}
+                >
+                  <div className="p-6">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Link
+                        to="/electrician"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <Zap className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Fixes, wiring, and electrical safety
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            Electrician
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Fixes, wiring, and electrical safety
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
 
-                    <Link 
-                      to="/cleaner" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <Sparkles className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          Cleaner
+                      <Link
+                        to="/cleaner"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <Sparkles className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Deep cleaning and maintenance
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            Cleaner
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Deep cleaning and maintenance
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
 
-                    <Link 
-                      to="/ac-doctor" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <Wind className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          AC Doctor
+                      <Link
+                        to="/ac-doctor"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <Wind className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Installation, repair, and maintenance
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            AC Doctor
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Installation, repair, and maintenance
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
 
-                    <Link 
-                      to="/pet-caring" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <Heart className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          Pet Care
+                      <Link
+                        to="/pet-caring"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <Heart className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Pet sitting and care services
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            Pet Care
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Pet sitting and care services
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
 
-                    <Link 
-                      to="/catering" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <UtensilsCrossed className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          Catering
+                      <Link
+                        to="/catering"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <UtensilsCrossed className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Event catering and meal prep
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            Catering
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Event catering and meal prep
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
 
-                    <Link 
-                      to="/babysitter" 
-                      className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
-                    >
-                      <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
-                        <Baby className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
-                          Babysitter
+                      <Link
+                        to="/babysitter"
+                        className="group/item flex items-start gap-4 p-4 rounded-xl hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10 transition-all duration-200 cursor-pointer border border-transparent hover:border-primary/20"
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200 group-hover/item:scale-110">
+                          <Baby className="h-6 w-6 text-primary group-hover/item:text-primary transition-colors duration-200" />
                         </div>
-                        <div className="text-sm text-muted-foreground leading-relaxed">
-                          Trusted childcare professionals
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base text-foreground group-hover/item:text-primary transition-colors duration-200 mb-1">
+                            Babysitter
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            Trusted childcare professionals
+                          </div>
                         </div>
-                      </div>
-                    </Link>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <Link 
-              to="/about"
-              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                location.pathname === "/about"
-                  ? "text-primary"
-                  : "text-foreground/70 hover:text-foreground"
-              }`}
-            >
-              About
-              {location.pathname === "/about" && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
-              )}
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
-            </Link>
-
-            <a 
-              href="#contact" 
-              onClick={(event) => handleScroll(event, "contact")} 
-              className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                isActive("contact")
-                  ? "text-primary"
-                  : "text-foreground/70 hover:text-foreground"
-              }`}
-            >
-              Contact
-              {isActive("contact") && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
-              )}
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
-            </a>
-          </nav>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-              onClick={() => navigate("/cart")}
-            >
-              <ShoppingCart className="h-5 w-5 transition-transform duration-200 hover:scale-110" />
-              {totalItems > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold shadow-sm"
-                >
-                  {totalItems}
-                </Badge>
-              )}
-            </Button>
-
-            {isAuthenticated ? (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-10 w-10 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200" 
-                type="button" 
-                aria-label="Profile" 
-                onClick={() => navigate(getDashboardRoute(user?.role || "user"))}
+              <Link
+                to="/about"
+                className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${location.pathname === "/about"
+                    ? "text-primary"
+                    : "text-foreground/70 hover:text-foreground"
+                  }`}
               >
-                {user?.avatar ? (
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage className="object-cover" src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                      {user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <div className="h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-full">
-                    <User className="h-5 w-5" />
-                  </div>
+                About
+                {location.pathname === "/about" && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+                )}
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
+              </Link>
+
+              <a
+                href="#contact"
+                onClick={(event) => handleScroll(event, "contact")}
+                className={`group relative px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 ${isActive("contact")
+                    ? "text-primary"
+                    : "text-foreground/70 hover:text-foreground"
+                  }`}
+              >
+                Contact
+                {isActive("contact") && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>
+                )}
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-center"></span>
+              </a>
+            </nav>
+
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                onClick={() => navigate("/cart")}
+              >
+                <ShoppingCart className="h-5 w-5 transition-transform duration-200 hover:scale-110" />
+                {totalItems > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold shadow-sm"
+                  >
+                    {totalItems}
+                  </Badge>
                 )}
               </Button>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="h-10 px-5 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold" 
-                  type="button" 
-                  onClick={openLogin}
-                >
-                  Login
-                </Button>
-                <Button 
-                  variant="default" 
-                  className="h-10 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-semibold" 
-                  type="button" 
-                  onClick={openRegister}
-                >
-                  Sign up
-                </Button>
-              </>
-            )}
-          </div>
 
-          {/* Mobile Actions */}
-          <div className="flex md:hidden items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-              onClick={() => navigate("/cart")}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold"
-                >
-                  {totalItems}
-                </Badge>
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full overflow-hidden hover:ring-2 hover:ring-primary/20 transition-all duration-200"
+                    type="button"
+                    aria-label="Profile"
+                    onClick={() => navigate(getDashboardRoute(localUser?.role || "user"))}
+                  >
+                    {localUser?.profile_picture ? (
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage className="object-cover" src={localUser.profile_picture} alt={localUser.full_name} />
+                      </Avatar>
+                    ) : (
+                      <div className="h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-full">
+                        <User className="h-5 w-5" />
+                      </div>
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+                    type="button"
+                    aria-label="Logout"
+                    onClick={handleLogout}
+                    title="Logout"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    className="h-10 px-5 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold"
+                    type="button"
+                    onClick={openLogin}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="h-10 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-semibold"
+                    type="button"
+                    onClick={openRegister}
+                  >
+                    Sign up
+                  </Button>
+                </>
               )}
-            </Button>
-            <button 
-              onClick={() => setMobileOpen((v) => !v)} 
-              aria-label="Toggle menu" 
-              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-primary/5 transition-all duration-200"
-            >
-              {mobileOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-      </div>
+            </div>
 
-      {/* Mobile Menu Panel */}
-      <div className={`md:hidden bg-white border-t border-border/40 overflow-hidden transition-all duration-200 ease-out ${
-        mobileOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
-      }`}>
-        <div className="px-4 pt-6 pb-8 space-y-1">
-          <a 
-            href="#home" 
-            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'home'); closeMobile(); }} 
-            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
-              isActive("home") 
-                ? "text-primary bg-primary/5" 
-                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            Home
-          </a>
-
-          <div>
-            <a 
-              href="#service" 
-              onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service'); closeMobile(); }} 
-              className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
-                isActive("service") 
-                  ? "text-primary bg-primary/5" 
-                  : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-              }`}
-            >
-              Service
-            </a>
-            <div className="mt-2 ml-4 space-y-2">
-              <Link 
-                to="/electrician" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+            {/* Mobile Actions */}
+            <div className="flex md:hidden items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                onClick={() => navigate("/cart")}
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    Electrician
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Fixes, wiring, and electrical safety
-                  </div>
-                </div>
-              </Link>
-              <Link 
-                to="/cleaner" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                <ShoppingCart className="h-5 w-5" />
+                {totalItems > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold"
+                  >
+                    {totalItems}
+                  </Badge>
+                )}
+              </Button>
+              <button
+                onClick={() => setMobileOpen((v) => !v)}
+                aria-label="Toggle menu"
+                className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-primary/5 transition-all duration-200"
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    Cleaner
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Deep cleaning and maintenance
-                  </div>
-                </div>
-              </Link>
-              <Link 
-                to="/ac-doctor" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <Wind className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    AC Doctor
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Installation, repair, and maintenance
-                  </div>
-                </div>
-              </Link>
-              <Link 
-                to="/pet-caring" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <Heart className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    Pet Care
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Pet sitting and care services
-                  </div>
-                </div>
-              </Link>
-              <Link 
-                to="/catering" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <UtensilsCrossed className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    Catering
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Event catering and meal prep
-                  </div>
-                </div>
-              </Link>
-              <Link 
-                to="/babysitter" 
-                onClick={() => closeMobile()} 
-                className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
-                  <Baby className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
-                    Babysitter
-                  </div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    Trusted childcare professionals
-                  </div>
-                </div>
-              </Link>
+                {mobileOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </div>
+        </div>
 
-          <Link 
-            to="/about"
-            onClick={() => closeMobile()}
-            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
-              location.pathname === "/about"
-                ? "text-primary bg-primary/5"
-                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            About
-          </Link>
+        {/* Mobile Menu Panel */}
+        <div className={`md:hidden bg-white border-t border-border/40 overflow-hidden transition-all duration-200 ease-out ${mobileOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+          <div className="px-4 pt-6 pb-8 space-y-1">
+            <a
+              href="#home"
+              onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'home'); closeMobile(); }}
+              className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${isActive("home")
+                  ? "text-primary bg-primary/5"
+                  : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                }`}
+            >
+              Home
+            </a>
 
-          <a 
-            href="#contact" 
-            onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'contact'); closeMobile(); }} 
-            className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${
-              isActive("contact") 
-                ? "text-primary bg-primary/5" 
-                : "text-foreground/70 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            Contact
-          </a>
-
-          <div className="pt-4 mt-4 border-t border-border/40">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3 px-4 py-3">
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name} 
-                    className="h-10 w-10 object-cover rounded-full ring-2 ring-primary/20" 
-                  />
-                ) : (
-                  <div className="h-10 w-10 flex items-center justify-center bg-primary rounded-full text-white">
-                    <User className="h-5 w-5" />
+            <div>
+              <a
+                href="#service"
+                onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'service'); closeMobile(); }}
+                className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${isActive("service")
+                    ? "text-primary bg-primary/5"
+                    : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                  }`}
+              >
+                Service
+              </a>
+              <div className="mt-2 ml-4 space-y-2">
+                <Link
+                  to="/electrician"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <Zap className="h-5 w-5 text-primary" />
                   </div>
-                )}
-                <div className="flex-1">
-                  <button 
-                    onClick={() => { navigate(getDashboardRoute(user?.role || "user")); closeMobile(); }} 
-                    className="text-left text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200"
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      Electrician
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Fixes, wiring, and electrical safety
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  to="/cleaner"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      Cleaner
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Deep cleaning and maintenance
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  to="/ac-doctor"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <Wind className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      AC Doctor
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Installation, repair, and maintenance
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  to="/pet-caring"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <Heart className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      Pet Care
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Pet sitting and care services
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  to="/catering"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <UtensilsCrossed className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      Catering
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Event catering and meal prep
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  to="/babysitter"
+                  onClick={() => closeMobile()}
+                  className="group/item flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 group-hover/item:bg-primary/20 flex items-center justify-center transition-all duration-200">
+                    <Baby className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="font-semibold text-sm text-foreground group-hover/item:text-primary transition-colors duration-200 mb-0.5">
+                      Babysitter
+                    </div>
+                    <div className="text-xs text-muted-foreground leading-relaxed">
+                      Trusted childcare professionals
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            <Link
+              to="/about"
+              onClick={() => closeMobile()}
+              className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${location.pathname === "/about"
+                  ? "text-primary bg-primary/5"
+                  : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                }`}
+            >
+              About
+            </Link>
+
+            <a
+              href="#contact"
+              onClick={(e: MouseEvent<HTMLAnchorElement>) => { handleScroll(e, 'contact'); closeMobile(); }}
+              className={`block px-4 py-3 text-base font-semibold rounded-lg transition-all duration-200 ${isActive("contact")
+                  ? "text-primary bg-primary/5"
+                  : "text-foreground/70 hover:text-primary hover:bg-primary/5"
+                }`}
+            >
+              Contact
+            </a>
+
+            <div className="pt-4 mt-4 border-t border-border/40">
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {localUser?.profile_picture ? (
+                      <img
+                        src={localUser.profile_picture}
+                        alt={localUser.full_name}
+                        className="h-10 w-10 object-cover rounded-full ring-2 ring-primary/20"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 flex items-center justify-center bg-primary rounded-full text-white">
+                        <User className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <button
+                        onClick={() => { navigate(getDashboardRoute(localUser?.role || "user")); closeMobile(); }}
+                        className="text-left text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200"
+                      >
+                        View profile
+                      </button>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 font-semibold flex items-center justify-center gap-2"
+                    onClick={handleLogout}
                   >
-                    View profile
-                  </button>
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2 px-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full h-11 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold" 
-                  onClick={() => { openLogin(); closeMobile(); }}
-                >
-                  Login
-                </Button>
-                <Button 
-                  variant="default" 
-                  className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold" 
-                  onClick={() => { openRegister(); closeMobile(); }}
-                >
-                  Sign up
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col gap-2 px-4">
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold"
+                    onClick={() => { openLogin(); closeMobile(); }}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                    onClick={() => { openRegister(); closeMobile(); }}
+                  >
+                    Sign up
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
         <LoginDialog open={loginOpen} onOpenChange={(open) => (open ? openLogin() : closeLogin())} onSwitchToRegister={handleSwitchToRegister} />
         <RegisterDialog open={registerOpen} onOpenChange={(open) => (open ? openRegister() : closeRegister())} onSwitchToLogin={handleSwitchToLogin} />
