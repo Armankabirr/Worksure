@@ -43,6 +43,7 @@ import AdminUsers from "./pages/Dashboard/admin/AdminUsers";
 import AdminWorkers from "./pages/Dashboard/admin/AdminWorkers";
 import AdminServices from "./pages/Dashboard/admin/AdminServices";
 import AdminBookings from "./pages/Dashboard/admin/AdminBookings";
+import AdminBookingDetails from "./pages/Dashboard/admin/AdminBookingDetails";
 import AdminPayments from "./pages/Dashboard/admin/AdminPayments";
 import AdminReviews from "./pages/Dashboard/admin/AdminReviews";
 import AdminComplaints from "./pages/Dashboard/admin/AdminComplaints";
@@ -134,6 +135,7 @@ const App = () => {
                 <Route path="workers" element={<AdminWorkers />} />
                 <Route path="services" element={<AdminServices />} />
                 <Route path="bookings" element={<AdminBookings />} />
+                <Route path="bookings/:booking_id" element={<AdminBookingDetails />} />
                 <Route path="payments" element={<AdminPayments />} />
                 <Route path="reviews" element={<AdminReviews />} />
                 <Route path="complaints" element={<AdminComplaints />} />

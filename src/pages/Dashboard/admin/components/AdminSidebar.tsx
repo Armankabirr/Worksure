@@ -35,7 +35,6 @@ const navItems: NavItem[] = [
   { label: 'Payments', icon: CreditCard, href: '/admin/payments' },
   { label: 'Reviews', icon: Star, href: '/admin/reviews' },
   { label: 'Complaints', icon: MessageSquare, href: '/admin/complaints' },
-  { label: 'Addresses', icon: MapPin, href: '/admin/addresses' },
   { label: 'Reports', icon: FileText, href: '/admin/reports' },
   { label: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
