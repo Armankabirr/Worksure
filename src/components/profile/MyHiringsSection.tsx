@@ -28,6 +28,7 @@ import {
 import { Hiring } from "@/types/profile";
 import { HiringPricingDialog } from "./HiringPricingDialog";
 import { PaymentDialog } from "./PaymentDialog";
+import { ComplaintDialog } from "@/components/ComplaintDialog";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -281,11 +282,17 @@ const MyHiringsSection = ({
       />
 
       {/* Complain Dialog */}
-      <ComplainDialog
-        open={complainDialogOpen}
-        onOpenChange={setComplainDialogOpen}
-        selectedHiring={selectedHiring}
-      />
+      {selectedHiring && (
+        <ComplaintDialog
+          open={complainDialogOpen}
+          onOpenChange={setComplainDialogOpen}
+          orderId={selectedHiring.id}
+          orderDescription={selectedHiring.description}
+          otherPartyId={selectedHiring.assigned_worker_id}
+          otherPartyName={selectedHiring.users_orders_assigned_worker_idTousers?.full_name}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </Card>
   );
 };
@@ -781,119 +788,6 @@ const ReviewDialog = ({ open, onOpenChange, selectedHiring }: ReviewDialogProps)
                 </>
               ) : (
                 "Submit Review"
-              )}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// Complain Dialog Component
-interface ComplainDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedHiring: Hiring | null;
-}
-
-const ComplainDialog = ({ open, onOpenChange, selectedHiring }: ComplainDialogProps) => {
-  const [complaint, setComplaint] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!complaint.trim()) {
-      toast.error("Please write your complaint");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // TODO: Add API call for complaint submission
-      // await axiosPublic.post("/userRoutes/createComplaint", complaintData);
-      
-      toast.success("Complaint submitted successfully!");
-      setComplaint("");
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting complaint:", error);
-      toast.error("Failed to submit complaint. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleClose = () => {
-    setComplaint("");
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Flag className="h-5 w-5 text-red-600" />
-            File a Complaint
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          {/* Order Info */}
-          {selectedHiring && (
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-              <p className="text-xs text-muted-foreground mb-1">Order ID</p>
-              <p className="text-sm font-semibold">{selectedHiring.id.slice(0, 8)}...</p>
-              <p className="text-xs text-muted-foreground mt-2">{selectedHiring.description}</p>
-            </div>
-          )}
-
-          {/* Complaint */}
-          <div className="space-y-2">
-            <Label htmlFor="complaint-text" className="text-sm font-semibold">
-              Describe Your Complaint
-            </Label>
-            <Textarea
-              id="complaint-text"
-              placeholder="Please describe your issue in detail..."
-              value={complaint}
-              onChange={(e) => setComplaint(e.target.value)}
-              className="min-h-32 resize-none"
-              maxLength={500}
-            />
-            <p className="text-xs text-muted-foreground text-right">
-              {complaint.length}/500 characters
-            </p>
-          </div>
-
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs text-amber-800">
-              <strong>Note:</strong> Your complaint will be reviewed by our support team within 24-48 hours.
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-red-600 hover:bg-red-700"
-              onClick={handleSubmit}
-              disabled={isSubmitting || !complaint.trim()}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Complaint"
               )}
             </Button>
           </div>
