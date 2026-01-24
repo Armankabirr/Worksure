@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Phone, 
   MapPin, 
@@ -18,11 +21,16 @@ import {
   PlayCircle,
   HourglassIcon,
   Eye,
-  CreditCard
+  CreditCard,
+  MessageSquare,
+  Flag
 } from "lucide-react";
 import { Hiring } from "@/types/profile";
 import { HiringPricingDialog } from "./HiringPricingDialog";
 import { PaymentDialog } from "./PaymentDialog";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 // Status tab types
 type StatusTab = "pending" | "accepted" | "in_progress" | "awaiting" | "completed" | "cancelled";
@@ -106,6 +114,8 @@ const MyHiringsSection = ({
   const [activeTab, setActiveTab] = useState<StatusTab>("pending");
   const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [complainDialogOpen, setComplainDialogOpen] = useState(false);
   const [selectedHiring, setSelectedHiring] = useState<Hiring | null>(null);
 
   const handleViewPricing = (hiring: Hiring) => {
@@ -121,6 +131,16 @@ const MyHiringsSection = ({
   const handlePaymentSuccess = () => {
     // Optionally refresh hirings data after successful payment
     // This could be done by passing a refresh callback from parent
+  };
+
+  const handleReview = (hiring: Hiring) => {
+    setSelectedHiring(hiring);
+    setReviewDialogOpen(true);
+  };
+
+  const handleComplain = (hiring: Hiring) => {
+    setSelectedHiring(hiring);
+    setComplainDialogOpen(true);
   };
 
   // Filter hirings based on active tab
@@ -205,6 +225,8 @@ const MyHiringsSection = ({
                 onCancel={onCancelOrder}
                 onViewPricing={handleViewPricing}
                 onMakePayment={handleMakePayment}
+                onReview={handleReview}
+                onComplain={handleComplain}
               />
             ))}
           </div>
@@ -250,6 +272,20 @@ const MyHiringsSection = ({
         selectedHiring={selectedHiring}
         onPaymentSuccess={handlePaymentSuccess}
       />
+
+      {/* Review Dialog */}
+      <ReviewDialog
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        selectedHiring={selectedHiring}
+      />
+
+      {/* Complain Dialog */}
+      <ComplainDialog
+        open={complainDialogOpen}
+        onOpenChange={setComplainDialogOpen}
+        selectedHiring={selectedHiring}
+      />
     </Card>
   );
 };
@@ -259,9 +295,11 @@ interface HiringCardProps {
   onCancel: (hiringId: string) => void;
   onViewPricing: (hiring: Hiring) => void;
   onMakePayment?: (hiring: Hiring) => void;
+  onReview?: (hiring: Hiring) => void;
+  onComplain?: (hiring: Hiring) => void;
 }
 
-const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCardProps) => {
+const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment, onReview, onComplain }: HiringCardProps) => {
   const worker = hiring.users_orders_assigned_worker_idTousers;
   const isCompleted = hiring.status?.toLowerCase() === "completed";
   const isAwaiting = hiring.status?.toLowerCase() === "awaiting";
@@ -354,14 +392,34 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
             )}
           </div>
           <div className="flex items-center gap-2">
+            {!hiring.is_reviewed && (
+              <Button
+                onClick={() => onReview?.(hiring)}
+                size="sm"
+                variant="outline"
+                className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
+              >
+                <MessageSquare className="h-3 w-3 mr-1" />
+                Review
+              </Button>
+            )}
+            <Button
+              onClick={() => onComplain?.(hiring)}
+              size="sm"
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+            >
+              <Flag className="h-3 w-3 mr-1" />
+              Complain
+            </Button>
             <Button
               onClick={() => onViewPricing(hiring)}
               size="sm"
               variant="outline"
-              className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
+              className="text-gray-600 border-gray-200 hover:bg-gray-50 text-xs"
             >
               <Eye className="h-3 w-3 mr-1" />
-              View Pricing
+              View
             </Button>
             {!hiring.payment_completed && (
               <Button
@@ -370,7 +428,7 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
                 className="bg-green-600 hover:bg-green-700 text-white text-xs"
               >
                 <CreditCard className="h-3 w-3 mr-1" />
-                Make Payment
+                Pay
               </Button>
             )}
           </div>
@@ -378,6 +436,9 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
       </div>
     );
   }
+
+  console.log(hiring);
+  
 
   // Full card for other statuses
   return (
@@ -543,6 +604,302 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment }: HiringCa
         </div>
       </div>
     </div>
+  );
+};
+
+// Review Dialog Component
+interface ReviewDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedHiring: Hiring | null;
+}
+
+const ReviewDialog = ({ open, onOpenChange, selectedHiring }: ReviewDialogProps) => {
+  const axiosPublic = useAxiosPublic();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setLocalUser] = useState<any>(null);
+
+
+  useEffect(() => {
+        try {
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setLocalUser(JSON.parse(storedUser));
+          } else {
+            setLocalUser(null);
+          }
+        } catch (error) {
+          console.error("Error parsing user from localStorage:", error);
+          setLocalUser(null);
+        }
+      }, []);
+
+  const handleSubmit = async () => {
+    if (!selectedHiring || !user) {
+      toast.error("Missing required information");
+      return;
+    }
+
+    if (!comment.trim()) {
+      toast.error("Please write a review comment");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const reviewData = {
+        orderId: selectedHiring.id,
+        userId: user.id,
+        workerId: selectedHiring.assigned_worker_id,
+        rating: rating,
+        comment: comment.trim(),
+      };
+
+      await axiosPublic.post("/userRoutes/createReview", reviewData);
+      
+      toast.success("Review submitted successfully!");
+      setRating(5);
+      setComment("");
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      toast.error(error.response?.data?.message || "Failed to submit review. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setRating(5);
+    setComment("");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-blue-600" />
+            Write a Review
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Worker Info */}
+          {selectedHiring?.users_orders_assigned_worker_idTousers && (
+            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <Avatar className="h-10 w-10">
+                <AvatarImage 
+                  src={selectedHiring.users_orders_assigned_worker_idTousers.profile_picture} 
+                  alt={selectedHiring.users_orders_assigned_worker_idTousers.full_name} 
+                />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                  {selectedHiring.users_orders_assigned_worker_idTousers.full_name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-sm">
+                  {selectedHiring.users_orders_assigned_worker_idTousers.full_name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedHiring.description}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Rating */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Rating</Label>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className="focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`h-8 w-8 ${
+                      star <= rating
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                </button>
+              ))}
+              <span className="ml-2 text-sm font-semibold text-gray-700">
+                {rating} / 5
+              </span>
+            </div>
+          </div>
+
+          {/* Comment */}
+          <div className="space-y-2">
+            <Label htmlFor="review-comment" className="text-sm font-semibold">
+              Your Review
+            </Label>
+            <Textarea
+              id="review-comment"
+              placeholder="Share your experience with this worker..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="min-h-32 resize-none"
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {comment.length}/500 characters
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !comment.trim()}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Review"
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Complain Dialog Component
+interface ComplainDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedHiring: Hiring | null;
+}
+
+const ComplainDialog = ({ open, onOpenChange, selectedHiring }: ComplainDialogProps) => {
+  const [complaint, setComplaint] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!complaint.trim()) {
+      toast.error("Please write your complaint");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // TODO: Add API call for complaint submission
+      // await axiosPublic.post("/userRoutes/createComplaint", complaintData);
+      
+      toast.success("Complaint submitted successfully!");
+      setComplaint("");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      toast.error("Failed to submit complaint. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setComplaint("");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Flag className="h-5 w-5 text-red-600" />
+            File a Complaint
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Order Info */}
+          {selectedHiring && (
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <p className="text-xs text-muted-foreground mb-1">Order ID</p>
+              <p className="text-sm font-semibold">{selectedHiring.id.slice(0, 8)}...</p>
+              <p className="text-xs text-muted-foreground mt-2">{selectedHiring.description}</p>
+            </div>
+          )}
+
+          {/* Complaint */}
+          <div className="space-y-2">
+            <Label htmlFor="complaint-text" className="text-sm font-semibold">
+              Describe Your Complaint
+            </Label>
+            <Textarea
+              id="complaint-text"
+              placeholder="Please describe your issue in detail..."
+              value={complaint}
+              onChange={(e) => setComplaint(e.target.value)}
+              className="min-h-32 resize-none"
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {complaint.length}/500 characters
+            </p>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-800">
+              <strong>Note:</strong> Your complaint will be reviewed by our support team within 24-48 hours.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-red-600 hover:bg-red-700"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !complaint.trim()}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Complaint"
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

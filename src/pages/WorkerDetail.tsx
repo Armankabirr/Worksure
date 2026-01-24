@@ -963,7 +963,14 @@ const WorkerDetail = () => {
                                                                  </Button>
                                                                  <Button
                                                                       className="flex-1"
-                                                                      disabled={!selectedDate || !selectedTime || !description.trim() || !selectedAddress.trim() || isSubmittingOrder}
+                                                                      disabled={
+                                                                           !selectedDate || 
+                                                                           !selectedTime || 
+                                                                           !description.trim() || 
+                                                                           !selectedAddress.trim() || 
+                                                                           isSubmittingOrder ||
+                                                                           (availabilityStatus && !availabilityStatus.available)
+                                                                      }
                                                                       onClick={handleHire}
                                                                  >
                                                                       {isSubmittingOrder ? (

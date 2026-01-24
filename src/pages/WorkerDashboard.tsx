@@ -76,7 +76,7 @@ import {
 } from "@/components/worker-dashboard";
 
 const WorkerDashboard = () => {
-  const { user, logout, changePassword } = useAuth();
+  const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
   const axiosPublic = useAxiosPublic();
   const { toast } = useToast();
@@ -134,6 +134,7 @@ const WorkerDashboard = () => {
   const [completeRequestId, setCompleteRequestId] = useState<string | null>(null);
   const [extraItems, setExtraItems] = useState<ExtraItem[]>([]);
   const [newExtraItem, setNewExtraItem] = useState({ name: "", quantity: 1, unitPrice: 0 });
+  const [user, setLocalUser] = useState<any>(null);
 
   // Form States
   const [completeForm, setCompleteForm] = useState<CompleteFormData>({
@@ -218,6 +219,20 @@ const WorkerDashboard = () => {
   } = filterWorkHistory(workHistory);
 
   const stats = calculateStats(todaysWorks, confirmedWorks, pendingWorks);
+
+  useEffect(() => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setLocalUser(JSON.parse(storedUser));
+        } else {
+          setLocalUser(null);
+        }
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        setLocalUser(null);
+      }
+    }, []);
 
   // Effects
   useEffect(() => {
