@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
+import { useNavigate } from "react-router-dom";
 import {
   Activity,
   Baby,
@@ -27,12 +28,54 @@ import {
 } from "lucide-react";
 
 const popularServices = [
-  { title: "Hourly babysitting", desc: "Flexible hourly rates for short-term care needs.", image: "https://www.shutterstock.com/image-photo/portrait-cute-little-baby-on-white-600nw-2114251433.jpg", icon: "⏰" },
-  { title: "Full day care", desc: "Complete daylong supervision and activities.", image: "https://media.gettyimages.com/id/1296071477/photo/baby-boy-smiling.jpg?s=612x612&w=0&k=20&c=62XzM-4X9nC9qU8mX_O77G5T_L9G7I_C0i_U7lY2P2A=", icon: "🌞" },
-  { title: "Night care", desc: "Experienced overnight caregivers for peace of mind.", image: "https://images.pexels.com/photos/266011/pexels-photo-266011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500", icon: "🌙" },
-  { title: "Newborn care", desc: "Specialized care for newborns and infants.", image: "https://st2.depositphotos.com/1010613/11267/i/450/depositphotos_112675664-stock-photo-cute-baby-girl.jpg", icon: "👶" },
-  { title: "Playing & Activities", desc: "Engaging games, crafts, and educational activities.", image: "https://cdn.pixabay.com/photo/2015/01/05/11/02/baby-589002_1280.jpg", icon: "🎮" },
-  { title: "Homework help", desc: "Tutoring and educational support for school assignments.", image: "https://www.parents.com/thmb/p9zR6P0L8y7l6-6w8i-o6-8-0-o/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/cute-baby-names-1-4191632f057e4e89921b798782782b79.jpg", icon: "📚" },
+  { 
+    title: "Hourly babysitting", 
+    desc: "Flexible hourly rates for short-term care needs.", 
+    image: "src/assets/baby-images/baby-1.jpg",
+    icon: Clock,
+    benefits: ["Flexible scheduling", "Affordable rates"],
+    color: "from-orange-400"
+  },
+  { 
+    title: "Full day care", 
+    desc: "Complete daylong supervision and activities.", 
+    image: "src/assets/baby-images/baby-2.png",
+    icon: Sun,
+    benefits: ["Full supervision", "Meal planning"],
+    color: "from-yellow-400"
+  },
+  { 
+    title: "Night care", 
+    desc: "Experienced overnight caregivers for peace of mind.", 
+    image: "src/assets/baby-images/baby-3.webp",
+    icon: Moon,
+    benefits: ["24/7 monitoring", "Safe environment"],
+    color: "from-indigo-400"
+  },
+  { 
+    title: "Newborn care", 
+    desc: "Specialized care for newborns and infants.", 
+    image: "src/assets/baby-images/baby-4.jfif",
+    icon: Baby,
+    benefits: ["Professional training", "Gentle care"],
+    color: "from-pink-400"
+  },
+  { 
+    title: "Playing & Activities", 
+    desc: "Engaging games, crafts, and educational activities.", 
+    image: "src/assets/baby-images/baby-5.jfif",
+    icon: Play,
+    benefits: ["Creative play", "Learning fun"],
+    color: "from-green-400"
+  },
+  { 
+    title: "Homework help", 
+    desc: "Tutoring and educational support for school assignments.", 
+    image: "src/assets/baby-images/baby-6.webp",
+    icon: GraduationCap,
+    benefits: ["Expert tutoring", "Academic growth"],
+    color: "from-blue-400"
+  },
 ];
 
 const sitterProfiles = [
@@ -63,6 +106,12 @@ const testimonials = [
 ];
 
 const Babysitter = () => {
+  const navigate = useNavigate();
+
+  const handleBookNow = () => {
+    navigate("/search/workers?serviceType=babysitter");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/70 via-white to-purple-50/40 flex flex-col">
       <Header />
@@ -149,12 +198,20 @@ const Babysitter = () => {
                   </div>
                 ))}
               </div>
-              <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600">Schedule</Button>
+              <Button className="bg-orange-500 text-white shadow-md hover:bg-orange-600" onClick={handleBookNow}>Schedule</Button>
             </div>
             <div className="relative flex justify-center md:justify-end">
-              <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 p-4 shadow-md">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-white/20" />
-                <img src={pregnantImage} alt="Pregnancy Assistance" className="relative h-64 w-64 max-w-full object-contain" />
+              <div className="relative inline-flex items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-orange-50 to-fuchsia-50 shadow-lg ring-1 ring-white/60">
+                <iframe 
+                  width="100%"
+                  height="320"
+                  src="https://www.youtube.com/embed/gscjA46is7I?autoplay=1&mute=1&loop=1&playlist=gscjA46is7I"
+                  title="Pregnancy Assistance Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="relative rounded-[24px] max-w-md"
+                />
               </div>
             </div>
           </div>
@@ -170,20 +227,48 @@ const Babysitter = () => {
           </div>
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {popularServices.map((service) => {
+              const Icon = service.icon;
               return (
-                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl overflow-hidden group">
-                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-orange-100 to-orange-50">
-                    <img src={service.image} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    <div className="absolute top-3 right-3 text-4xl bg-white/90 p-2 rounded-full shadow-md">{service.icon}</div>
+                <Card key={service.title} className="border border-orange-100/70 bg-white/90 shadow-md transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl overflow-hidden group flex flex-col">
+                  {/* Image Container with Overlay */}
+                  <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-100">
+                    <img 
+                      src={service.image} 
+                      alt={service.title} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    />
+                    {/* Gradient Overlay */}
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent opacity-60 group-hover:opacity-50 transition-opacity duration-300`} />
+                    
+                    {/* Icon Badge */}
+                    <div className={`absolute top-4 right-4 bg-gradient-to-br ${service.color} to-white/20 p-3 rounded-full shadow-lg backdrop-blur-sm border border-white/30 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
+
+                    {/* Quick Benefits Chips */}
+                    <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {service.benefits.map((benefit, idx) => (
+                        <span key={idx} className="text-xs px-2 py-1 rounded-full bg-white/90 text-foreground font-medium shadow-sm">
+                          {benefit}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Content */}
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-bold text-foreground group-hover:text-orange-600 transition-colors">{service.title}</CardTitle>
+                    <CardTitle className="text-lg font-bold text-foreground group-hover:text-orange-600 transition-colors duration-300">{service.title}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground leading-relaxed">{service.desc}</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <Button size="sm" className="w-full bg-orange-500 text-white shadow-sm hover:bg-orange-600 transition-all duration-200">
-                      Schedule
+
+                  {/* Footer with Button */}
+                  <CardContent className="mt-auto">
+                    <Button 
+                      size="sm" 
+                      onClick={handleBookNow}
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md hover:shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-medium"
+                    >
+                      Schedule Now
                     </Button>
                   </CardContent>
                 </Card>
@@ -220,7 +305,11 @@ const Babysitter = () => {
                       <div className="font-semibold text-foreground">${sitter.price}</div>
                       <p className="text-xs text-muted-foreground">per hour</p>
                     </div>
-                    <Button size="sm" className="bg-orange-500 text-white shadow-sm hover:bg-orange-600">
+                    <Button 
+                      size="sm" 
+                      onClick={handleBookNow}
+                      className="bg-orange-500 text-white shadow-sm hover:bg-orange-600"
+                    >
                       Schedule
                     </Button>
                   </div>

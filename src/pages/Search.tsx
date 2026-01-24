@@ -65,6 +65,20 @@ const serviceConfig: Record<string, {
       }));
     },
   },
+  babysitter: {
+    label: "Babysitter",
+    heading: "Find Trusted Babysitters Near You",
+    subheading: "Select your babysitting service need and location to find experienced caregivers",
+    ctaText: "Find Babysitters",
+    getSubcategories: () => [
+      { value: "hourly-babysitting", label: "Hourly Babysitting" },
+      { value: "full-day-care", label: "Full Day Care" },
+      { value: "night-care", label: "Night Care" },
+      { value: "newborn-care", label: "Newborn Care" },
+      { value: "activities-play", label: "Playing & Activities" },
+      { value: "homework-help", label: "Homework Help" },
+    ],
+  },
 };
 
 const Search = () => {
