@@ -29,8 +29,8 @@ import { Hiring } from "@/types/profile";
 import { HiringPricingDialog } from "./HiringPricingDialog";
 import { PaymentDialog } from "./PaymentDialog";
 import { ComplaintDialog } from "@/components/ComplaintDialog";
+import { ComplaintDetailsDialog } from "@/components/ComplaintDetailsDialog";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
-import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 // Status tab types
@@ -117,6 +117,7 @@ const MyHiringsSection = ({
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [complainDialogOpen, setComplainDialogOpen] = useState(false);
+  const [complainDetailsDialogOpen, setComplainDetailsDialogOpen] = useState(false);
   const [selectedHiring, setSelectedHiring] = useState<Hiring | null>(null);
 
   const handleViewPricing = (hiring: Hiring) => {
@@ -141,7 +142,13 @@ const MyHiringsSection = ({
 
   const handleComplain = (hiring: Hiring) => {
     setSelectedHiring(hiring);
-    setComplainDialogOpen(true);
+    if (hiring.is_complained) {
+      // If already complained, show complaint details
+      setComplainDetailsDialogOpen(true);
+    } else {
+      // If not complained yet, show complaint form
+      setComplainDialogOpen(true);
+    }
   };
 
   // Filter hirings based on active tab
@@ -293,6 +300,15 @@ const MyHiringsSection = ({
           onSuccess={handlePaymentSuccess}
         />
       )}
+
+      {/* Complaint Details Dialog */}
+      {selectedHiring && (
+        <ComplaintDetailsDialog
+          open={complainDetailsDialogOpen}
+          onOpenChange={setComplainDetailsDialogOpen}
+          bookingId={selectedHiring.complain_id}
+        />
+      )}
     </Card>
   );
 };
@@ -410,15 +426,27 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment, onReview, 
                 Review
               </Button>
             )}
-            <Button
-              onClick={() => onComplain?.(hiring)}
-              size="sm"
-              variant="outline"
-              className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
-            >
-              <Flag className="h-3 w-3 mr-1" />
-              Complain
-            </Button>
+            {hiring.is_complained ? (
+              <Button
+                onClick={() => onComplain?.(hiring)}
+                size="sm"
+                variant="outline"
+                className="text-orange-600 border-orange-200 hover:bg-orange-50 text-xs"
+              >
+                <Flag className="h-3 w-3 mr-1" />
+                View Complain
+              </Button>
+            ) : (
+              <Button
+                onClick={() => onComplain?.(hiring)}
+                size="sm"
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+              >
+                <Flag className="h-3 w-3 mr-1" />
+                Complain
+              </Button>
+            )}
             <Button
               onClick={() => onViewPricing(hiring)}
               size="sm"
@@ -443,9 +471,6 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment, onReview, 
       </div>
     );
   }
-
-  console.log(hiring);
-  
 
   // Full card for other statuses
   return (

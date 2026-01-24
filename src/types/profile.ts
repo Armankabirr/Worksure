@@ -46,6 +46,8 @@ export interface Hiring {
   status: string;
   total_amount: number;
   payment_completed: boolean;
+  is_reviewed?: boolean;
+  is_complained?: boolean;
   created_at: string;
   work_start: string;
   work_end: string;

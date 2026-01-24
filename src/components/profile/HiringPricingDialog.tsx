@@ -224,7 +224,7 @@ export const HiringPricingDialog = ({
                          </div>
                     ) : awaitingDetails ? (
                          <Tabs defaultValue="overview" className="w-full">
-                              <TabsList className="grid w-full grid-cols-5">
+                              <TabsList className="grid w-full grid-cols-5 bg-gray-300">
                                    <TabsTrigger value="overview">Overview</TabsTrigger>
                                    <TabsTrigger value="pricing">Pricing</TabsTrigger>
                                    <TabsTrigger value="worker">Worker</TabsTrigger>
