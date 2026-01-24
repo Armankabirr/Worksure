@@ -19,6 +19,8 @@ export interface ApiServiceRequest {
   status?: string | null;
   total_amount?: number | null;
   payment_completed?: boolean | null;
+  is_reviewed?: boolean;
+  is_complained?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   work_start?: string | null;

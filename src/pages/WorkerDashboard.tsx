@@ -74,6 +74,8 @@ import {
   PricingBreakdownDialog,
   CancelReasonDialog,
 } from "@/components/worker-dashboard";
+import { ComplaintDetailsDialog } from "@/components/ComplaintDetailsDialog";
+import { HiringPricingDialog } from "@/components/profile/HiringPricingDialog";
 
 const WorkerDashboard = () => {
   const { logout, changePassword } = useAuth();
@@ -96,6 +98,8 @@ const WorkerDashboard = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+  const [complainDetailsDialogOpen, setComplainDetailsDialogOpen] = useState(false);
+  const [selectedWork, setSelectedWork] = useState<ApiServiceRequest | null>(null);
 
   // Loading States
   const [actionLoading, setActionLoading] = useState(false);
@@ -565,6 +569,11 @@ const WorkerDashboard = () => {
     setCancelDialogOpen(true);
   }
 
+  const handleViewComplaint = (work: ApiServiceRequest) => {
+    setSelectedWork(work);
+    setComplainDetailsDialogOpen(true);
+  };
+
   async function confirmCancelRequest() {
     if (!cancelRequestId) return;
     if (!cancelReason.trim()) {
@@ -877,6 +886,7 @@ const WorkerDashboard = () => {
             onViewPricing={openPricingDialog}
             onStartWork={startWork}
             onConfirmPayment={confirmPayment}
+            onViewComplaint={handleViewComplaint}
           />
         );
       case "account":
@@ -1138,10 +1148,17 @@ const WorkerDashboard = () => {
         }}
       />
 
-      <PricingBreakdownDialog
+      <ComplaintDetailsDialog
+        open={complainDetailsDialogOpen}
+        onOpenChange={setComplainDetailsDialogOpen}
+        bookingId={selectedWork?.complain_id || ""}
+      />
+
+      <HiringPricingDialog
         open={pricingDialogOpen}
         onOpenChange={setPricingDialogOpen}
-        selectedWork={selectedPricingWork}
+        selectedHiring={selectedPricingWork as any}
+        userRole="worker"
       />
 
       <CancelReasonDialog

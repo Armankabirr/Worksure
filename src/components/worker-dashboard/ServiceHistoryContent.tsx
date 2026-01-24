@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { History, CheckCircle, Loader2, DollarSign, Play, BadgeCheck } from "lucide-react";
+import { History, CheckCircle, Loader2, DollarSign, Play, BadgeCheck, Eye, Flag } from "lucide-react";
 import { ApiServiceRequest } from "@/types/workerDashboard";
 import {
   isCompletedStatus,
@@ -25,6 +25,7 @@ interface ServiceHistoryContentProps {
   onViewPricing: (work: ApiServiceRequest) => void;
   onStartWork: (id: string) => void;
   onConfirmPayment: (id: string) => void;
+  onViewComplaint?: (work: ApiServiceRequest) => void;
 }
 
 export const ServiceHistoryContent = ({
@@ -41,6 +42,7 @@ export const ServiceHistoryContent = ({
   onViewPricing,
   onStartWork,
   onConfirmPayment,
+  onViewComplaint,
 }: ServiceHistoryContentProps) => {
   // Safety: ensure workHistory is always an array
   const safeWorkHistory = Array.isArray(workHistory) ? workHistory : [];
@@ -121,7 +123,9 @@ export const ServiceHistoryContent = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.description || "-"}
+                    <span className="max-w-[150px] inline-block truncate" title={item.description || "-"}>
+                      {item.description || "-"}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.selected_time
@@ -233,8 +237,8 @@ export const ServiceHistoryContent = ({
                             className="text-green-600 border-green-200 px-3"
                             onClick={() => onViewPricing(item)}
                           >
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            View Pricing
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Button>
                           {!item.payment_completed && (
                             <Button
@@ -245,6 +249,17 @@ export const ServiceHistoryContent = ({
                             >
                               <BadgeCheck className="h-4 w-4 mr-1" />
                               Confirm Payment
+                            </Button>
+                          )}
+                          {item.is_complained && onViewComplaint && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 px-3"
+                              onClick={() => onViewComplaint(item)}
+                            >
+                              <Flag className="h-4 w-4 mr-1" />
+                              View Complain
                             </Button>
                           )}
                         </div>

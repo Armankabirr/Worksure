@@ -113,8 +113,9 @@ interface AwaitingDetailsResponse {
 interface HiringPricingDialogProps {
      open: boolean;
      onOpenChange: (open: boolean) => void;
-     selectedHiring: Hiring | null;
+     selectedHiring: Hiring | null | (Omit<Hiring, 'worker'> & { worker?: Worker });
      onConfirmSuccess?: () => void;
+     userRole?: 'client' | 'worker';
 }
 
 export const HiringPricingDialog = ({
@@ -122,6 +123,7 @@ export const HiringPricingDialog = ({
      onOpenChange,
      selectedHiring,
      onConfirmSuccess,
+     userRole = 'client',
 }: HiringPricingDialogProps) => {
      const axiosPublic = useAxiosPublic();
      const [loading, setLoading] = useState(false);
@@ -147,7 +149,7 @@ export const HiringPricingDialog = ({
                const response = await axiosPublic.get<AwaitingDetailsResponse>(
                     `/orderRoutes/orders/${selectedHiring.id}/awaitingDetails`
                );
-               setAwaitingDetails(response.data?.order);
+               setAwaitingDetails(response.data);
           } catch (err) {
                console.error("Error fetching awaiting details:", err);
                setError("Failed to load pricing details");
@@ -227,7 +229,7 @@ export const HiringPricingDialog = ({
                               <TabsList className="grid w-full grid-cols-5 bg-gray-300">
                                    <TabsTrigger value="overview">Overview</TabsTrigger>
                                    <TabsTrigger value="pricing">Pricing</TabsTrigger>
-                                   <TabsTrigger value="worker">Worker</TabsTrigger>
+                                   <TabsTrigger value="worker">{userRole === 'worker' ? 'Client' : 'Worker'}</TabsTrigger>
                                    <TabsTrigger value="payment">Payment</TabsTrigger>
                                    <TabsTrigger value="reviews">Reviews</TabsTrigger>
                               </TabsList>
@@ -429,74 +431,118 @@ export const HiringPricingDialog = ({
                                    </div>
                               </TabsContent>
 
-                              {/* Worker Tab */}
+                              {/* Worker/Client Tab */}
                               <TabsContent value="worker" className="space-y-4">
-                                   {awaitingDetails.users_orders_assigned_worker_idTousers && (
-                                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                             <div className="flex items-start gap-4">
-                                                  <Avatar className="h-16 w-16 border-2 border-blue-200">
-                                                       <AvatarImage 
-                                                            src={awaitingDetails.users_orders_assigned_worker_idTousers.profile_picture} 
-                                                            alt={awaitingDetails.users_orders_assigned_worker_idTousers.full_name} 
-                                                       />
-                                                       <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
-                                                            {awaitingDetails.users_orders_assigned_worker_idTousers.full_name
-                                                                 .split(" ")
-                                                                 .map((n) => n[0])
-                                                                 .join("")
-                                                                 .toUpperCase()}
-                                                       </AvatarFallback>
-                                                  </Avatar>
-                                                  <div className="flex-1">
-                                                       <h3 className="font-semibold text-lg text-gray-900">
-                                                            {awaitingDetails.users_orders_assigned_worker_idTousers.full_name}
-                                                       </h3>
-                                                       {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles && (
-                                                            <>
-                                                                 <p className="text-sm text-gray-600 mb-2">
-                                                                      {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.display_name}
-                                                                 </p>
-                                                                 <div className="flex items-center gap-4 mb-3">
-                                                                      <div className="flex items-center gap-1">
-                                                                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                                           <span className="font-semibold text-sm">
-                                                                                {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.avg_rating}
-                                                                           </span>
-                                                                           <span className="text-xs text-gray-500">
-                                                                                ({awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.total_reviews} reviews)
-                                                                           </span>
-                                                                      </div>
-                                                                      <Badge variant="outline">
-                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.years_experience}+ years exp
-                                                                      </Badge>
-                                                                      {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.verification === 'verified' && (
-                                                                           <Badge className="bg-green-500">Verified</Badge>
-                                                                      )}
+                                   {userRole === 'worker' ? (
+                                        // Show Client Details for Workers
+                                        awaitingDetails.users_orders_client_idTousers && (
+                                             <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                                  <div className="flex items-start gap-4">
+                                                       <Avatar className="h-16 w-16 border-2 border-blue-200">
+                                                            <AvatarImage 
+                                                                 src={awaitingDetails.users_orders_client_idTousers.profile_picture} 
+                                                                 alt={awaitingDetails.users_orders_client_idTousers.full_name} 
+                                                            />
+                                                            <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                                                                 {awaitingDetails.users_orders_client_idTousers.full_name
+                                                                      .split(" ")
+                                                                      .map((n) => n[0])
+                                                                      .join("")
+                                                                      .toUpperCase()}
+                                                            </AvatarFallback>
+                                                       </Avatar>
+                                                       <div className="flex-1">
+                                                            <h3 className="font-semibold text-lg text-gray-900">
+                                                                 {awaitingDetails.users_orders_client_idTousers.full_name}
+                                                            </h3>
+                                                            <p className="text-sm text-gray-600 mb-2">Client</p>
+                                                            <div className="space-y-2 text-sm">
+                                                                 <div className="flex items-center gap-2">
+                                                                      <Phone className="h-4 w-4 text-gray-600" />
+                                                                      <span className="text-gray-700">
+                                                                           {awaitingDetails.users_orders_client_idTousers.phone}
+                                                                      </span>
                                                                  </div>
-                                                                 {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.bio && (
-                                                                      <p className="text-sm text-gray-700 mb-3">
-                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.bio}
-                                                                      </p>
-                                                                 )}
-                                                            </>
-                                                       )}
-                                                       <div className="space-y-2 text-sm">
-                                                            <div className="flex items-center gap-2">
-                                                                 <Phone className="h-4 w-4 text-gray-600" />
-                                                                 <span className="text-gray-700">
-                                                                      {awaitingDetails.users_orders_assigned_worker_idTousers.phone}
-                                                                 </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                 <Mail className="h-4 w-4 text-gray-600" />
-                                                                 <span className="text-gray-700">
-                                                                      {awaitingDetails.users_orders_assigned_worker_idTousers.email}
-                                                                 </span>
+                                                                 <div className="flex items-center gap-2">
+                                                                      <Mail className="h-4 w-4 text-gray-600" />
+                                                                      <span className="text-gray-700">
+                                                                           {awaitingDetails.users_orders_client_idTousers.email}
+                                                                      </span>
+                                                                 </div>
                                                             </div>
                                                        </div>
                                                   </div>
                                              </div>
-                                        </div>
+                                        )
+                                   ) : (
+                                        // Show Worker Details for Clients
+                                        awaitingDetails.users_orders_assigned_worker_idTousers && (
+                                             <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                                  <div className="flex items-start gap-4">
+                                                       <Avatar className="h-16 w-16 border-2 border-blue-200">
+                                                            <AvatarImage 
+                                                                 src={awaitingDetails.users_orders_assigned_worker_idTousers.profile_picture} 
+                                                                 alt={awaitingDetails.users_orders_assigned_worker_idTousers.full_name} 
+                                                            />
+                                                            <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                                                                 {awaitingDetails.users_orders_assigned_worker_idTousers.full_name
+                                                                      .split(" ")
+                                                                      .map((n) => n[0])
+                                                                      .join("")
+                                                                      .toUpperCase()}
+                                                            </AvatarFallback>
+                                                       </Avatar>
+                                                       <div className="flex-1">
+                                                            <h3 className="font-semibold text-lg text-gray-900">
+                                                                 {awaitingDetails.users_orders_assigned_worker_idTousers.full_name}
+                                                            </h3>
+                                                            {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles && (
+                                                                 <>
+                                                                      <p className="text-sm text-gray-600 mb-2">
+                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.display_name}
+                                                                      </p>
+                                                                      <div className="flex items-center gap-4 mb-3">
+                                                                           <div className="flex items-center gap-1">
+                                                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                                                <span className="font-semibold text-sm">
+                                                                                     {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.avg_rating}
+                                                                                </span>
+                                                                                <span className="text-xs text-gray-500">
+                                                                                     ({awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.total_reviews} reviews)
+                                                                                </span>
+                                                                           </div>
+                                                                           <Badge variant="outline">
+                                                                                {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.years_experience}+ years exp
+                                                                           </Badge>
+                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.verification === 'verified' && (
+                                                                                <Badge className="bg-green-500">Verified</Badge>
+                                                                           )}
+                                                                      </div>
+                                                                      {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.bio && (
+                                                                           <p className="text-sm text-gray-700 mb-3">
+                                                                                {awaitingDetails.users_orders_assigned_worker_idTousers.worker_profiles.bio}
+                                                                           </p>
+                                                                      )}
+                                                                 </>
+                                                            )}
+                                                            <div className="space-y-2 text-sm">
+                                                                 <div className="flex items-center gap-2">
+                                                                      <Phone className="h-4 w-4 text-gray-600" />
+                                                                      <span className="text-gray-700">
+                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.phone}
+                                                                      </span>
+                                                                 </div>
+                                                                 <div className="flex items-center gap-2">
+                                                                      <Mail className="h-4 w-4 text-gray-600" />
+                                                                      <span className="text-gray-700">
+                                                                           {awaitingDetails.users_orders_assigned_worker_idTousers.email}
+                                                                      </span>
+                                                                 </div>
+                                                            </div>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                        )
                                    )}
                               </TabsContent>
 
