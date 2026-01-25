@@ -28,9 +28,9 @@ export default function ProtectedRoute({ children, role }: ProtectedRouteProps) 
     return <Navigate to="/" state={{ openLogin: true }} replace />;
   }
 
-  if (role && user?.role !== role) {
-    return <Navigate to="/" replace />;
-  }
+  // if (role && user?.role !== role) {
+  //   return <Navigate to="/" replace />;
+  // }
 
   return <>{children}</>;
 }

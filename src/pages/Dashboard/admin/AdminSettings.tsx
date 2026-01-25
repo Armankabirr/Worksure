@@ -450,7 +450,7 @@ const AdminSettings = () => {
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 bg-gray-300">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="user-worker">User & Worker</TabsTrigger>
           <TabsTrigger value="booking">Booking</TabsTrigger>

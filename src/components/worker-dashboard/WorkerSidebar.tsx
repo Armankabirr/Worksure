@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import worksureLogo from "@/assets/Logo.png";
 
 interface WorkerSidebarProps {
   activeTab: string;
@@ -32,7 +33,7 @@ export const WorkerSidebar = ({
     { id: "service-request", label: "Service Request", icon: ClipboardList },
     { id: "service-history", label: "Service History", icon: History },
     { id: "account", label: "Account", icon: User },
-    { id: "rating", label: "Rating", icon: Star },
+    { id: "reviews", label: "Reviews", icon: Star },
   ];
 
   const handleNavClick = (tabId: string) => {
@@ -48,10 +49,12 @@ export const WorkerSidebar = ({
     >
       {/* Logo */}
       <div className="p-6 flex items-center justify-between">
-        <div className={`flex items-center justify-center ${sidebarMinimized ? "hidden" : ""}`}>
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-            <div className="w-8 h-8 bg-orange-500 rounded-full"></div>
-          </div>
+        <div className={`flex items-center ${sidebarMinimized ? "hidden" : ""}`}>
+          <img
+            src={worksureLogo}
+            alt="WorkSure"
+            className="w-12 h-12 flex-shrink-0 object-contain"
+          />
           <h1 className="ml-3 text-xl font-bold">WorkSure</h1>
         </div>
         {!sidebarMinimized && (

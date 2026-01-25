@@ -46,6 +46,8 @@ export interface Hiring {
   status: string;
   total_amount: number;
   payment_completed: boolean;
+  is_reviewed?: boolean;
+  is_complained?: boolean;
   created_at: string;
   work_start: string;
   work_end: string;
@@ -64,3 +66,48 @@ export interface ProfileFormData {
 }
 
 export type ActiveMenuType = "my-profile" | "my-hirings" | "my-reviews" | "saved-services";
+
+// User Reviews API Response Types
+export interface OrderDetails {
+  description: string;
+  status: string;
+  service_date: string;
+}
+
+export interface ReviewWorker {
+  id: string;
+  name: string;
+  display_name: string;
+  profile_picture: string;
+  avg_rating: string;
+}
+
+export interface UserReviewItem {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  order_id: string;
+  order_details: OrderDetails;
+  worker: ReviewWorker;
+}
+
+export interface UserReviewPagination {
+  current_page: number;
+  total_pages: number;
+  per_page: number;
+  total_count: number;
+}
+
+export interface UserReviewsData {
+  user_id: string;
+  user_name: string;
+  total_reviews: number;
+  reviews: UserReviewItem[];
+  pagination: UserReviewPagination;
+}
+
+export interface UserReviewsResponse {
+  success: boolean;
+  data: UserReviewsData;
+}

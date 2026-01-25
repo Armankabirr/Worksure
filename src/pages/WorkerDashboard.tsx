@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,18 +12,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Home,
   ClipboardList,
-  History,
-  User,
-  Star,
-  Gift,
   Bell,
   Calendar,
   Menu,
   X,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   MapPin,
   Loader2,
@@ -67,16 +60,20 @@ import {
   ServiceHistoryContent,
   ServiceRequestContent,
   AccountContent,
+  ReviewsContent,
   EditProfileDialog,
   ChangePasswordDialog,
   RequestDetailsDialog,
   CompleteWorkDialogFull,
   PricingBreakdownDialog,
   CancelReasonDialog,
+  WorkerSidebar,
 } from "@/components/worker-dashboard";
+import { ComplaintDetailsDialog } from "@/components/ComplaintDetailsDialog";
+import { HiringPricingDialog } from "@/components/profile/HiringPricingDialog";
 
 const WorkerDashboard = () => {
-  const { user, logout, changePassword } = useAuth();
+  const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
   const axiosPublic = useAxiosPublic();
   const { toast } = useToast();
@@ -96,6 +93,8 @@ const WorkerDashboard = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [pricingDialogOpen, setPricingDialogOpen] = useState(false);
+  const [complainDetailsDialogOpen, setComplainDetailsDialogOpen] = useState(false);
+  const [selectedWork, setSelectedWork] = useState<ApiServiceRequest | null>(null);
 
   // Loading States
   const [actionLoading, setActionLoading] = useState(false);
@@ -104,6 +103,7 @@ const WorkerDashboard = () => {
   const [workHistoryLoading, setWorkHistoryLoading] = useState(false);
   const [extraItemsLoading, setExtraItemsLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   // Error States
   const [passwordError, setPasswordError] = useState("");
@@ -134,6 +134,7 @@ const WorkerDashboard = () => {
   const [completeRequestId, setCompleteRequestId] = useState<string | null>(null);
   const [extraItems, setExtraItems] = useState<ExtraItem[]>([]);
   const [newExtraItem, setNewExtraItem] = useState({ name: "", quantity: 1, unitPrice: 0 });
+  const [user, setLocalUser] = useState<any>(null);
 
   // Form States
   const [completeForm, setCompleteForm] = useState<CompleteFormData>({
@@ -178,32 +179,10 @@ const WorkerDashboard = () => {
     availability: "",
   });
 
-  // Mock notifications
-  const [notifications] = useState<Notification[]>([
-    {
-      id: 1,
-      title: "New Service Request",
-      message: "You have a new service request from Sarah Johnson for electrical work.",
-      timestamp: new Date(Date.now() - 15 * 60000),
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Service Completed",
-      message: "Your service for Ahmed Hassan has been completed and rated 5 stars.",
-      timestamp: new Date(Date.now() - 2 * 3600000),
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Payment Received",
-      message: "You have received ৳2,500 payment for the plumbing service.",
-      timestamp: new Date(Date.now() - 1 * 86400000),
-      read: true,
-    },
-  ]);
+  // Notifications State
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   // Filtered work data
   const {
@@ -218,6 +197,20 @@ const WorkerDashboard = () => {
   } = filterWorkHistory(workHistory);
 
   const stats = calculateStats(todaysWorks, confirmedWorks, pendingWorks);
+
+  useEffect(() => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setLocalUser(JSON.parse(storedUser));
+        } else {
+          setLocalUser(null);
+        }
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        setLocalUser(null);
+      }
+    }, []);
 
   // Effects
   useEffect(() => {
@@ -264,6 +257,30 @@ const WorkerDashboard = () => {
     fetchDashboardSummary();
   }, [axiosPublic, user?.email]);
 
+  // Fetch Notifications
+  useEffect(() => {
+    async function fetchNotifications() {
+      if (!user?.email) return;
+      setNotificationsLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/notifications/${user.id}`);
+        const data = res.data;
+        
+        if (data.success && Array.isArray(data.data)) {
+          setNotifications(data.data);
+        } else {
+          setNotifications([]);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        setNotifications([]);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    }
+    fetchNotifications();
+  }, [axiosPublic, user?.email]);
+
   // Fetch Dashboard Tasks Data
   useEffect(() => {
     async function fetchDashboardTasks() {
@@ -295,12 +312,7 @@ const WorkerDashboard = () => {
     }
     fetchDashboardTasks();
   }, [axiosPublic, user?.email]);
-
-  console.log("todays: ", dashboardTodaysWorks);
-  console.log("upcoming: ", dashboardUpcomingWorks);
-  console.log("requested: ", dashboardServiceRequests);
   
-
   useEffect(() => {
     async function fetchWorkHistory() {
       if (!user?.email) return;
@@ -484,6 +496,64 @@ const WorkerDashboard = () => {
     toast({ title: "Success", description: "Profile updated successfully!" });
   };
 
+  // Mark single notification as read
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    if (!user?.email) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/workerRoutes/notifications/${notificationId}/read`);
+      
+      if (res.data.success) {
+        // Update local state
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId ? { ...notif, is_read: true } : notif
+          )
+        );
+        
+        toast({ 
+          title: "Success", 
+          description: "Notification marked as read" 
+        });
+      }
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mark all notifications as read
+  const handleMarkAllNotificationsAsRead = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/workerRoutes/notifications/read-all/${user.id}`);
+      
+      if (res.data.success) {
+        // Update local state
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, is_read: true }))
+        );
+        
+        toast({ 
+          title: "Success", 
+          description: "All notifications marked as read" 
+        });
+      }
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Service Request Handlers
   async function acceptRequest(id: string) {
     setActionLoading(true);
@@ -549,6 +619,11 @@ const WorkerDashboard = () => {
     setCancelReason("");
     setCancelDialogOpen(true);
   }
+
+  const handleViewComplaint = (work: ApiServiceRequest) => {
+    setSelectedWork(work);
+    setComplainDetailsDialogOpen(true);
+  };
 
   async function confirmCancelRequest() {
     if (!cancelRequestId) return;
@@ -862,6 +937,7 @@ const WorkerDashboard = () => {
             onViewPricing={openPricingDialog}
             onStartWork={startWork}
             onConfirmPayment={confirmPayment}
+            onViewComplaint={handleViewComplaint}
           />
         );
       case "account":
@@ -878,6 +954,16 @@ const WorkerDashboard = () => {
               resetPasswordDialog();
             }}
           />
+        );
+      case "reviews":
+        return user?.id ? (
+          <ReviewsContent workerId={user.id} />
+        ) : (
+          <div className="flex items-center justify-center py-20">
+            <Card className="p-8 text-center">
+              <p className="text-gray-500">Please log in to view reviews</p>
+            </Card>
+          </div>
         );
       case "rating":
         return (
@@ -929,101 +1015,14 @@ const WorkerDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <div
-        className={`fixed top-0 left-0 h-screen z-40 bg-orange-500 text-white flex flex-col transition-all duration-300 ${
-          sidebarMinimized ? "w-20" : "w-64"
-        } ${mobileMenuOpen ? "w-64" : "-translate-x-full md:translate-x-0"}`}
-      >
-        {/* Logo */}
-        <div className="p-6 flex items-center justify-between">
-          <div className={`flex items-center justify-center ${sidebarMinimized ? "hidden" : ""}`}>
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-orange-500 rounded-full"></div>
-            </div>
-            <h1 className="ml-3 text-xl font-bold">WorkSure</h1>
-          </div>
-          {!sidebarMinimized && (
-            <button
-              onClick={() => setSidebarMinimized(true)}
-              className="hidden md:block p-1 hover:bg-orange-600 rounded transition-colors"
-              title="Minimize sidebar"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-
-        {sidebarMinimized && (
-          <button
-            onClick={() => setSidebarMinimized(false)}
-            className="hidden md:flex justify-center p-2 hover:bg-orange-600 rounded transition-colors mx-2 mb-2"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        )}
-
-        {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-          {[
-            { id: "dashboard", label: "Dashboard", icon: ClipboardList },
-            { id: "service-request", label: "Service Request", icon: ClipboardList },
-            { id: "service-history", label: "Service History", icon: History },
-            { id: "account", label: "Account", icon: User },
-            { id: "rating", label: "Rating", icon: Star },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-                activeTab === item.id
-                  ? "bg-orange-700 text-white"
-                  : "text-white hover:bg-orange-600"
-              }`}
-              title={sidebarMinimized ? item.label : ""}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!sidebarMinimized && <span className="ml-3">{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-
-        {/* Home & Features */}
-        <div className="p-4 space-y-2">
-          <Link
-            to="/"
-            className="w-full flex items-center px-4 py-3 rounded-lg transition-colors text-white hover:bg-orange-600"
-            title={sidebarMinimized ? "Home" : ""}
-          >
-            <Home className="h-5 w-5 flex-shrink-0" />
-            {!sidebarMinimized && <span className="ml-3">Home</span>}
-          </Link>
-
-          <button
-            onClick={() => {
-              setActiveTab("features");
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-              activeTab === "features"
-                ? "bg-orange-700 text-white"
-                : "text-white hover:bg-orange-600"
-            }`}
-            title={sidebarMinimized ? "Features" : ""}
-          >
-            <div className="flex items-center">
-              <Gift className="h-5 w-5 flex-shrink-0" />
-              {!sidebarMinimized && <span className="ml-3">Features</span>}
-            </div>
-            {!sidebarMinimized && (
-              <span className="px-2 py-0.5 bg-orange-700 text-xs rounded">NEW</span>
-            )}
-          </button>
-        </div>
-      </div>
+      <WorkerSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sidebarMinimized={sidebarMinimized}
+        setSidebarMinimized={setSidebarMinimized}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+      />
 
       {/* Main Content */}
       <div
@@ -1090,6 +1089,9 @@ const WorkerDashboard = () => {
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
         notifications={notifications}
+        notificationsLoading={notificationsLoading}
+        onMarkAsRead={handleMarkNotificationAsRead}
+        onMarkAllAsRead={handleMarkAllNotificationsAsRead}
       />
 
       <RequestDetailsDialog
@@ -1123,10 +1125,17 @@ const WorkerDashboard = () => {
         }}
       />
 
-      <PricingBreakdownDialog
+      <ComplaintDetailsDialog
+        open={complainDetailsDialogOpen}
+        onOpenChange={setComplainDetailsDialogOpen}
+        bookingId={selectedWork?.complain_id || ""}
+      />
+
+      <HiringPricingDialog
         open={pricingDialogOpen}
         onOpenChange={setPricingDialogOpen}
-        selectedWork={selectedPricingWork}
+        selectedHiring={selectedPricingWork as any}
+        userRole="worker"
       />
 
       <CancelReasonDialog
@@ -1520,12 +1529,23 @@ interface NotificationsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   notifications: Notification[];
+  notificationsLoading: boolean;
+  onMarkAsRead: (notificationId: string) => void;
+  onMarkAllAsRead: () => void;
 }
 
-const NotificationsDialog = ({ open, onOpenChange, notifications }: NotificationsDialogProps) => {
-  const formatTime = (timestamp: Date) => {
+const NotificationsDialog = ({ 
+  open, 
+  onOpenChange, 
+  notifications, 
+  notificationsLoading,
+  onMarkAsRead,
+  onMarkAllAsRead 
+}: NotificationsDialogProps) => {
+  const formatTime = (timestamp: string) => {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const notifTime = new Date(timestamp);
+    const diff = now.getTime() - notifTime.getTime();
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -1535,21 +1555,44 @@ const NotificationsDialog = ({ open, onOpenChange, notifications }: Notification
     return `${days}d ago`;
   };
 
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  const hasUnread = unreadNotifications.length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold flex items-center">
-            <Bell className="h-5 w-5 mr-2 text-orange-500" />
-            Notifications
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold flex items-center">
+              <Bell className="h-5 w-5 mr-2 text-orange-500" />
+              Notifications
+              {hasUnread && (
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">
+                  {unreadNotifications.length}
+                </span>
+              )}
+            </DialogTitle>
+            {hasUnread && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMarkAllAsRead}
+                className="text-xs text-orange-600 hover:text-orange-700"
+              >
+                Mark all as read
+              </Button>
+            )}
+          </div>
         </DialogHeader>
-        <div className="space-y-3">
-          {notifications.length === 0 ? (
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          {notificationsLoading ? (
             <div className="text-center py-8">
-              <Bell className="h-12 w-12 text-gray-300 
-              
-              mx-auto mb-3" />
+              <Loader2 className="h-8 w-8 text-orange-500 animate-spin mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">Loading notifications...</p>
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="text-center py-8">
+              <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 text-sm">No notifications yet</p>
             </div>
           ) : (
@@ -1557,15 +1600,25 @@ const NotificationsDialog = ({ open, onOpenChange, notifications }: Notification
               <div
                 key={notification.id}
                 className={`p-4 rounded-lg border transition-colors ${
-                  notification.read ? "bg-gray-50 border-gray-200" : "bg-orange-50 border-orange-200"
+                  notification.is_read ? "bg-gray-50 border-gray-200" : "bg-orange-50 border-orange-200"
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notification.read ? "bg-gray-400" : "bg-orange-500"}`} />
+                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notification.is_read ? "bg-gray-400" : "bg-orange-500"}`} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
-                    <p className="text-gray-600 text-xs mt-1 line-clamp-2">{notification.message}</p>
-                    <p className="text-gray-500 text-xs mt-2">{formatTime(notification.timestamp)}</p>
+                    <p className="text-gray-600 text-xs mt-1">{notification.message}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-gray-500 text-xs">{formatTime(notification.created_at)}</p>
+                      {!notification.is_read && (
+                        <button
+                          onClick={() => onMarkAsRead(notification.id)}
+                          className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                        >
+                          Mark as read
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

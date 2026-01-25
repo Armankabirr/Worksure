@@ -86,11 +86,23 @@ const Search = () => {
   const serviceType = searchParams.get("serviceType") || "";
   const initialService = searchParams.get("service") || "";
 
-  const [selected, setSelected] = useState<any>(null);
-  const [subCategory, setSubCategory] = useState(initialService);
+  // Restore state from sessionStorage
+  const getStoredState = () => {
+    try {
+      const stored = sessionStorage.getItem(`search-state-${serviceType}`);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const storedState = getStoredState();
+
+  const [selected, setSelected] = useState<any>(storedState?.selected || null);
+  const [subCategory, setSubCategory] = useState(storedState?.subCategory || initialService);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>(storedState?.results || []);
   const navigate = useNavigate();
 
   const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY || '';
@@ -112,6 +124,18 @@ const Search = () => {
       setSubCategory(initialService);
     }
   }, [initialService, subCategories]);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (serviceType) {
+      const stateToSave = {
+        selected,
+        subCategory,
+        results,
+      };
+      sessionStorage.setItem(`search-state-${serviceType}`, JSON.stringify(stateToSave));
+    }
+  }, [selected, subCategory, results, serviceType]);
 
   function handleSelectPlace(place: any) {
     setSelected(place);
@@ -149,8 +173,11 @@ const Search = () => {
         throw new Error(`API Error: ${response.statusText}`);
       }
 
+      
+      
       const data = await response.json();
-      setResults(data.data || data || []);
+      console.log(data);
+      setResults(data.workers || data || []);
     } catch (err: any) {
       console.error('Search error:', err);
       setError(err.message || 'Failed to fetch services. Please try again.');
