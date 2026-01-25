@@ -312,12 +312,7 @@ const WorkerDashboard = () => {
     }
     fetchDashboardTasks();
   }, [axiosPublic, user?.email]);
-
-  console.log("todays: ", dashboardTodaysWorks);
-  console.log("upcoming: ", dashboardUpcomingWorks);
-  console.log("requested: ", dashboardServiceRequests);
   
-
   useEffect(() => {
     async function fetchWorkHistory() {
       if (!user?.email) return;
