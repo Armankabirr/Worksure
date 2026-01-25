@@ -1,5 +1,5 @@
 import { MouseEvent, useEffect, useState, useRef } from "react";
-import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby, LogOut } from "lucide-react";
+import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby, LogOut, Bell, Loader2 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LoginDialog from "./LoginDialog";
@@ -8,7 +8,25 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import worksureLogo from "@/assets/Logo.png";
+
+interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
 
 const Header = () => {
   const {
@@ -22,11 +40,15 @@ const Header = () => {
     logout,
   } = useAuth();
   const { totalItems } = useCart();
+  const { toast } = useToast();
+  const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
   const [localUser, setLocalUser] = useState<any>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const serviceDropdownRef = useRef<HTMLDivElement>(null);
   const serviceTriggerRef = useRef<HTMLAnchorElement>(null);
   const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,6 +68,31 @@ const Header = () => {
       setLocalUser(null);
     }
   }, []);
+
+  // Fetch Notifications
+  useEffect(() => {
+    async function fetchNotifications() {
+      if (!localUser?.email || !isAuthenticated || localUser?.role !== "client") return;
+      
+      setNotificationsLoading(true);
+      try {
+        const res = await axiosPublic.get(`/userRoutes/notifications/${localUser.id}`);
+        const data = res.data;
+        
+        if (data.success && Array.isArray(data.data)) {
+          setNotifications(data.data);
+        } else {
+          setNotifications([]);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        setNotifications([]);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    }
+    fetchNotifications();
+  }, [axiosPublic, localUser?.id, isAuthenticated, localUser?.role]);
 
   // Smooth scroll helper that accounts for the fixed header height
   const scrollToSection = (targetId: string) => {
@@ -99,6 +146,70 @@ const Header = () => {
     await logout();
     navigate("/");
     setMobileOpen(false);
+  };
+
+  // Mark single notification as read
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    if (!localUser?.id) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/userRoutes/notifications/${notificationId}/read`);
+      
+      if (res.data.success) {
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId ? { ...notif, is_read: true } : notif
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mark all notifications as read
+  const handleMarkAllNotificationsAsRead = async () => {
+    if (!localUser?.id) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/userRoutes/notifications/read-all/${localUser.id}`);
+      
+      if (res.data.success) {
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, is_read: true }))
+        );
+        
+        toast({ 
+          title: "Success", 
+          description: "All notifications marked as read" 
+        });
+      }
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatNotificationTime = (timestamp: string) => {
+    const now = new Date();
+    const notifTime = new Date(timestamp);
+    const diff = now.getTime() - notifTime.getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
   const getDashboardRoute = (role: string): string => {
@@ -391,6 +502,139 @@ const Header = () => {
                   </Badge>
                 )}
               </Button>
+
+              {isAuthenticated && localUser?.role === "client" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="relative h-10 w-10 hover:bg-primary/5 hover:text-primary transition-all duration-200 group"
+                    >
+                      <Bell className="h-5 w-5 transition-all duration-200 group-hover:scale-110 group-hover:rotate-12" />
+                      {notifications.filter(n => !n.is_read).length > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-semibold shadow-sm animate-pulse"
+                        >
+                          {notifications.filter(n => !n.is_read).length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-96 max-h-[32rem] overflow-hidden p-0 bg-white shadow-xl border-2 border-gray-200"
+                  >
+                    {/* Header */}
+                    <div className="sticky top-0 z-10 bg-white border-b-2 border-gray-200 px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Bell className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
+                            {notifications.length > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {notifications.filter(n => !n.is_read).length} unread
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {notifications.filter(n => !n.is_read).length > 0 && (
+                          <button
+                            onClick={handleMarkAllNotificationsAsRead}
+                            className="text-xs text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="overflow-y-auto max-h-[28rem]">
+                      {notificationsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="relative">
+                            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                            <Bell className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-4">Loading notifications...</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                            <Bell className="h-8 w-8 text-primary/40" />
+                          </div>
+                          <p className="text-sm font-medium text-foreground mb-1">All caught up!</p>
+                          <p className="text-xs text-muted-foreground">No new notifications</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-border/40">
+                          {notifications.map((notification, index) => (
+                            <div
+                              key={notification.id}
+                              className={`group relative p-4 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent ${
+                                !notification.is_read 
+                                  ? "bg-gradient-to-r from-primary/8 to-primary/3" 
+                                  : "hover:bg-gray-50/50"
+                              }`}
+                              onClick={() => !notification.is_read && handleMarkNotificationAsRead(notification.id)}
+                            >
+                              {/* Unread indicator line */}
+                              {!notification.is_read && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-primary/50" />
+                              )}
+                              
+                              <div className="flex items-start gap-3 pl-2">
+                                {/* Icon */}
+                                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                  !notification.is_read 
+                                    ? "bg-primary/10 group-hover:bg-primary/20" 
+                                    : "bg-gray-100 group-hover:bg-gray-200"
+                                }`}>
+                                  <Bell className={`h-4 w-4 ${
+                                    !notification.is_read ? "text-primary" : "text-gray-400"
+                                  }`} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2 mb-1">
+                                    <p className={`text-sm font-semibold line-clamp-1 ${
+                                      !notification.is_read ? "text-foreground" : "text-foreground/70"
+                                    }`}>
+                                      {notification.title}
+                                    </p>
+                                    {!notification.is_read && (
+                                      <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5 shadow-sm shadow-primary/50" />
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                                    {notification.message}
+                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground font-medium">
+                                      {formatNotificationTime(notification.created_at)}
+                                    </span>
+                                    {!notification.is_read && (
+                                      <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                                        Mark as read
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {isAuthenticated ? (
                 <div className="flex items-center gap-2">

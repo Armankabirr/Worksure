@@ -149,7 +149,7 @@ export const HiringPricingDialog = ({
                const response = await axiosPublic.get<AwaitingDetailsResponse>(
                     `/orderRoutes/orders/${selectedHiring.id}/awaitingDetails`
                );
-               setAwaitingDetails(response.data);
+               setAwaitingDetails(response.data.order);
           } catch (err) {
                console.error("Error fetching awaiting details:", err);
                setError("Failed to load pricing details");

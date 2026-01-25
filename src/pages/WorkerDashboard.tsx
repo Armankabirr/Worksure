@@ -102,6 +102,7 @@ const WorkerDashboard = () => {
   const [workHistoryLoading, setWorkHistoryLoading] = useState(false);
   const [extraItemsLoading, setExtraItemsLoading] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   // Error States
   const [passwordError, setPasswordError] = useState("");
@@ -177,32 +178,10 @@ const WorkerDashboard = () => {
     availability: "",
   });
 
-  // Mock notifications
-  const [notifications] = useState<Notification[]>([
-    {
-      id: 1,
-      title: "New Service Request",
-      message: "You have a new service request from Sarah Johnson for electrical work.",
-      timestamp: new Date(Date.now() - 15 * 60000),
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Service Completed",
-      message: "Your service for Ahmed Hassan has been completed and rated 5 stars.",
-      timestamp: new Date(Date.now() - 2 * 3600000),
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Payment Received",
-      message: "You have received ৳2,500 payment for the plumbing service.",
-      timestamp: new Date(Date.now() - 1 * 86400000),
-      read: true,
-    },
-  ]);
+  // Notifications State
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   // Filtered work data
   const {
@@ -275,6 +254,30 @@ const WorkerDashboard = () => {
       }
     }
     fetchDashboardSummary();
+  }, [axiosPublic, user?.email]);
+
+  // Fetch Notifications
+  useEffect(() => {
+    async function fetchNotifications() {
+      if (!user?.email) return;
+      setNotificationsLoading(true);
+      try {
+        const res = await axiosPublic.get(`/workerRoutes/notifications/${user.id}`);
+        const data = res.data;
+        
+        if (data.success && Array.isArray(data.data)) {
+          setNotifications(data.data);
+        } else {
+          setNotifications([]);
+        }
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+        setNotifications([]);
+      } finally {
+        setNotificationsLoading(false);
+      }
+    }
+    fetchNotifications();
   }, [axiosPublic, user?.email]);
 
   // Fetch Dashboard Tasks Data
@@ -495,6 +498,64 @@ const WorkerDashboard = () => {
 
     setEditProfileOpen(false);
     toast({ title: "Success", description: "Profile updated successfully!" });
+  };
+
+  // Mark single notification as read
+  const handleMarkNotificationAsRead = async (notificationId: string) => {
+    if (!user?.email) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/workerRoutes/notifications/${notificationId}/read`);
+      
+      if (res.data.success) {
+        // Update local state
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId ? { ...notif, is_read: true } : notif
+          )
+        );
+        
+        toast({ 
+          title: "Success", 
+          description: "Notification marked as read" 
+        });
+      }
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Mark all notifications as read
+  const handleMarkAllNotificationsAsRead = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const res = await axiosPublic.patch(`/workerRoutes/notifications/read-all/${user.id}`);
+      
+      if (res.data.success) {
+        // Update local state
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, is_read: true }))
+        );
+        
+        toast({ 
+          title: "Success", 
+          description: "All notifications marked as read" 
+        });
+      }
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive",
+      });
+    }
   };
 
   // Service Request Handlers
@@ -1022,6 +1083,9 @@ const WorkerDashboard = () => {
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
         notifications={notifications}
+        notificationsLoading={notificationsLoading}
+        onMarkAsRead={handleMarkNotificationAsRead}
+        onMarkAllAsRead={handleMarkAllNotificationsAsRead}
       />
 
       <RequestDetailsDialog
@@ -1459,12 +1523,23 @@ interface NotificationsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   notifications: Notification[];
+  notificationsLoading: boolean;
+  onMarkAsRead: (notificationId: string) => void;
+  onMarkAllAsRead: () => void;
 }
 
-const NotificationsDialog = ({ open, onOpenChange, notifications }: NotificationsDialogProps) => {
-  const formatTime = (timestamp: Date) => {
+const NotificationsDialog = ({ 
+  open, 
+  onOpenChange, 
+  notifications, 
+  notificationsLoading,
+  onMarkAsRead,
+  onMarkAllAsRead 
+}: NotificationsDialogProps) => {
+  const formatTime = (timestamp: string) => {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const notifTime = new Date(timestamp);
+    const diff = now.getTime() - notifTime.getTime();
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -1474,21 +1549,44 @@ const NotificationsDialog = ({ open, onOpenChange, notifications }: Notification
     return `${days}d ago`;
   };
 
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  const hasUnread = unreadNotifications.length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold flex items-center">
-            <Bell className="h-5 w-5 mr-2 text-orange-500" />
-            Notifications
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold flex items-center">
+              <Bell className="h-5 w-5 mr-2 text-orange-500" />
+              Notifications
+              {hasUnread && (
+                <span className="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">
+                  {unreadNotifications.length}
+                </span>
+              )}
+            </DialogTitle>
+            {hasUnread && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMarkAllAsRead}
+                className="text-xs text-orange-600 hover:text-orange-700"
+              >
+                Mark all as read
+              </Button>
+            )}
+          </div>
         </DialogHeader>
-        <div className="space-y-3">
-          {notifications.length === 0 ? (
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          {notificationsLoading ? (
             <div className="text-center py-8">
-              <Bell className="h-12 w-12 text-gray-300 
-              
-              mx-auto mb-3" />
+              <Loader2 className="h-8 w-8 text-orange-500 animate-spin mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">Loading notifications...</p>
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="text-center py-8">
+              <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 text-sm">No notifications yet</p>
             </div>
           ) : (
@@ -1496,15 +1594,25 @@ const NotificationsDialog = ({ open, onOpenChange, notifications }: Notification
               <div
                 key={notification.id}
                 className={`p-4 rounded-lg border transition-colors ${
-                  notification.read ? "bg-gray-50 border-gray-200" : "bg-orange-50 border-orange-200"
+                  notification.is_read ? "bg-gray-50 border-gray-200" : "bg-orange-50 border-orange-200"
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notification.read ? "bg-gray-400" : "bg-orange-500"}`} />
+                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notification.is_read ? "bg-gray-400" : "bg-orange-500"}`} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-sm">{notification.title}</p>
-                    <p className="text-gray-600 text-xs mt-1 line-clamp-2">{notification.message}</p>
-                    <p className="text-gray-500 text-xs mt-2">{formatTime(notification.timestamp)}</p>
+                    <p className="text-gray-600 text-xs mt-1">{notification.message}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-gray-500 text-xs">{formatTime(notification.created_at)}</p>
+                      {!notification.is_read && (
+                        <button
+                          onClick={() => onMarkAsRead(notification.id)}
+                          className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                        >
+                          Mark as read
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

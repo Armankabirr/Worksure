@@ -106,11 +106,12 @@ export interface DashboardOverviewResponse {
 }
 
 export interface Notification {
-  id: number;
+  id: string;
+  worker_id: string;
   title: string;
   message: string;
-  timestamp: Date;
-  read: boolean;
+  is_read: boolean;
+  created_at: string;
 }
 
 export interface ProfileFormData {
