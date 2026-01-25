@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import React, { useEffect } from 'react';
+import worksureLogo from '@/assets/Logo.png';
 
 /**
  * Navigation item type definition
@@ -80,8 +81,17 @@ const AdminSidebar = () => {
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       {/* Sidebar Header */}
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900">Worksure</h1>
-        <p className="text-sm text-gray-500 mt-1">Admin Panel</p>
+        <div className="flex items-center gap-3">
+          <img
+            src={worksureLogo}
+            alt="WorkSure"
+            className="w-12 h-12 flex-shrink-0 object-contain"
+          />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Worksure</h1>
+            <p className="text-sm text-gray-500 mt-1">Admin Panel</p>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Items - Scrollable */}

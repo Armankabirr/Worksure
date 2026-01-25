@@ -73,7 +73,6 @@ export default function ComplaintDetailDrawer({
     const statusConfig = {
       open: { label: 'Open', className: 'bg-orange-100 text-orange-800' },
       under_review: { label: 'Under Review', className: 'bg-purple-100 text-purple-800' },
-      awaiting_response: { label: 'Awaiting Response', className: 'bg-yellow-100 text-yellow-800' },
       resolved: { label: 'Resolved', className: 'bg-green-100 text-green-800' },
       rejected: { label: 'Rejected', className: 'bg-red-100 text-red-800' },
       closed: { label: 'Closed', className: 'bg-gray-100 text-gray-800' },
@@ -463,15 +462,6 @@ export default function ComplaintDetailDrawer({
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Mark Under Review
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => onStatusUpdate(complaint.id, 'awaiting_response')}
-                  disabled={complaint.status === 'awaiting_response'}
-                  size="sm"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Awaiting Response
                 </Button>
                 <Button
                   onClick={() => setActionDialog({ isOpen: true, type: 'resolve' })}

@@ -78,8 +78,7 @@ export default function ComplaintFiltersComponent({
             <Select
               value={filters.category}
               onValueChange={(value) => {
-                handleFilterChange('category', value);
-                handleFilterChange('subCategory', 'all'); // Reset sub-category
+                onFiltersChange({ ...filters, category: value, subCategory: 'all' });
               }}
             >
               <SelectTrigger id="category">
