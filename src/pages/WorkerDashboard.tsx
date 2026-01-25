@@ -60,6 +60,7 @@ import {
   ServiceHistoryContent,
   ServiceRequestContent,
   AccountContent,
+  ReviewsContent,
   EditProfileDialog,
   ChangePasswordDialog,
   RequestDetailsDialog,
@@ -958,6 +959,16 @@ const WorkerDashboard = () => {
               resetPasswordDialog();
             }}
           />
+        );
+      case "reviews":
+        return user?.id ? (
+          <ReviewsContent workerId={user.id} />
+        ) : (
+          <div className="flex items-center justify-center py-20">
+            <Card className="p-8 text-center">
+              <p className="text-gray-500">Please log in to view reviews</p>
+            </Card>
+          </div>
         );
       case "rating":
         return (

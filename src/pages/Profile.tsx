@@ -18,12 +18,12 @@ import {
 } from "@/components/profile";
 
 // Import types
-import { 
-  UserData, 
-  Address, 
-  Hiring, 
+import {
+  UserData,
+  Address,
+  Hiring,
   ProfileFormData,
-  ActiveMenuType 
+  ActiveMenuType
 } from "@/types/profile";
 
 /**
@@ -32,10 +32,10 @@ import {
  * Protected route - only accessible to authenticated users.
  */
 const Profile = () => {
-  const { user, logout, updateProfile } = useAuth();
+  const { logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   const axiosPublic = useAxiosPublic();
-  
+
   // UI State
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingAddresses, setIsEditingAddresses] = useState(false);
@@ -44,13 +44,14 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeMenu, setActiveMenu] = useState<ActiveMenuType>("my-profile");
-  
+
   // Data State
   const [userData, setUserData] = useState<UserData | null>(null);
   const [editingAddresses, setEditingAddresses] = useState<Address[]>([]);
   const [hirings, setHirings] = useState<Hiring[]>([]);
   const [isLoadingHirings, setIsLoadingHirings] = useState(false);
   const [hiringError, setHiringError] = useState<string | null>(null);
+  const [user, setLocalUser] = useState<{ id: string; email: string } | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -63,18 +64,32 @@ const Profile = () => {
     address: "",
   });
 
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setLocalUser(JSON.parse(storedUser));
+      } else {
+        setLocalUser(null);
+      }
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      setLocalUser(null);
+    }
+  }, []);
+
   // Fetch user data from API
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
-      
+
       try {
         setIsLoading(true);
         const response = await axiosPublic.get(`/userRoutes/getUserData/${user.email}`);
         const data = response.data;
         setUserData(data);
         setEditingAddresses(data.addresses || []);
-        
+
         // Initialize form with fetched data
         setFormData({
           name: data.full_name || "",
@@ -83,8 +98,8 @@ const Profile = () => {
           date_of_birth: data.date_of_birth || "",
           bio: "",
           avatar: data.profile_picture || "",
-          address: data.addresses && data.addresses.length > 0 
-            ? `${data.addresses[0].street}, ${data.addresses[0].city}` 
+          address: data.addresses && data.addresses.length > 0
+            ? `${data.addresses[0].street}, ${data.addresses[0].city}`
             : "",
         });
       } catch (err) {
@@ -140,8 +155,8 @@ const Profile = () => {
           date_of_birth: userData.date_of_birth || "",
           bio: "",
           avatar: userData.profile_picture || "",
-          address: userData.addresses && userData.addresses.length > 0 
-            ? `${userData.addresses[0].street}, ${userData.addresses[0].city}` 
+          address: userData.addresses && userData.addresses.length > 0
+            ? `${userData.addresses[0].street}, ${userData.addresses[0].city}`
             : "",
         });
       }
@@ -297,7 +312,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       {/* Main Content */}
       <main className="flex-1 pt-20 pb-8 bg-gradient-to-b from-slate-50 to-white">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl">
@@ -336,7 +351,7 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Sidebar Navigation */}
-            <ProfileSidebar 
+            <ProfileSidebar
               activeMenu={activeMenu}
               setActiveMenu={setActiveMenu}
               onLogout={handleLogout}
@@ -371,7 +386,7 @@ const Profile = () => {
                 />
               )}
 
-              {activeMenu === "my-reviews" && <MyReviewsSection />}
+              {activeMenu === "my-reviews" && <MyReviewsSection userId={user?.id} />}
 
               {activeMenu === "saved-services" && <SavedServicesSection />}
             </div>

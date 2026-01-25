@@ -33,7 +33,7 @@ export const WorkerSidebar = ({
     { id: "service-request", label: "Service Request", icon: ClipboardList },
     { id: "service-history", label: "Service History", icon: History },
     { id: "account", label: "Account", icon: User },
-    { id: "rating", label: "Rating", icon: Star },
+    { id: "reviews", label: "Reviews", icon: Star },
   ];
 
   const handleNavClick = (tabId: string) => {

@@ -245,3 +245,40 @@ export interface WorkerDetailsResponse {
   success: boolean;
   data: WorkerDetailsData;
 }
+
+// Worker Reviews API Response Types
+export interface ReviewerInfo {
+  id: string;
+  name: string;
+  profile_picture: string;
+}
+
+export interface WorkerReviewItem {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  order_id: string;
+  service_description: string;
+  reviewer: ReviewerInfo;
+}
+
+export interface ReviewPagination {
+  current_page: number;
+  total_pages: number;
+  per_page: number;
+  total_count: number;
+}
+
+export interface WorkerReviewsData {
+  worker_id: string;
+  avg_rating: string;
+  total_reviews: number;
+  reviews: WorkerReviewItem[];
+  pagination: ReviewPagination;
+}
+
+export interface WorkerReviewsResponse {
+  success: boolean;
+  data: WorkerReviewsData;
+}
