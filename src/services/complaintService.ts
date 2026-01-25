@@ -36,6 +36,8 @@ class ComplaintService {
       if (filters.priority && filters.priority !== 'all') params.priority = filters.priority;
 
       const response = await axiosPublic.get('/complaints/getAllcomplaints', { params });
+      console.log("complints: ",response);
+      
 
       const apiResponse = response.data;
       
@@ -80,7 +82,7 @@ class ComplaintService {
           } : null,
           status: complaint.status,
           priority: complaint.priority,
-          adminNotes: complaint.admin_notes ? JSON.parse(complaint.admin_notes) : [],
+          adminNotes: complaint.admin_notes,
           resolution: complaint.resolution,
           createdAt: complaint.created_at,
           updatedAt: complaint.updated_at,
@@ -155,7 +157,7 @@ class ComplaintService {
           payment: data.payment,
           status: data.status,
           priority: data.priority,
-          adminNotes: data.adminNotes ? (typeof data.adminNotes === 'string' ? JSON.parse(data.adminNotes) : data.adminNotes) : [],
+          adminNotes: data.adminNotes,
           resolution: data.resolution,
           createdAt: data.createdAt,
           updatedAt: data.updatedAt,

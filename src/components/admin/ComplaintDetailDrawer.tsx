@@ -367,7 +367,7 @@ export default function ComplaintDetailDrawer({
                 {/* Admin Notes */}
                 <div>
                   <Label className="text-sm font-semibold mb-2 block">Internal Notes</Label>
-                  <div className="space-y-3 mb-4">
+                  {/* <div className="space-y-3 mb-4">
                     {complaint.adminNotes && complaint.adminNotes.length > 0 ? (
                       complaint.adminNotes.map((note) => (
                         <div key={note.id} className="bg-gray-50 rounded-lg p-3 text-sm">
@@ -385,7 +385,19 @@ export default function ComplaintDetailDrawer({
                     ) : (
                       <p className="text-gray-500 text-sm italic">No notes yet</p>
                     )}
-                  </div>
+                  </div> */}
+                  {
+                    complaint.adminNotes &&
+                    <div className="space-y-3 mb-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-xs text-gray-600">
+                            {complaint.adminNotes}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
 
                   <div className="space-y-2">
                     <Textarea

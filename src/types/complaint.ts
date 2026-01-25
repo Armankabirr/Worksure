@@ -80,7 +80,7 @@ export interface Complaint {
   // Admin management
   assignedAdmin?: string;
   assignedAdminName?: string;
-  adminNotes?: AdminNote[];
+  adminNotes?: string;
   resolution?: string;
   rejectionReason?: string;
   

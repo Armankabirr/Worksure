@@ -54,6 +54,10 @@ const AdminBookings = () => {
         bookingService.getBookingStats(filters.dateFrom, filters.dateTo)
       ]);
 
+      console.log("book: ", bookingsResponse);
+       console.log("stats: ", statsResponse);
+      
+
       console.log('✅ API Response:', { bookingsResponse, statsResponse });
 
       if (bookingsResponse.success) {

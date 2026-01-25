@@ -326,7 +326,7 @@ export function ComplaintDetailsDialog({ open, onOpenChange, bookingId }: Compla
                         <DollarSign className="h-3 w-3" />
                         Total Amount
                       </Label>
-                      <p className="font-semibold text-lg">${details.booking.totalAmount}</p>
+                      <p className="font-semibold text-lg">৳{details.booking.totalAmount}</p>
                     </div>
                     <div>
                       <Label className="text-gray-600 flex items-center gap-1">
@@ -409,7 +409,7 @@ export function ComplaintDetailsDialog({ open, onOpenChange, bookingId }: Compla
                         <DollarSign className="h-3 w-3" />
                         Amount
                       </Label>
-                      <p className="font-semibold text-lg">${details.payment.amount}</p>
+                      <p className="font-semibold text-lg">৳{details.payment.amount}</p>
                     </div>
                     <div>
                       <Label className="text-gray-600">Payment Method</Label>
