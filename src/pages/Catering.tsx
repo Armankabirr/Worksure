@@ -21,10 +21,12 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Catering = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
 
   const [yearsExp, setYearsExp] = useState(0);
   const [eventsServed, setEventsServed] = useState(0);
@@ -111,6 +113,15 @@ const Catering = () => {
     });
   };
 
+  const handleBookCatering = () => {
+    // Require login before sending users to booking/search flow
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+    navigate("/search/workers?serviceType=catering");
+  };
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <Header />
@@ -128,7 +139,7 @@ const Catering = () => {
             </p>
 
             <div className="flex gap-4">
-              <Button onClick={() => navigate("/search/workers?serviceType=catering")}>
+              <Button onClick={handleBookCatering}>
                 Book Catering
               </Button>
               <Button variant="outline" onClick={() => navigate("/catering/menu")}>

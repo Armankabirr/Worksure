@@ -80,6 +80,20 @@ const serviceConfig: Record<string, {
       { value: "homework-help", label: "Homework Help" },
     ],
   },
+  catering: {
+    label: "Catering",
+    heading: "Trusted Catering Service Providers Near You",
+    subheading: "Select your catering service need and location to find professional caterers",
+    ctaText: "Find Caterers",
+    getSubcategories: () => [
+      { value: "wedding-catering", label: "Wedding Catering" },
+      { value: "corporate-events", label: "Corporate Events" },
+      { value: "buffet-services", label: "Buffet Services" },
+      { value: "dessert-catering", label: "Dessert Catering" },
+      { value: "party-catering", label: "Party Catering" },
+      { value: "private-chef", label: "Private Chef" },
+    ],
+  },
 };
 
 const Search = () => {
