@@ -92,11 +92,20 @@ const App = () => {
               <Route path="/pet-care/:slug" element={<PetCareServiceDetail />} />
               <Route path="/catering" element={<Catering />} />
               <Route path="/babysitter" element={<Babysitter />} />
+              <Route path="/login" element={<UserLogin />} />
               <Route path="/user/register" element={<UserRegister />} />
               <Route path="/user/login" element={<UserLogin />} />
               <Route path="/search/workers" element={<Search />} />
               <Route path="/worker/:id" element={<WorkerDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route
+                path="/booking"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/profile"
                 element={

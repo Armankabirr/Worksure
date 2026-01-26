@@ -7,11 +7,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { BadgeCheck, Bolt, Home, ShieldCheck, Zap, Eye } from "lucide-react";
 import heroImage from "@/assets/electrician.jpg";
 import teamImage from "@/assets/security-tech.jpg";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { electricianServicesData } from "@/lib/electricianServices";
+import { useAuth } from "@/context/AuthContext";
 
 type ServiceType = {
   icon: React.ComponentType<{ className?: string }>;
@@ -27,7 +28,9 @@ type ServiceType = {
 
 const Electrician = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useCart();
+  const { authStatus, isAuthenticated, openLogin } = useAuth();
   const [certifiedCount, setCertifiedCount] = useState(0);
   const [jobsCount, setJobsCount] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -68,9 +71,16 @@ const Electrician = () => {
   }, []);
 
   const handleBookNow = (serviceSlug?: string) => {
-    const query = serviceSlug 
+    const query = serviceSlug
       ? `/search/workers?serviceType=electrician&service=${serviceSlug}`
       : "/search/workers?serviceType=electrician";
+
+    // Require login before sending users to booking/search flow
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+
     navigate(query);
   };
 
