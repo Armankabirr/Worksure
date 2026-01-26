@@ -10,11 +10,13 @@ import { toast } from "sonner";
 import { petCareServicesData } from "@/lib/petCareServices";
 import NotFound from "./NotFound";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const PetCareServiceDetail = () => {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +44,10 @@ const PetCareServiceDetail = () => {
   }
 
   const handleBookNow = () => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate(`/search/workers?serviceType=pet-caring&service=${serviceData.slug}`);
   };
 

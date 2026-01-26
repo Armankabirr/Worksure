@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 type ServiceType = {
   icon: React.ComponentType<{ className?: string }>;
@@ -27,6 +28,7 @@ type ServiceType = {
 const Cleaner = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
   const [certifiedCount, setCertifiedCount] = useState(0);
   const [jobsCount, setJobsCount] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -67,9 +69,15 @@ const Cleaner = () => {
   }, []);
 
   const handleBookNow = (serviceSlug?: string) => {
-    const query = serviceSlug 
+    const query = serviceSlug
       ? `/search/workers?serviceType=cleaner&service=${serviceSlug}`
       : "/search/workers?serviceType=cleaner";
+
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+
     navigate(query);
   };
 

@@ -9,11 +9,13 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { acDoctorServicesConfig } from "@/lib/acDoctorServices";
 import NotFound from "./NotFound";
+import { useAuth } from "@/context/AuthContext";
 
 const ACDoctorServiceDetail = () => {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
 
   const serviceData = slug ? acDoctorServicesConfig[slug] : null;
 
@@ -22,6 +24,10 @@ const ACDoctorServiceDetail = () => {
   }
 
   const handleBookNow = () => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate(`/search/workers?serviceType=ac-doctor&service=${serviceData.slug}`);
   };
 

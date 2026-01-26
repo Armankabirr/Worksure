@@ -5,14 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BadgeCheck, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cleaningServicesData } from "@/lib/cleaningServices";
+import { useAuth } from "@/context/AuthContext";
 
 const CleaningPricing = () => {
   const navigate = useNavigate();
+  const { authStatus, openLogin } = useAuth();
 
   const services = Object.values(cleaningServicesData);
 
-  const handleBookCleaner = (slug: string) => {
-    navigate(`/search/workers?serviceType=cleaner&service=${slug}`);
+  const handleBookCleaner = (slug?: string) => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+    const path = slug
+      ? `/search/workers?serviceType=cleaner&service=${slug}`
+      : "/search/workers?serviceType=cleaner";
+    navigate(path);
   };
 
   const handleViewDetails = (slug: string) => {
@@ -272,7 +281,7 @@ const CleaningPricing = () => {
                 variant="outline"
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                onClick={() => navigate("/search/workers?serviceType=cleaner")}
+                onClick={() => handleBookCleaner()}
               >
                 Book Cleaner
               </Button>
