@@ -12,6 +12,7 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useState, useEffect, useRef } from "react";
 import { acDoctorServicesConfig } from "@/lib/acDoctorServices";
+import { useAuth } from "@/context/AuthContext";
 
 type ServiceType = {
   icon: React.ComponentType<{ className?: string }>;
@@ -28,6 +29,7 @@ type ServiceType = {
 const ACDoctor = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
   const [certifiedCount, setCertifiedCount] = useState(0);
   const [jobsCount, setJobsCount] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -68,9 +70,15 @@ const ACDoctor = () => {
   }, []);
 
   const handleBookNow = (serviceSlug?: string) => {
-    const query = serviceSlug 
+    const query = serviceSlug
       ? `/search/workers?serviceType=ac-doctor&service=${serviceSlug}`
       : "/search/workers?serviceType=ac-doctor";
+
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+
     navigate(query);
   };
 

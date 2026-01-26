@@ -9,11 +9,13 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { electricianServicesData } from "@/lib/electricianServices";
 import NotFound from "./NotFound";
+import { useAuth } from "@/context/AuthContext";
 
 const ElectricianServiceDetail = () => {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
 
   const serviceData = slug ? electricianServicesData[slug] : null;
 
@@ -22,6 +24,10 @@ const ElectricianServiceDetail = () => {
   }
 
   const handleBookNow = () => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate(`/search/workers?serviceType=electrician&service=${serviceData.slug}`);
   };
 

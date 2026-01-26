@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import heroImage from "@/assets/babysitter.png";
 import pregnantImage from "@/assets/team-illustration.jpg";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import {
   Activity,
   Baby,
@@ -107,8 +108,13 @@ const testimonials = [
 
 const Babysitter = () => {
   const navigate = useNavigate();
+  const { authStatus, openLogin } = useAuth();
 
   const handleBookNow = () => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate("/search/workers?serviceType=babysitter");
   };
 

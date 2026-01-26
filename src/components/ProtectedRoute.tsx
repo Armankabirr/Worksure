@@ -1,7 +1,10 @@
-import { type ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { type ReactNode, useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import type { UserRole } from "@/context/AuthContext";
+
+type SessionState = "checking" | "active" | "missing";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -18,19 +21,56 @@ const loadingEl = (
 );
 
 export default function ProtectedRoute({ children, role }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { authStatus, user } = useAuth();
+  const location = useLocation();
+  const [sessionState, setSessionState] = useState<SessionState>("checking");
 
-  if (isLoading) {
+  useEffect(() => {
+    let isMounted = true;
+
+    const verifySession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        setSessionState(data.session ? "active" : "missing");
+      } catch {
+        if (isMounted) setSessionState("missing");
+      }
+    };
+
+    verifySession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authStatus === "authenticated") setSessionState("active");
+    if (authStatus === "unauthenticated") setSessionState("missing");
+  }, [authStatus]);
+
+  const isChecking = authStatus === "loading" || sessionState === "checking";
+  const noSession = authStatus === "unauthenticated" || sessionState === "missing";
+  const roleMismatch = role && user?.role !== role;
+
+  if (isChecking) {
     return loadingEl;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" state={{ openLogin: true }} replace />;
+  if (noSession) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
-  // if (role && user?.role !== role) {
-  //   return <Navigate to="/" replace />;
-  // }
+  if (roleMismatch) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
 
   return <>{children}</>;
 }

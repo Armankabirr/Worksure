@@ -5,14 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BadgeCheck, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { acDoctorServicesConfig } from "@/lib/acDoctorServices";
+import { useAuth } from "@/context/AuthContext";
 
 const ACDoctorPricing = () => {
   const navigate = useNavigate();
+  const { authStatus, openLogin } = useAuth();
 
   const services = Object.values(acDoctorServicesConfig);
 
-  const handleBookACDoctor = (slug: string) => {
-    navigate(`/search/workers?serviceType=ac-doctor&service=${slug}`);
+  const handleBookACDoctor = (slug?: string) => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+    const path = slug
+      ? `/search/workers?serviceType=ac-doctor&service=${slug}`
+      : "/search/workers?serviceType=ac-doctor";
+    navigate(path);
   };
 
   const handleViewDetails = (slug: string) => {
@@ -272,7 +281,7 @@ const ACDoctorPricing = () => {
                 variant="outline"
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                onClick={() => navigate("/search/workers?serviceType=ac-doctor")}
+                onClick={() => handleBookACDoctor()}
               >
                 Book AC Doctor
               </Button>

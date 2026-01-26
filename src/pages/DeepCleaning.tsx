@@ -9,11 +9,13 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { cleaningServicesData } from "@/lib/cleaningServices";
 import NotFound from "./NotFound";
+import { useAuth } from "@/context/AuthContext";
 
 const DeepCleaning = () => {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
 
   const serviceData = slug ? cleaningServicesData[slug] : null;
 
@@ -22,6 +24,10 @@ const DeepCleaning = () => {
   }
 
   const handleBookNow = () => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate(`/search/workers?serviceType=cleaner&service=${serviceData.slug}`);
   };
 

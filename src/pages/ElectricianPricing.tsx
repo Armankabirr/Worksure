@@ -5,14 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BadgeCheck, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { electricianServicesData } from "@/lib/electricianServices";
+import { useAuth } from "@/context/AuthContext";
 
 const ElectricianPricing = () => {
   const navigate = useNavigate();
+  const { authStatus, openLogin } = useAuth();
 
   const services = Object.values(electricianServicesData);
 
-  const handleBookElectrician = (slug: string) => {
-    navigate(`/search/workers?serviceType=electrician&service=${slug}`);
+  const handleBookElectrician = (slug?: string) => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+    const path = slug
+      ? `/search/workers?serviceType=electrician&service=${slug}`
+      : "/search/workers?serviceType=electrician";
+    navigate(path);
   };
 
   const handleViewDetails = (slug: string) => {
@@ -272,7 +281,7 @@ const ElectricianPricing = () => {
                 variant="outline"
                 size="lg"
                 className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                onClick={() => navigate("/search/workers?serviceType=electrician")}
+                onClick={() => handleBookElectrician()}
               >
                 Book Electrician
               </Button>
