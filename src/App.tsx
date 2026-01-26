@@ -110,7 +110,7 @@ const App = () => {
               <Route
                 path="/profile"
                 element={
-                  <ProtectedRoute role="user">
+                  <ProtectedRoute role="client">
                     <Profile />
                   </ProtectedRoute>
                 }
