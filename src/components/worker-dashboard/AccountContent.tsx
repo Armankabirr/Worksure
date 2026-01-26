@@ -50,12 +50,17 @@ export const AccountContent = ({
     fileInputRef.current?.click();
   };
 
-  // Get worker profile data
-  const workerProfile = workerDetails?.worker_profiles?.[0];
+  // Get worker profile data - handle both object and array formats
+  const workerProfile = Array.isArray(workerDetails?.worker_profiles)
+    ? workerDetails?.worker_profiles?.[0]
+    : workerDetails?.worker_profiles;
   const workerServices = workerDetails?.worker_services || [];
   const availability = workerDetails?.availabilities?.[0];
   const address = workerDetails?.addresses?.[0];
   const reviews = workerDetails?.reviews_reviews_worker_idTousers || [];
+
+  console.log("detail",workerDetails);
+  
 
   // Format date helper
   const formatDate = (dateString?: string) => {
@@ -67,13 +72,37 @@ export const AccountContent = ({
     });
   };
 
-  // Format time helper
+  // Format time helper - handles both datetime and time-only strings
   const formatTime = (timeString?: string) => {
     if (!timeString) return "";
-    return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      // If it's a full datetime string
+      if (timeString.includes('T')) {
+        return new Date(timeString).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      // If it's just a time string
+      return new Date(`1970-01-01T${timeString}`).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "N/A";
+    }
+  };
+
+  // Format weekend days
+  const formatWeekendDays = (weekend?: string[] | boolean) => {
+    if (!weekend) return "Weekdays only";
+    if (typeof weekend === 'boolean') {
+      return weekend ? "Available on weekends" : "Weekdays only";
+    }
+    if (Array.isArray(weekend) && weekend.length > 0) {
+      return weekend.map(day => day.charAt(0).toUpperCase() + day.slice(1)).join(", ");
+    }
+    return "Weekdays only";
   };
 
   if (workerDetailsLoading) {
@@ -97,11 +126,11 @@ export const AccountContent = ({
       />
 
       {/* Profile Header Card */}
-      <Card className="p-6 mb-6">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+      <Card className="p-8 mb-6 bg-gradient-to-br from-orange-50 via-white to-yellow-50 border-2 border-orange-100 shadow-lg">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
           {/* Profile Picture */}
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden">
+            <div className="w-36 h-36 rounded-full bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-2xl overflow-hidden ring-4 ring-orange-200 ring-offset-4">
               {workerDetails?.profile_picture || savedProfile.avatarUrl ? (
                 <img
                   src={workerDetails?.profile_picture || savedProfile.avatarUrl}
@@ -114,7 +143,7 @@ export const AccountContent = ({
             </div>
             <button
               onClick={handleAvatarButtonClick}
-              className="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors"
+              className="absolute bottom-1 right-1 bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full shadow-xl transition-all hover:scale-110"
             >
               <Camera className="h-5 w-5" />
             </button>
@@ -131,18 +160,18 @@ export const AccountContent = ({
               )}
             </div>
             <p className="text-gray-600 mb-2">{workerDetails?.email || user?.email || "email@example.com"}</p>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+            <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-4">
               {workerServices.length > 0 && workerServices[0].service_categories && (
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 rounded-full text-sm font-semibold shadow-sm border border-orange-300">
                   {workerServices[0].service_categories.name}
                 </span>
               )}
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center">
-                <Star className="h-3 w-3 mr-1 fill-green-700" />
-                {workerProfile?.avg_rating?.toFixed(1) || "0.0"} Rating
+              <span className="px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-sm font-semibold flex items-center shadow-sm border border-green-300">
+                <Star className="h-4 w-4 mr-1 fill-green-700" />
+                {workerProfile?.avg_rating || "0.0"} Rating
               </span>
               {workerProfile?.years_experience && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold shadow-sm border border-blue-300">
                   {workerProfile.years_experience} years exp
                 </span>
               )}
@@ -163,17 +192,17 @@ export const AccountContent = ({
 
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4 md:gap-6 text-center">
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{workerServices.length}</p>
-              <p className="text-xs text-gray-500">Services</p>
+            <div className="bg-white p-4 rounded-xl shadow-md border-2 border-blue-100 hover:shadow-lg transition-shadow">
+              <p className="text-3xl font-bold text-blue-600">{workerServices.length}</p>
+              <p className="text-xs text-gray-600 font-medium mt-1">Services</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">৳0</p>
-              <p className="text-xs text-gray-500">Earned</p>
+            <div className="bg-white p-4 rounded-xl shadow-md border-2 border-green-100 hover:shadow-lg transition-shadow">
+              <p className="text-3xl font-bold text-green-600">৳0</p>
+              <p className="text-xs text-gray-600 font-medium mt-1">Earned</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{workerProfile?.total_reviews || 0}</p>
-              <p className="text-xs text-gray-500">Reviews</p>
+            <div className="bg-white p-4 rounded-xl shadow-md border-2 border-orange-100 hover:shadow-lg transition-shadow">
+              <p className="text-3xl font-bold text-orange-600">{workerProfile?.total_reviews || 0}</p>
+              <p className="text-xs text-gray-600 font-medium mt-1">Reviews</p>
             </div>
           </div>
         </div>
@@ -181,10 +210,10 @@ export const AccountContent = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              <User className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-orange-500 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b-2 border-orange-100">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <User className="h-6 w-6 mr-3 text-orange-500" />
               Personal Information
             </h3>
           </div>
@@ -245,10 +274,10 @@ export const AccountContent = ({
         </Card>
 
         {/* Professional Information */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              <Briefcase className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-blue-500 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b-2 border-blue-100">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <Briefcase className="h-6 w-6 mr-3 text-blue-500" />
               Professional Information
             </h3>
           </div>
@@ -293,7 +322,7 @@ export const AccountContent = ({
               <label className="text-sm font-medium text-gray-500">Average Rating</label>
               <p className="text-base text-gray-900 mt-1 flex items-center">
                 <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                {workerProfile?.avg_rating?.toFixed(1) || "0.0"} ({workerProfile?.total_reviews || 0} reviews)
+                {workerProfile?.avg_rating || "0.0"} ({workerProfile?.total_reviews || 0} reviews)
               </p>
             </div>
             <div>
@@ -306,10 +335,10 @@ export const AccountContent = ({
         </Card>
 
         {/* Services Offered */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              <ClipboardList className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-green-500 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b-2 border-green-100">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <ClipboardList className="h-6 w-6 mr-3 text-green-500" />
               Services Offered
             </h3>
           </div>
@@ -320,27 +349,27 @@ export const AccountContent = ({
               {workerServices.map((service) => (
                 <div
                   key={service.id}
-                  className="p-4 bg-gray-50 rounded-lg border border-gray-100"
+                  className="p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl border-2 border-gray-200 hover:border-orange-300 hover:shadow-md transition-all"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-gray-900 text-lg">
                       {service.service_categories?.name || "Service"}
                     </h4>
-                    <span className="text-orange-600 font-semibold">
+                    <span className="text-orange-600 font-bold text-lg bg-orange-50 px-3 py-1 rounded-lg">
                       ৳{service.base_price || 0}/{service.price_unit || "hour"}
                     </span>
                   </div>
                   {service.service_sections && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      Section: {service.service_sections.name}
+                    <p className="text-sm text-gray-700 mb-3 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                      <span className="font-semibold">Section:</span> {service.service_sections.name}
                     </p>
                   )}
                   {service.skills && service.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {service.skills.map((skill, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs"
+                          className="px-3 py-1 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 rounded-full text-xs font-semibold border border-orange-300 shadow-sm"
                         >
                           {skill}
                         </span>
@@ -354,10 +383,10 @@ export const AccountContent = ({
         </Card>
 
         {/* Availability & Address */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-purple-500 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b-2 border-purple-100">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <Clock className="h-6 w-6 mr-3 text-purple-500" />
               Availability & Location
             </h3>
           </div>
@@ -379,13 +408,13 @@ export const AccountContent = ({
               <label className="text-sm font-medium text-gray-500">Weekend Availability</label>
               <p className="text-base mt-1">
                 <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    availability?.weekend
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm ${
+                    availability?.weekend && (Array.isArray(availability.weekend) ? availability.weekend.length > 0 : availability.weekend)
+                      ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300"
+                      : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-300"
                   }`}
                 >
-                  {availability?.weekend ? "Available on weekends" : "Weekdays only"}
+                  {formatWeekendDays(availability?.weekend)}
                 </span>
               </p>
             </div>
@@ -426,9 +455,9 @@ export const AccountContent = ({
         </Card>
 
         {/* Account Statistics */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <ClipboardList className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-indigo-500 hover:shadow-xl transition-shadow bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-indigo-100 flex items-center">
+            <ClipboardList className="h-6 w-6 mr-3 text-indigo-500" />
             Account Statistics
           </h3>
           <div className="space-y-4">
@@ -448,7 +477,7 @@ export const AccountContent = ({
               <span className="text-sm font-medium text-gray-500">Average Rating</span>
               <span className="text-lg font-semibold text-gray-900 flex items-center">
                 <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                {workerProfile?.avg_rating?.toFixed(1) || "0.0"}
+                {workerProfile?.avg_rating || "0.0"}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -471,9 +500,9 @@ export const AccountContent = ({
         </Card>
 
         {/* Account Actions */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <User className="h-5 w-5 mr-2 text-orange-500" />
+        <Card className="p-6 shadow-lg border-l-4 border-l-red-500 hover:shadow-xl transition-shadow">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-red-100 flex items-center">
+            <User className="h-6 w-6 mr-3 text-red-500" />
             Account Settings
           </h3>
           <div className="space-y-3">

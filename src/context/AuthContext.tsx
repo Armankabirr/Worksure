@@ -8,8 +8,9 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 
-export type UserRole = "user" | "worker" | "admin";
+export type UserRole = "client" | "worker" | "admin";
 
 export interface AuthUser {
   id: string;
@@ -73,7 +74,7 @@ function mapUser(u: User | null): AuthUser | null {
     name: String(name),
     email: u.email ?? "",
     phone: String(phone),
-    role: role === "admin" || role === "worker" ? role : "user",
+    role: role === "admin" || role === "worker" ? role : "client",
     token: null,
     bio: m.bio as string | undefined,
     avatar: m.avatar as string | undefined,
@@ -86,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
+  const axiosPublic = useAxiosPublic();
 
   const isLoading = authStatus === "loading";
   const isAuthenticated = authStatus === "authenticated";
@@ -128,24 +130,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useCallback(
     async (email: string, password: string): Promise<{ error: Error | null }> => {
       try {
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("🔐 Attempting login for:", email);
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
-        return { error: error ? new Error(error.message) : null };
+
+        if (error) {
+          console.error("❌ Login error:", error);
+          return { error: new Error(error.message) };
+        }
+
+        console.log("✅ Supabase auth successful");
+        setUser(mapUser(data.user ?? null));
+        
+        const response = await axiosPublic.get(`/userRoutes/getUserByEmail/${email.trim()}`);
+        console.log("📦 API response:", response.data);
+        
+        if (response.data) {
+          localStorage.setItem("user", JSON.stringify(response.data));
+          console.log("💾 User data saved to localStorage");
+        }
+
+        return { error: null };
       } catch (e) {
+        console.error("❌ Login exception:", e);
         return {
           error: e instanceof Error ? e : new Error("Login failed"),
         };
       }
     },
-    [],
+    [axiosPublic],
   );
 
   const logout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-    } catch {
+      // Clear localStorage data
+      localStorage.removeItem("user");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("loginTimestamp");
+      setUser(null);
+      setAuthStatus("unauthenticated");
+      console.log("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still clear local state even if Supabase fails
+      localStorage.removeItem("user");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("loginTimestamp");
       setUser(null);
       setAuthStatus("unauthenticated");
     }

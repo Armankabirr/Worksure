@@ -3,6 +3,7 @@ import AddressSearch from "../components/AddressSearch";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { Button } from "../components/ui/button";
 import { BeatLoader } from "react-spinners";
 import {
@@ -86,15 +87,27 @@ const Search = () => {
   const serviceType = searchParams.get("serviceType") || "";
   const initialService = searchParams.get("service") || "";
 
-  const [selected, setSelected] = useState<any>(null);
-  const [subCategory, setSubCategory] = useState(initialService);
+  // Restore state from sessionStorage
+  const getStoredState = () => {
+    try {
+      const stored = sessionStorage.getItem(`search-state-${serviceType}`);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const storedState = getStoredState();
+
+  const [selected, setSelected] = useState<any>(storedState?.selected || null);
+  const [subCategory, setSubCategory] = useState(storedState?.subCategory || initialService);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<any[]>(storedState?.results || []);
   const navigate = useNavigate();
+  const axiosPublic = useAxiosPublic();
 
   const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY || '';
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
   // Redirect if no serviceType provided
   useEffect(() => {
@@ -112,6 +125,18 @@ const Search = () => {
       setSubCategory(initialService);
     }
   }, [initialService, subCategories]);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (serviceType) {
+      const stateToSave = {
+        selected,
+        subCategory,
+        results,
+      };
+      sessionStorage.setItem(`search-state-${serviceType}`, JSON.stringify(stateToSave));
+    }
+  }, [selected, subCategory, results, serviceType]);
 
   function handleSelectPlace(place: any) {
     setSelected(place);
@@ -135,22 +160,12 @@ const Search = () => {
         radiusMeters: "5000", // 5km radius
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/workerRoutes/workers/search?${queryParams.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      const response = await axiosPublic.get(
+        `/workerRoutes/workers/search?${queryParams.toString()}`
       );
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setResults(data.data || data || []);
+      console.log(response.data);
+      setResults(response.data.workers || response.data || []);
     } catch (err: any) {
       console.error('Search error:', err);
       setError(err.message || 'Failed to fetch services. Please try again.');

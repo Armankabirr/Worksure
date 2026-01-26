@@ -19,6 +19,8 @@ export interface ApiServiceRequest {
   status?: string | null;
   total_amount?: number | null;
   payment_completed?: boolean | null;
+  is_reviewed?: boolean;
+  is_complained?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   work_start?: string | null;
@@ -104,11 +106,12 @@ export interface DashboardOverviewResponse {
 }
 
 export interface Notification {
-  id: number;
+  id: string;
+  worker_id: string;
   title: string;
   message: string;
-  timestamp: Date;
-  read: boolean;
+  is_read: boolean;
+  created_at: string;
 }
 
 export interface ProfileFormData {
@@ -241,4 +244,41 @@ export interface WorkerDetailsData {
 export interface WorkerDetailsResponse {
   success: boolean;
   data: WorkerDetailsData;
+}
+
+// Worker Reviews API Response Types
+export interface ReviewerInfo {
+  id: string;
+  name: string;
+  profile_picture: string;
+}
+
+export interface WorkerReviewItem {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  order_id: string;
+  service_description: string;
+  reviewer: ReviewerInfo;
+}
+
+export interface ReviewPagination {
+  current_page: number;
+  total_pages: number;
+  per_page: number;
+  total_count: number;
+}
+
+export interface WorkerReviewsData {
+  worker_id: string;
+  avg_rating: string;
+  total_reviews: number;
+  reviews: WorkerReviewItem[];
+  pagination: ReviewPagination;
+}
+
+export interface WorkerReviewsResponse {
+  success: boolean;
+  data: WorkerReviewsData;
 }
