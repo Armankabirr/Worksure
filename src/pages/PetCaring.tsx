@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 type ServiceType = {
   icon: React.ComponentType<{ className?: string }>;
@@ -36,6 +37,7 @@ type ServiceType = {
 const PetCaring = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
   const [happyPetsCount, setHappyPetsCount] = useState(0);
   const [trustedCaregiversCount, setTrustedCaregiversCount] = useState(0);
   const statsRef = useRef<HTMLDivElement>(null);
@@ -74,9 +76,15 @@ const PetCaring = () => {
   }, []);
 
   const handleBookPetCare = (serviceSlug?: string) => {
-    const query = serviceSlug 
+    const query = serviceSlug
       ? `/search/workers?serviceType=pet-caring&service=${serviceSlug}`
       : "/search/workers?serviceType=pet-caring";
+
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+
     navigate(query);
   };
 
@@ -85,6 +93,10 @@ const PetCaring = () => {
   };
 
   const handleBookService = (slug: string) => {
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
     navigate(`/search/workers?serviceType=pet-caring&service=${slug}`);
   };
 
