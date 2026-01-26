@@ -21,9 +21,24 @@ const loadingEl = (
 );
 
 export default function ProtectedRoute({ children, role }: ProtectedRouteProps) {
-  const { authStatus, user } = useAuth();
+  const { authStatus } = useAuth();
   const location = useLocation();
   const [sessionState, setSessionState] = useState<SessionState>("checking");
+  const [user, setLocalUser] = useState<{ role: UserRole } | null>(null);
+
+  useEffect(() => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setLocalUser(JSON.parse(storedUser));
+        } else {
+          setLocalUser(null);
+        }
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        setLocalUser(null);
+      }
+    }, []);
 
   useEffect(() => {
     let isMounted = true;
