@@ -462,7 +462,7 @@ const PetCaring = () => {
                         className="rounded-full border-2 border-pink-300 text-pink-700 hover:bg-pink-50 font-semibold py-6 px-6"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleBookService(service.slug);
+                          handleBookPetCare(service.slug);
                         }}
                       >
                         Book Now
