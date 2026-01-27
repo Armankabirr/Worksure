@@ -588,6 +588,22 @@ const PetCaring = () => {
                 <p className="text-lg text-gray-600 leading-relaxed">
                   We're here to help. If you have any other questions about our pet care services, please don't hesitate to reach out.
                 </p>
+                <div className="rounded-3xl bg-white/80 backdrop-blur-sm p-6 shadow-soft border border-pink-100/60">
+                  <p className="text-sm font-semibold text-gray-900 mb-2">Before you book</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Share your pet’s routine, feeding instructions, and any medical notes. We’ll match you with a caregiver who fits your needs and keep everything noted for a smooth handoff.
+                  </p>
+                  <div className="mt-4 grid gap-2 text-sm text-gray-700">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 text-pink-600 mt-0.5" />
+                      <p>Tips for a great first visit: favorite treats, leash location, and vet contact.</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-4 w-4 text-orange-600 mt-0.5" />
+                      <p>Preferred schedule: morning/evening walks, playtime, and nap times.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <Accordion type="single" collapsible className="w-full animate-fade-up" style={{ animationDelay: "200ms" }}>
