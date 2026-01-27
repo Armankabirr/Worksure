@@ -209,6 +209,29 @@ const Catering = () => {
             <p className="text-muted-foreground">
               Fresh, flavorful meals prepared by expert chefs.
             </p>
+            <div className="grid gap-3 text-muted-foreground">
+              <div className="flex items-start gap-3">
+                <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">Customizable menus</p>
+                  <p className="text-sm">Tailor each course to match your guests and theme.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">End-to-end service</p>
+                  <p className="text-sm">Chefs, serving staff, linens, and setup all handled.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Zap className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">Fresh & seasonal</p>
+                  <p className="text-sm">Locally sourced produce cooked on event day.</p>
+                </div>
+              </div>
+            </div>
 
             <div className="flex gap-4">
               <Button onClick={handleBookCatering}>
@@ -238,7 +261,7 @@ const Catering = () => {
           <img
             src={heroImage}
             alt="Catering"
-            className="rounded-3xl shadow-xl"
+            className="rounded-3xl shadow-xl w-full max-w-[420px] max-h-[420px] object-cover justify-self-center lg:justify-self-end"
           />
         </section>
 
