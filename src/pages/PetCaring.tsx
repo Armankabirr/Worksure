@@ -604,6 +604,14 @@ const PetCaring = () => {
                     </div>
                   </div>
                 </div>
+                <div className="space-y-2 text-sm text-gray-600 leading-relaxed">
+                  <p>
+                    You can also tell us about your pet’s personality—shy, playful, energetic, or senior—so we can choose a caregiver who knows exactly how to make them feel safe and loved.
+                  </p>
+                  <p>
+                    After each visit, you’ll receive a short update with photos or notes, so you never have to wonder how your best friend is doing while you’re away.
+                  </p>
+                </div>
               </div>
 
               <Accordion type="single" collapsible className="w-full animate-fade-up" style={{ animationDelay: "200ms" }}>
