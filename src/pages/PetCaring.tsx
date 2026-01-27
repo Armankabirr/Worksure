@@ -632,35 +632,98 @@ const PetCaring = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-r from-pink-500 via-orange-500 to-amber-500 py-20">
+        <section className="bg-gradient-to-b from-white to-pink-50/60 py-20">
           <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-up">
-              <h2 className="text-4xl md:text-5xl font-bold text-white">
-                Ready to Give Your Pet the Best Care?
-              </h2>
-              <p className="text-xl text-white/90 leading-relaxed">
-                Join thousands of pet parents who trust us with their furry, feathered, and scaled family members.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 pt-4">
-                <Button
-                  size="lg"
-                  onClick={() => handleBookPetCare()}
-                  className="rounded-full bg-white text-pink-600 hover:bg-gray-50 px-10 py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-                >
-                  <Heart className="h-5 w-5 mr-2" />
-                  Book Pet Care Now
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => {
-                    const servicesSection = document.getElementById("services-section");
-                    servicesSection?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="rounded-full border-2 border-white text-white hover:bg-white/10 px-10 py-6 text-lg font-semibold backdrop-blur-sm"
-                >
-                  Explore Services
-                </Button>
+            <div className="max-w-6xl mx-auto animate-fade-up">
+              <div className="relative overflow-hidden rounded-3xl border bg-white shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-orange-500/10 to-amber-500/10" />
+                <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 p-8 md:p-12 items-center">
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-pink-100 px-4 py-2">
+                      <Heart className="h-4 w-4 text-pink-600" />
+                      <span className="text-xs font-semibold text-pink-700 uppercase tracking-wider">
+                        Trusted Pet Care
+                      </span>
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+                      Ready to Give Your Pet the Best Care?
+                    </h2>
+                    <p className="text-lg text-gray-600 leading-relaxed">
+                      Book verified caregivers for walks, feeding, grooming, and overnight care — with updates you can count on.
+                    </p>
+
+                    <div className="grid gap-3 text-gray-700">
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck className="h-5 w-5 text-pink-600 mt-0.5" />
+                        <p className="text-sm">
+                          <span className="font-semibold text-gray-900">Verified caregivers</span> and safe, pet-friendly handling.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <p className="text-sm">
+                          <span className="font-semibold text-gray-900">Flexible scheduling</span> for weekends, holidays, and emergencies.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <p className="text-sm">
+                          <span className="font-semibold text-gray-900">Care notes & updates</span> so you always know how your pet is doing.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 pt-2">
+                      <Button
+                        size="lg"
+                        onClick={() => handleBookPetCare()}
+                        className="rounded-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white px-10 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        <Heart className="h-5 w-5 mr-2" />
+                        Book Pet Care
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => {
+                          const servicesSection = document.getElementById("services-section");
+                          servicesSection?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        className="rounded-full px-10 py-6 text-lg font-semibold"
+                      >
+                        Explore Services
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute -top-8 -right-8 h-56 w-56 rounded-full bg-pink-500/10 blur-2xl" />
+                    <div className="absolute -bottom-10 -left-10 h-56 w-56 rounded-full bg-amber-500/10 blur-2xl" />
+                    <div className="relative rounded-3xl bg-gradient-to-br from-pink-500 via-orange-500 to-amber-500 p-8 text-white shadow-lg">
+                      <h3 className="text-2xl font-bold">What you’ll get</h3>
+                      <p className="text-white/90 mt-2">
+                        A calm, happy pet — and total peace of mind while you’re away.
+                      </p>
+                      <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+                        <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+                          <Dog className="h-6 w-6 mx-auto" />
+                          <p className="mt-2 text-sm font-semibold">Dogs</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+                          <Cat className="h-6 w-6 mx-auto" />
+                          <p className="mt-2 text-sm font-semibold">Cats</p>
+                        </div>
+                        <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+                          <Bird className="h-6 w-6 mx-auto" />
+                          <p className="mt-2 text-sm font-semibold">Birds</p>
+                        </div>
+                      </div>
+                      <p className="mt-6 text-sm text-white/90">
+                        Need something specific? Add notes during booking and we’ll match the right caregiver.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
