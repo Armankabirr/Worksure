@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import AddressSearch from "../components/AddressSearch";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -16,6 +16,29 @@ import {
 import { Search as SearchIcon, MapPin, Star, Sparkles, ArrowRight } from "lucide-react";
 import { cleaningServicesData } from "@/lib/cleaningServices";
 import { acDoctorServicesConfig } from "@/lib/acDoctorServices";
+
+type SelectedPlace = {
+  lat: number;
+  lon: number;
+  display_name?: string;
+  [key: string]: unknown;
+};
+
+type WorkerResult = {
+  user_id: string;
+  profile_picture?: string;
+  display_name: string;
+  avg_rating?: number;
+  review_count?: number;
+  base_price?: number;
+  distance_m: number;
+};
+
+type SearchState = {
+  selected: SelectedPlace | null;
+  subCategory: string;
+  results: WorkerResult[];
+};
 
 // Service type configuration with dynamic copy and subcategories
 const serviceConfig: Record<string, {
@@ -80,6 +103,34 @@ const serviceConfig: Record<string, {
       { value: "homework-help", label: "Homework Help" },
     ],
   },
+  catering: {
+    label: "Catering",
+    heading: "Trusted Catering Service Providers Near You",
+    subheading: "Select your catering service need and location to find professional caterers",
+    ctaText: "Find Caterers",
+    getSubcategories: () => [
+      { value: "wedding-catering", label: "Wedding Catering" },
+      { value: "corporate-events", label: "Corporate Events" },
+      { value: "buffet-services", label: "Buffet Services" },
+      { value: "dessert-catering", label: "Dessert Catering" },
+      { value: "party-catering", label: "Party Catering" },
+      { value: "private-chef", label: "Private Chef" },
+    ],
+  },
+  "pet-caring": {
+    label: "Pet Care",
+    heading: "Find Trusted Pet Care Near You",
+    subheading: "Select your pet care need and location to find verified caregivers",
+    ctaText: "Find Pet Care",
+    getSubcategories: () => [
+      { value: "pet-sitting", label: "Pet Sitting" },
+      { value: "dog-walking", label: "Dog Walking" },
+      { value: "pet-grooming", label: "Pet Grooming" },
+      { value: "pet-feeding", label: "Pet Feeding" },
+      { value: "overnight-care", label: "Overnight Pet Care" },
+      { value: "vet-assistance", label: "Vet Visit Assistance" },
+    ],
+  },
 };
 
 const Search = () => {
@@ -97,13 +148,13 @@ const Search = () => {
     }
   };
 
-  const storedState = getStoredState();
+  const storedState = getStoredState() as SearchState | null;
 
-  const [selected, setSelected] = useState<any>(storedState?.selected || null);
+  const [selected, setSelected] = useState<SelectedPlace | null>(storedState?.selected || null);
   const [subCategory, setSubCategory] = useState(storedState?.subCategory || initialService);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any[]>(storedState?.results || []);
+  const [results, setResults] = useState<WorkerResult[]>(storedState?.results || []);
   const navigate = useNavigate();
   const axiosPublic = useAxiosPublic();
 
@@ -117,7 +168,10 @@ const Search = () => {
   }, [serviceType, navigate]);
 
   const config = serviceConfig[serviceType];
-  const subCategories = config?.getSubcategories() || [];
+  const subCategories = useMemo(
+    () => config?.getSubcategories() || [],
+    [config]
+  );
 
   // Set initial subcategory from URL param if provided
   useEffect(() => {
@@ -138,7 +192,7 @@ const Search = () => {
     }
   }, [selected, subCategory, results, serviceType]);
 
-  function handleSelectPlace(place: any) {
+  function handleSelectPlace(place: SelectedPlace) {
     setSelected(place);
     setError(null);
   }
@@ -154,9 +208,9 @@ const Search = () => {
 
     try {
       const queryParams = new URLSearchParams({
-        lat: selected.lat,
-        lon: selected.lon,
-        categorySlug: subCategory,
+        lat: String(selected.lat),
+        lon: String(selected.lon),
+        categorySlug: subCategory || "",
         radiusMeters: "5000", // 5km radius
       });
 
@@ -165,10 +219,11 @@ const Search = () => {
       );
 
       console.log(response.data);
-      setResults(response.data.workers || response.data || []);
-    } catch (err: any) {
+      setResults((response.data.workers || response.data || []) as WorkerResult[]);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch services. Please try again.';
       console.error('Search error:', err);
-      setError(err.message || 'Failed to fetch services. Please try again.');
+      setError(message);
     } finally {
       setLoading(false);
     }

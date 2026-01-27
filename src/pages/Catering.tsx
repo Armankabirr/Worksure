@@ -14,17 +14,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { BadgeCheck, Sparkles, Home, ShieldCheck, Zap } from "lucide-react";
+import { BadgeCheck, Sparkles, Home, ShieldCheck, Zap, ShoppingCart } from "lucide-react";
 import heroImage from "@/assets/chefs.jpg";
 import teamImage from "@/assets/team-illustration.jpg";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Catering = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { authStatus, openLogin } = useAuth();
 
   const [yearsExp, setYearsExp] = useState(0);
   const [eventsServed, setEventsServed] = useState(0);
@@ -111,6 +113,15 @@ const Catering = () => {
     });
   };
 
+  const handleBookCatering = () => {
+    // Require login before sending users to booking/search flow
+    if (authStatus !== "authenticated") {
+      openLogin();
+      return;
+    }
+    navigate("/search/workers?serviceType=catering");
+  };
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <Header />
@@ -128,10 +139,10 @@ const Catering = () => {
             </p>
 
             <div className="flex gap-4">
-              <Button onClick={() => navigate("/search/workers?serviceType=catering")}>
+              <Button onClick={handleBookCatering}>
                 Book Catering
               </Button>
-              <Button variant="outline" onClick={() => navigate("/catering/menu")}>
+              <Button variant="outline" onClick={() => document.getElementById('catering-services')?.scrollIntoView({ behavior: 'smooth' })}>
                 View Menu
               </Button>
             </div>
@@ -160,7 +171,7 @@ const Catering = () => {
         </section>
 
         {/* SERVICES */}
-        <section className="container mx-auto px-6 py-16">
+        <section id="catering-services" className="container mx-auto px-6 py-16">
           <h2 className="text-4xl font-bold text-center mb-12">
             Our Catering Services
           </h2>
@@ -171,8 +182,7 @@ const Catering = () => {
               return (
                 <Card
                   key={service.title}
-                  onClick={() => handleAddToCart(service)}
-                  className="cursor-pointer hover:shadow-lg"
+                  className="hover:shadow-lg"
                 >
                   <img
                     src={service.image}
@@ -185,9 +195,24 @@ const Catering = () => {
                       {service.title}
                     </CardTitle>
                     <CardDescription>{service.description}</CardDescription>
+                                      <p className="text-2xl font-bold text-primary mt-2">{service.price}</p>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full">{service.price}</Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleBookCatering} className="flex-1">
+                        Book
+                      </Button>
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(service);
+                        }}
+                        variant="outline" 
+                        size="icon"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
