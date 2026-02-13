@@ -21,6 +21,9 @@ import ACDoctorPricing from "./pages/ACDoctorPricing";
 import ElectricianServiceDetail from "./pages/ElectricianServiceDetail";
 import ElectricianPricing from "./pages/ElectricianPricing";
 import UserRegister from "./pages/UserRegister";
+import UserRegisterStep1 from "./pages/UserRegisterStep1";
+import UserRegisterStep2 from "./pages/UserRegisterStep2";
+import UserRegisterStep3 from "./pages/UserRegisterStep3";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
 import WorkerDashboard from "./pages/WorkerDashboard";
@@ -95,7 +98,9 @@ const App = () => {
               <Route path="/babysitter" element={<Babysitter />} />
               <Route path="/login" element={<UserLogin />} />
               <Route path="/user/register" element={<UserRegister />} />
-              <Route path="/user/login" element={<UserLogin />} />
+              <Route path="/user/register/step1" element={<UserRegisterStep1 />} />
+              <Route path="/user/register/step2" element={<UserRegisterStep2 />} />
+              <Route path="/user/register/step3" element={<UserRegisterStep3 />} />
               <Route path="/search/workers" element={<Search />} />
               <Route path="/worker/:id" element={<WorkerDetail />} />
               <Route path="/cart" element={<Cart />} />

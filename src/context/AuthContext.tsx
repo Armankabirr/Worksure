@@ -40,6 +40,16 @@ interface AuthContextValue {
   isLoading: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signup: (email: string, password: string) => Promise<{ error: Error | null }>;
+  checkEmailVerified: () => Promise<{ verified: boolean; error: Error | null }>;
+  resendVerificationEmail: () => Promise<{ error: Error | null }>;
+  updateProfileWithDetails: (data: {
+    name: string;
+    phone: string;
+    nid: string;
+    date_of_birth: string;
+    profile_picture?: string;
+  }) => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
   updateProfile: (updates: ProfileUpdateData) => Promise<{ error: Error | null }>;
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>;
@@ -126,6 +136,126 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, [setSession]);
+
+  const signup = useCallback(
+    async (email: string, password: string): Promise<{ error: Error | null }> => {
+      try {
+        console.log("📝 Attempting signup for:", email);
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/user/register/step2`,
+          },
+        });
+
+        if (error) {
+          console.error("❌ Signup error:", error);
+          return { error: new Error(error.message) };
+        }
+
+        console.log("✅ Signup successful, verification email sent");
+        return { error: null };
+      } catch (e) {
+        console.error("❌ Signup exception:", e);
+        return {
+          error: e instanceof Error ? e : new Error("Signup failed"),
+        };
+      }
+    },
+    [],
+  );
+
+  const checkEmailVerified = useCallback(async (): Promise<{ verified: boolean; error: Error | null }> => {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        return { verified: false, error: new Error(error.message) };
+      }
+
+      const verified = data.user?.email_confirmed_at != null;
+      console.log("📧 Email verification status:", verified);
+      
+      return { verified, error: null };
+    } catch (e) {
+      console.error("❌ Check verification exception:", e);
+      return {
+        verified: false,
+        error: e instanceof Error ? e : new Error("Failed to check verification"),
+      };
+    }
+  }, []);
+
+  const resendVerificationEmail = useCallback(async (): Promise<{ error: Error | null }> => {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user?.email) {
+        return { error: new Error("No user session found") };
+      }
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: userData.user.email,
+      });
+
+      if (error) {
+        return { error: new Error(error.message) };
+      }
+
+      console.log("✅ Verification email resent");
+      return { error: null };
+    } catch (e) {
+      console.error("❌ Resend verification exception:", e);
+      return {
+        error: e instanceof Error ? e : new Error("Failed to resend verification email"),
+      };
+    }
+  }, []);
+
+  const updateProfileWithDetails = useCallback(
+    async (data: {
+      name: string;
+      phone: string;
+      nid: string;
+      date_of_birth: string;
+      profile_picture?: string;
+    }): Promise<{ error: Error | null }> => {
+      try {
+        const { data: cur } = await supabase.auth.getUser();
+        if (!cur.user) {
+          return { error: new Error("No user session found") };
+        }
+
+        const existing = (cur.user.user_metadata ?? {}) as Record<string, unknown>;
+        const next = {
+          ...existing,
+          name: data.name,
+          phone: data.phone,
+          nid: data.nid,
+          date_of_birth: data.date_of_birth,
+          profile_picture: data.profile_picture,
+          role: "client", // Default role
+        };
+
+        const { error } = await supabase.auth.updateUser({ data: next });
+        if (error) return { error: new Error(error.message) };
+
+        // Update local user state
+        setUser(mapUser(cur.user));
+
+        console.log("✅ Profile completed successfully");
+        return { error: null };
+      } catch (e) {
+        console.error("❌ Profile update exception:", e);
+        return {
+          error: e instanceof Error ? e : new Error("Profile update failed"),
+        };
+      }
+    },
+    [],
+  );
 
   const login = useCallback(
     async (email: string, password: string): Promise<{ error: Error | null }> => {
@@ -326,6 +456,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     user,
     login,
+    signup,
+    checkEmailVerified,
+    resendVerificationEmail,
+    updateProfileWithDetails,
     logout,
     updateProfile,
     changePassword,

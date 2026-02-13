@@ -5,7 +5,7 @@ export default function UserRegister() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/", { replace: true, state: { openRegister: true } });
+    navigate("/user/register/step1", { replace: true });
   }, [navigate]);
 
   return (

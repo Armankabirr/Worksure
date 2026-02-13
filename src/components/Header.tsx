@@ -84,7 +84,7 @@ const Header = () => {
       }
     }
     fetchNotifications();
-  }, [axiosPublic, localUser?.id, isAuthenticated, localUser?.role]);
+  }, [axiosPublic, localUser?.id, isAuthenticated, localUser?.role, localUser?.email]);
 
   // Smooth scroll helper that accounts for the fixed header height
   const scrollToSection = (targetId: string) => {
@@ -664,7 +664,7 @@ const Header = () => {
                     variant="default"
                     className="h-10 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-semibold"
                     type="button"
-                    onClick={() => navigate("/register")}
+                    onClick={() => navigate("/user/register")}
                   >
                     Sign up
                   </Button>
@@ -900,7 +900,7 @@ const Header = () => {
                   <Button
                     variant="default"
                     className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                    onClick={() => { navigate("/register"); closeMobile(); }}
+                    onClick={() => { navigate("/user/register"); closeMobile(); }}
                   >
                     Sign up
                   </Button>
