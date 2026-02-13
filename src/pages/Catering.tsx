@@ -94,6 +94,78 @@ const Catering = () => {
     },
   ];
 
+  const sampleMenu = [
+    {
+      category: "Starters",
+      items: [
+        {
+          name: "Bruschetta Trio",
+          description: "Heirloom tomatoes, whipped ricotta, and pesto on toasted sourdough.",
+          price: "৳550 per platter",
+          image: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Mini Chicken Satay",
+          description: "Grilled skewers with peanut dipping sauce and pickled cucumbers.",
+          price: "৳750 per dozen",
+          image: "https://images.unsplash.com/photo-1478144592103-25e218a04891?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Smoked Salmon Blinis",
+          description: "Buckwheat blinis topped with dill crème fraîche and cold-smoked salmon.",
+          price: "৳880 per dozen",
+          image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=800&q=80",
+        },
+      ],
+    },
+    {
+      category: "Main Courses",
+      items: [
+        {
+          name: "Herb-Crusted Salmon",
+          description: "Roasted Norwegian salmon with lemon butter and charred asparagus.",
+          price: "৳1400 per guest",
+          image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Slow-Roasted Beef Tenderloin",
+          description: "Black pepper crust, red wine jus, and truffle mashed potatoes.",
+          price: "৳1600 per guest",
+          image: "https://images.unsplash.com/photo-1604908177035-0ac1c9bb6464?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Mediterranean Veg Lasagna",
+          description: "Layers of roasted vegetables, basil pesto, and parmesan cream.",
+          price: "৳1100 per guest",
+          image: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=800&q=80",
+        },
+      ],
+    },
+    {
+      category: "Desserts",
+      items: [
+        {
+          name: "Chocolate Dome",
+          description: "Velvety mousse with a molten center and raspberry compote.",
+          price: "৳480 per guest",
+          image: "https://images.unsplash.com/photo-1528892952291-009c663ce843?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Lemon Meringue Tartlets",
+          description: "Tangy lemon curd topped with toasted Swiss meringue.",
+          price: "৳420 per guest",
+          image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&fit=crop&w=800&q=80",
+        },
+        {
+          name: "Tiramisu Cups",
+          description: "Classic mascarpone, espresso-soaked savoiardi, and cocoa dusting served in glass cups.",
+          price: "৳520 per guest",
+          image: "https://images.unsplash.com/photo-1541976076758-347942db1970?auto=format&fit=crop&w=800&q=80",
+        },
+      ],
+    },
+  ];
+
   const handleAddToCart = (service: (typeof cateringServices)[0]) => {
     const price = parseInt(service.price.replace(/\D/g, ""), 10);
 
@@ -137,6 +209,29 @@ const Catering = () => {
             <p className="text-muted-foreground">
               Fresh, flavorful meals prepared by expert chefs.
             </p>
+            <div className="grid gap-3 text-muted-foreground">
+              <div className="flex items-start gap-3">
+                <BadgeCheck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">Customizable menus</p>
+                  <p className="text-sm">Tailor each course to match your guests and theme.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">End-to-end service</p>
+                  <p className="text-sm">Chefs, serving staff, linens, and setup all handled.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Zap className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">Fresh & seasonal</p>
+                  <p className="text-sm">Locally sourced produce cooked on event day.</p>
+                </div>
+              </div>
+            </div>
 
             <div className="flex gap-4">
               <Button onClick={handleBookCatering}>
@@ -166,7 +261,7 @@ const Catering = () => {
           <img
             src={heroImage}
             alt="Catering"
-            className="rounded-3xl shadow-xl"
+            className="rounded-3xl shadow-xl w-full max-w-[420px] max-h-[420px] object-cover justify-self-center lg:justify-self-end"
           />
         </section>
 
@@ -224,12 +319,29 @@ const Catering = () => {
         <section className="container mx-auto px-6 py-16">
           <h2 className="text-4xl font-bold mb-6">Sample Menu</h2>
           <Accordion type="single" collapsible>
-            <AccordionItem value="mains">
-              <AccordionTrigger>Main Courses</AccordionTrigger>
-              <AccordionContent>
-                Grilled salmon, beef tenderloin, vegetarian lasagna
-              </AccordionContent>
-            </AccordionItem>
+            {sampleMenu.map((section) => (
+              <AccordionItem key={section.category} value={section.category.toLowerCase().replace(/\s+/g, "-")}>
+                <AccordionTrigger>{section.category}</AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {section.items.map((item) => (
+                      <Card key={item.name} className="overflow-hidden border border-border/60">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-32 w-full object-cover"
+                        />
+                        <CardContent className="p-4 space-y-1">
+                          <h3 className="font-semibold">{item.name}</h3>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-sm font-semibold text-primary">{item.price}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
           </Accordion>
         </section>
 
