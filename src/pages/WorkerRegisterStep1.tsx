@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Briefcase } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Briefcase, UserCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,6 +15,7 @@ export default function WorkerRegisterStep1() {
   const navigate = useNavigate();
   const { signup } = useAuth();
   const { toast } = useToast();
+  const axiosPublic = useAxiosPublic();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,6 +74,20 @@ export default function WorkerRegisterStep1() {
     setLoading(true);
 
     try {
+      // Check if email already exists
+      const checkResponse = await axiosPublic.get(`/userRoutes/checkEmail/${email.trim()}`);
+      
+      if (checkResponse.data.exists) {
+        toast({
+          title: "Email already registered",
+          description: `This email is already registered as a ${checkResponse.data.user.role}. Please login or use a different email.`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with signup if email doesn't exist
       const { error } = await signup(email, password);
 
       if (error) {
@@ -93,9 +109,11 @@ export default function WorkerRegisterStep1() {
 
       navigate("/worker/register/step2");
     } catch (error) {
+      console.error("Registration error:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -200,28 +218,41 @@ export default function WorkerRegisterStep1() {
                 )}
               </Button>
 
-              <div className="text-center text-sm text-muted-foreground space-y-2">
-                <div>
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/login")}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Sign in
-                  </button>
+              <div className="text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign in
+                </button>
+              </div>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
                 </div>
-                <div className="pt-2 border-t">
-                  Looking for services?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/user/register")}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Register as User
-                  </button>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or
+                  </span>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/user/register")}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-blue-500/15 hover:border-blue-500/40 transition-all duration-200 group"
+              >
+                <UserCircle className="h-4 w-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                <span className="text-sm font-semibold text-foreground">
+                  Looking for services?
+                </span>
+                <span className="text-sm font-bold text-blue-600">
+                  Register as User →
+                </span>
+              </button>
             </form>
           </CardContent>
         </Card>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
+import { Briefcase } from "lucide-react";
 
 interface LoginFormData {
   email: string;
@@ -150,15 +151,30 @@ const UserLogin = () => {
             </Link>
           </p>
 
-          <p className="mt-2 text-xs text-center text-muted-foreground">
-            Want to offer services?{" "}
-            <Link
-              to="/worker/register"
-              className="text-orange-500 hover:underline font-medium"
-            >
-              Join as Worker
-            </Link>
-          </p>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/worker/register")}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-orange-500/10 hover:from-orange-500/10 hover:to-orange-500/15 hover:border-orange-500/40 transition-all duration-200 group"
+          >
+            <Briefcase className="h-4 w-4 text-orange-500 group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-semibold text-foreground">
+              Want to offer services?
+            </span>
+            <span className="text-sm font-bold text-orange-500">
+              Join as Worker →
+            </span>
+          </button>
 
           <p className="mt-4 text-[11px] text-center text-muted-foreground">
             ←{" "}

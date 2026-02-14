@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,6 +15,7 @@ export default function UserRegisterStep1() {
   const navigate = useNavigate();
   const { signup } = useAuth();
   const { toast } = useToast();
+  const axiosPublic = useAxiosPublic();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -74,6 +76,20 @@ export default function UserRegisterStep1() {
     setLoading(true);
 
     try {
+      // Check if email already exists
+      const checkResponse = await axiosPublic.get(`/userRoutes/checkEmail/${email.trim()}`);
+      
+      if (checkResponse.data.exists) {
+        toast({
+          title: "Email already registered",
+          description: `This email is already registered as a ${checkResponse.data.user.role}. Please login or use a different email.`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with signup if email doesn't exist
       const { error } = await signup(email, password);
 
       if (error) {
@@ -96,9 +112,11 @@ export default function UserRegisterStep1() {
       // Navigate to step 2
       navigate("/user/register/step2");
     } catch (error) {
+      console.error("Registration error:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

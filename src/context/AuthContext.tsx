@@ -151,7 +151,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = useCallback(
     async (email: string, password: string): Promise<{ error: Error | null }> => {
       try {
-        console.log("📝 Attempting signup for:", email);
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
