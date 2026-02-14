@@ -150,6 +150,16 @@ const UserLogin = () => {
             </Link>
           </p>
 
+          <p className="mt-2 text-xs text-center text-muted-foreground">
+            Want to offer services?{" "}
+            <Link
+              to="/worker/register"
+              className="text-orange-500 hover:underline font-medium"
+            >
+              Join as Worker
+            </Link>
+          </p>
+
           <p className="mt-4 text-[11px] text-center text-muted-foreground">
             ←{" "}
             <Link to="/" className="hover:underline">

@@ -49,6 +49,17 @@ interface AuthContextValue {
     nid: string;
     date_of_birth: string;
     profile_picture?: string;
+    role?: UserRole;
+    // Worker-specific fields (optional)
+    display_name?: string;
+    bio?: string;
+    years_of_experience?: number;
+    category?: string;
+    sub_category?: string;
+    base_price?: number;
+    price_unit?: string;
+    skills?: string[];
+    documents?: Array<{ type: string; url: string; preview: string }>;
   }) => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
   updateProfile: (updates: ProfileUpdateData) => Promise<{ error: Error | null }>;
@@ -221,6 +232,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       nid: string;
       date_of_birth: string;
       profile_picture?: string;
+      role?: UserRole;
+      // Worker-specific fields (optional)
+      display_name?: string;
+      bio?: string;
+      years_of_experience?: number;
+      category?: string;
+      sub_category?: string;
+      base_price?: number;
+      price_unit?: string;
+      skills?: string[];
+      documents?: Array<{ type: string; url: string; preview: string }>;
     }): Promise<{ error: Error | null }> => {
       try {
         const { data: cur } = await supabase.auth.getUser();
@@ -236,14 +258,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           nid: data.nid,
           date_of_birth: data.date_of_birth,
           profile_picture: data.profile_picture,
-          role: "client", // Default role
+          role: data.role || "client",
+          // Add worker-specific fields if provided
+          ...(data.display_name && { display_name: data.display_name }),
+          ...(data.bio && { bio: data.bio }),
+          ...(data.years_of_experience !== undefined && { years_of_experience: data.years_of_experience }),
+          ...(data.category && { category: data.category }),
+          ...(data.sub_category && { sub_category: data.sub_category }),
+          ...(data.base_price !== undefined && { base_price: data.base_price }),
+          ...(data.price_unit && { price_unit: data.price_unit }),
+          ...(data.skills && { skills: data.skills }),
+          ...(data.documents && { documents: data.documents }),
         };
 
         const { error } = await supabase.auth.updateUser({ data: next });
         if (error) return { error: new Error(error.message) };
 
         // Update local user state
-        setUser(mapUser(cur.user));
+        const { data: updatedUser } = await supabase.auth.getUser();
+        setUser(mapUser(updatedUser.user));
 
         console.log("✅ Profile completed successfully");
         return { error: null };

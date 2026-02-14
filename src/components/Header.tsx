@@ -904,6 +904,13 @@ const Header = () => {
                   >
                     Sign up
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold"
+                    onClick={() => { navigate("/worker/register"); closeMobile(); }}
+                  >
+                    Join as Worker
+                  </Button>
                 </div>
               )}
             </div>

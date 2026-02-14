@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Phone, IdCard, Calendar, Camera, Loader2, CheckCircle } from "lucide-react";
+import { User, Phone, IdCard, Calendar, Camera, Loader2, ArrowRight, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function UserRegisterStep3() {
+export default function WorkerRegisterStep3() {
   const navigate = useNavigate();
-  const { updateProfileWithDetails, checkEmailVerified } = useAuth();
+  const { checkEmailVerified } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,20 +30,18 @@ export default function UserRegisterStep3() {
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
 
   useEffect(() => {
-    // Verify that user has completed previous steps
     const checkPreviousSteps = async () => {
-      const storedEmail = localStorage.getItem("registration_email");
+      const storedEmail = localStorage.getItem("worker_registration_email");
       if (!storedEmail) {
         toast({
           title: "Session expired",
           description: "Please start the registration process again",
           variant: "destructive",
         });
-        navigate("/user/register/step1");
+        navigate("/worker/register/step1");
         return;
       }
 
-      // Check if email is verified
       const { verified } = await checkEmailVerified();
       if (!verified) {
         toast({
@@ -51,7 +49,7 @@ export default function UserRegisterStep3() {
           description: "Please verify your email first",
           variant: "destructive",
         });
-        navigate("/user/register/step2");
+        navigate("/worker/register/step2");
       }
     };
 
@@ -70,7 +68,6 @@ export default function UserRegisterStep3() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file",
@@ -80,7 +77,6 @@ export default function UserRegisterStep3() {
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -92,7 +88,6 @@ export default function UserRegisterStep3() {
 
     setProfilePictureFile(file);
 
-    // Create preview URL
     const reader = new FileReader();
     reader.onloadend = () => {
       setProfilePicture(reader.result as string);
@@ -104,12 +99,10 @@ export default function UserRegisterStep3() {
     try {
       setUploading(true);
       
-      // Generate unique filename
       const fileExt = file.name.split(".").pop();
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `profile-pictures/${fileName}`;
+      const filePath = `worker-profiles/${fileName}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file);
@@ -119,7 +112,6 @@ export default function UserRegisterStep3() {
         throw uploadError;
       }
 
-      // Get public URL
       const { data } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
@@ -129,7 +121,7 @@ export default function UserRegisterStep3() {
       console.error("Error uploading file:", error);
       toast({
         title: "Upload failed",
-        description: "Failed to upload profile picture. You can add it later from your profile.",
+        description: "Failed to upload profile picture. You can add it later.",
       });
       return null;
     } finally {
@@ -156,7 +148,6 @@ export default function UserRegisterStep3() {
       return false;
     }
 
-    // Validate phone number format (basic validation)
     const phoneRegex = /^[0-9+\-\s()]+$/;
     if (!phoneRegex.test(formData.phone)) {
       toast({
@@ -185,14 +176,13 @@ export default function UserRegisterStep3() {
       return false;
     }
 
-    // Validate age (must be at least 18)
     const birthDate = new Date(formData.date_of_birth);
     const today = new Date();
     const age = today.getFullYear() - birthDate.getFullYear();
     if (age < 18) {
       toast({
         title: "Age restriction",
-        description: "You must be at least 18 years old to register",
+        description: "You must be at least 18 years old to register as a worker",
         variant: "destructive",
       });
       return false;
@@ -209,7 +199,6 @@ export default function UserRegisterStep3() {
     setLoading(true);
 
     try {
-      // Upload profile picture if selected
       let profilePictureUrl = "";
       if (profilePictureFile) {
         const uploadedUrl = await uploadProfilePicture(profilePictureFile);
@@ -218,35 +207,21 @@ export default function UserRegisterStep3() {
         }
       }
 
-      // Update profile with all details
-      const { error } = await updateProfileWithDetails({
+      // Store data in localStorage for next step
+      localStorage.setItem("worker_registration_step3", JSON.stringify({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         nid: formData.nid.trim(),
         date_of_birth: formData.date_of_birth,
         profile_picture: profilePictureUrl,
-        role: "client",
-      });
-
-      if (error) {
-        toast({
-          title: "Profile update failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Clear registration email from localStorage
-      localStorage.removeItem("registration_email");
+      }));
 
       toast({
-        title: "Registration complete!",
-        description: "Your account has been created successfully",
+        title: "Progress saved",
+        description: "Moving to professional information",
       });
 
-      // Navigate to home or profile
-      navigate("/", { replace: true });
+      navigate("/worker/register/step4");
     } catch (error) {
       toast({
         title: "Error",
@@ -264,11 +239,18 @@ export default function UserRegisterStep3() {
       <div className="flex-1 flex items-center justify-center p-4 py-12">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Complete Your Profile</CardTitle>
+            <div className="flex justify-center mb-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <Briefcase className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-center">Basic Information</CardTitle>
+            <CardDescription className="text-center">
+              Step 3 of 6: Tell us about yourself
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Profile Picture Upload */}
               <div className="flex flex-col items-center space-y-3">
                 <Avatar className="w-24 h-24">
                   <AvatarImage src={profilePicture} alt="Profile" />
@@ -307,7 +289,6 @@ export default function UserRegisterStep3() {
                 </p>
               </div>
 
-              {/* Full Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <div className="relative">
@@ -326,7 +307,6 @@ export default function UserRegisterStep3() {
                 </div>
               </div>
 
-              {/* Phone Number */}
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number *</Label>
                 <div className="relative">
@@ -345,7 +325,6 @@ export default function UserRegisterStep3() {
                 </div>
               </div>
 
-              {/* National ID */}
               <div className="space-y-2">
                 <Label htmlFor="nid">National ID (NID) *</Label>
                 <div className="relative">
@@ -364,7 +343,6 @@ export default function UserRegisterStep3() {
                 </div>
               </div>
 
-              {/* Date of Birth */}
               <div className="space-y-2">
                 <Label htmlFor="date_of_birth">Date of Birth *</Label>
                 <div className="relative">
@@ -390,12 +368,12 @@ export default function UserRegisterStep3() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Completing registration...
+                    Saving...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Complete Registration
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>

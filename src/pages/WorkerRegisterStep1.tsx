@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export default function UserRegisterStep1() {
+export default function WorkerRegisterStep1() {
   const navigate = useNavigate();
   const { signup } = useAuth();
   const { toast } = useToast();
@@ -27,14 +27,12 @@ export default function UserRegisterStep1() {
   };
 
   const validatePassword = (password: string) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
     return password.length >= 8;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!email || !password || !confirmPassword) {
       toast({
         title: "Missing fields",
@@ -85,16 +83,15 @@ export default function UserRegisterStep1() {
         return;
       }
 
-      // Store email in localStorage for next steps
-      localStorage.setItem("registration_email", email);
+      localStorage.setItem("worker_registration_email", email);
+      localStorage.setItem("worker_registration_type", "worker");
 
       toast({
         title: "Success!",
         description: "Verification email sent. Please check your inbox.",
       });
 
-      // Navigate to step 2
-      navigate("/user/register/step2");
+      navigate("/worker/register/step2");
     } catch (error) {
       toast({
         title: "Error",
@@ -109,10 +106,18 @@ export default function UserRegisterStep1() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
       <Header />
-      <div className="flex-1 flex items-center justify-center p-4 mt-20 py-12">
+      <div className="flex-1 flex items-center justify-center mt-20 p-4 py-12">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
+            <div className="flex justify-center mb-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <Briefcase className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-center">Join as a Worker</CardTitle>
+            <CardDescription className="text-center">
+              Step 1 of 6: Enter your email and password
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,7 +194,7 @@ export default function UserRegisterStep1() {
                   </>
                 ) : (
                   <>
-                    Sign Up
+                    Continue
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -207,13 +212,13 @@ export default function UserRegisterStep1() {
                   </button>
                 </div>
                 <div className="pt-2 border-t">
-                  Want to offer services?{" "}
+                  Looking for services?{" "}
                   <button
                     type="button"
-                    onClick={() => navigate("/worker/register")}
+                    onClick={() => navigate("/user/register")}
                     className="text-primary hover:underline font-medium"
                   >
-                    Join as Worker
+                    Register as User
                   </button>
                 </div>
               </div>
