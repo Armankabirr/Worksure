@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Phone, IdCard, Calendar, Camera, Loader2, ArrowRight, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,24 +98,48 @@ export default function WorkerRegisterStep3() {
     try {
       setUploading(true);
       
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `worker-profiles/${fileName}`;
+      // Convert file to base64
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          // Remove data URL prefix (data:image/...;base64,)
+          const base64Data = base64String.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file);
+      // Create FormData for ImgBB API
+      const formData = new FormData();
+      formData.append('image', base64Image);
 
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
+      // Upload to ImgBB
+      const imgbbApiKey = import.meta.env.VITE_imgbb_api_key;
+      if (!imgbbApiKey) {
+        throw new Error('ImgBB API key is not configured');
       }
 
-      const { data } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      return data.publicUrl;
+      if (!response.ok) {
+        throw new Error('Failed to upload to ImgBB');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data.url) {
+        return data.data.url;
+      } else {
+        throw new Error('Invalid response from ImgBB');
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       toast({

@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Upload, CheckCircle, Loader2, X, Briefcase, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -91,41 +90,66 @@ export default function WorkerRegisterStep6() {
     setUploading(true);
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `worker-documents/${fileName}`;
+      // Convert file to base64
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result as string;
+          // Remove data URL prefix (data:image/...;base64,)
+          const base64Data = base64String.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("documents")
-        .upload(filePath, file);
+      // Create FormData for ImgBB API
+      const formData = new FormData();
+      formData.append('image', base64Image);
 
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
+      // Upload to ImgBB
+      const imgbbApiKey = import.meta.env.VITE_imgbb_api_key;
+      if (!imgbbApiKey) {
+        throw new Error('ImgBB API key is not configured');
       }
 
-      const { data } = supabase.storage
-        .from("documents")
-        .getPublicUrl(filePath);
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setDocuments((prev) => [
-          ...prev,
-          {
-            type: documentType,
-            url: data.publicUrl,
-            preview: reader.result as string,
-          },
-        ]);
-        setDocumentType("");
-      };
-      reader.readAsDataURL(file);
+      if (!response.ok) {
+        throw new Error('Failed to upload to ImgBB');
+      }
 
-      toast({
-        title: "Document uploaded",
-        description: "Your document has been uploaded successfully",
-      });
+      const data = await response.json();
+      
+      if (data.success && data.data.url) {
+        // Create preview URL for local display
+        const previewReader = new FileReader();
+        previewReader.onloadend = () => {
+          setDocuments((prev) => [
+            ...prev,
+            {
+              type: documentType,
+              url: data.data.url,
+              preview: previewReader.result as string,
+            },
+          ]);
+          setDocumentType("");
+        };
+        previewReader.readAsDataURL(file);
+
+        toast({
+          title: "Document uploaded",
+          description: "Your document has been uploaded successfully",
+        });
+      } else {
+        throw new Error('Invalid response from ImgBB');
+      }
     } catch (error) {
       console.error("Error uploading document:", error);
       toast({
