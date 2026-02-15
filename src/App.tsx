@@ -24,6 +24,7 @@ import UserRegister from "./pages/UserRegister";
 import UserRegisterStep1 from "./pages/UserRegisterStep1";
 import UserRegisterStep2 from "./pages/UserRegisterStep2";
 import UserRegisterStep3 from "./pages/UserRegisterStep3";
+import UserRegisterStep4 from "./pages/UserRegisterStep4";
 import WorkerRegister from "./pages/WorkerRegister";
 import WorkerRegisterStep1 from "./pages/WorkerRegisterStep1";
 import WorkerRegisterStep2 from "./pages/WorkerRegisterStep2";
@@ -108,6 +109,7 @@ const App = () => {
               <Route path="/user/register/step1" element={<UserRegisterStep1 />} />
               <Route path="/user/register/step2" element={<UserRegisterStep2 />} />
               <Route path="/user/register/step3" element={<UserRegisterStep3 />} />
+              <Route path="/user/register/step4" element={<UserRegisterStep4 />} />
               <Route path="/worker/register" element={<WorkerRegister />} />
               <Route path="/worker/register/step1" element={<WorkerRegisterStep1 />} />
               <Route path="/worker/register/step2" element={<WorkerRegisterStep2 />} />

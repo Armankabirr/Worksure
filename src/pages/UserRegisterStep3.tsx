@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Phone, IdCard, Calendar, Camera, Loader2, CheckCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Phone, IdCard, Calendar, Camera, Loader2, ArrowRight, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -14,8 +16,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function UserRegisterStep3() {
   const navigate = useNavigate();
-  const { updateProfileWithDetails, checkEmailVerified } = useAuth();
+  const { checkEmailVerified } = useAuth();
   const { toast } = useToast();
+  const axiosPublic = useAxiosPublic();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -25,6 +28,7 @@ export default function UserRegisterStep3() {
     phone: "",
     nid: "",
     date_of_birth: "",
+    gender: "",
   });
   const [profilePicture, setProfilePicture] = useState<string>("");
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
@@ -198,6 +202,15 @@ export default function UserRegisterStep3() {
       return false;
     }
 
+    if (!formData.gender) {
+      toast({
+        title: "Missing gender",
+        description: "Please select your gender",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -209,6 +222,17 @@ export default function UserRegisterStep3() {
     setLoading(true);
 
     try {
+      const storedEmail = localStorage.getItem("registration_email");
+      if (!storedEmail) {
+        toast({
+          title: "Session expired",
+          description: "Please start the registration process again",
+          variant: "destructive",
+        });
+        navigate("/user/register/step1");
+        return;
+      }
+
       // Upload profile picture if selected
       let profilePictureUrl = "";
       if (profilePictureFile) {
@@ -218,39 +242,39 @@ export default function UserRegisterStep3() {
         }
       }
 
-      // Update profile with all details
-      const { error } = await updateProfileWithDetails({
+      // Create user in database via API
+      const userData = {
+        email: storedEmail,
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         nid: formData.nid.trim(),
         date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
         profile_picture: profilePictureUrl,
         role: "client",
-      });
+      };
 
-      if (error) {
+      const response = await axiosPublic.post("/userRoutes/createUser", userData);
+
+      console.log(response);
+
+      if (response.status == 201) {
         toast({
-          title: "Profile update failed",
-          description: error.message,
-          variant: "destructive",
+          title: "Profile created!",
+          description: "Now let's add your address",
         });
-        return;
+
+        // Navigate to address step (keep email in localStorage for step 4)
+        navigate("/user/register/step4");
+      } else {
+        throw new Error(response.data.error || "Failed to create user");
       }
-
-      // Clear registration email from localStorage
-      localStorage.removeItem("registration_email");
-
-      toast({
-        title: "Registration complete!",
-        description: "Your account has been created successfully",
-      });
-
-      // Navigate to home or profile
-      navigate("/", { replace: true });
     } catch (error) {
+      console.error("Registration error:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -316,7 +340,7 @@ export default function UserRegisterStep3() {
                     id="name"
                     name="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Enter your full name"
                     value={formData.name}
                     onChange={handleInputChange}
                     className="pl-9"
@@ -335,7 +359,7 @@ export default function UserRegisterStep3() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    placeholder="+880 1234567890"
+                    placeholder="Enter your phone number"
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="pl-9"
@@ -354,7 +378,7 @@ export default function UserRegisterStep3() {
                     id="nid"
                     name="nid"
                     type="text"
-                    placeholder="1234567890123"
+                    placeholder="Enter your National ID number"
                     value={formData.nid}
                     onChange={handleInputChange}
                     className="pl-9"
@@ -386,16 +410,38 @@ export default function UserRegisterStep3() {
                 </p>
               </div>
 
+              {/* Gender */}
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender *</Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+                  disabled={loading}
+                >
+                  <SelectTrigger className="w-full">
+                    <div className="flex items-center">
+                      <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select gender" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="others">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Button type="submit" className="w-full" size="lg" disabled={loading || uploading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Completing registration...
+                    Creating profile...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Complete Registration
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Continue to Address
                   </>
                 )}
               </Button>
