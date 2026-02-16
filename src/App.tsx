@@ -21,6 +21,17 @@ import ACDoctorPricing from "./pages/ACDoctorPricing";
 import ElectricianServiceDetail from "./pages/ElectricianServiceDetail";
 import ElectricianPricing from "./pages/ElectricianPricing";
 import UserRegister from "./pages/UserRegister";
+import UserRegisterStep1 from "./pages/UserRegisterStep1";
+import UserRegisterStep2 from "./pages/UserRegisterStep2";
+import UserRegisterStep3 from "./pages/UserRegisterStep3";
+import UserRegisterStep4 from "./pages/UserRegisterStep4";
+import WorkerRegister from "./pages/WorkerRegister";
+import WorkerRegisterStep1 from "./pages/WorkerRegisterStep1";
+import WorkerRegisterStep2 from "./pages/WorkerRegisterStep2";
+import WorkerRegisterStep3 from "./pages/WorkerRegisterStep3";
+import WorkerRegisterStep4 from "./pages/WorkerRegisterStep4";
+import WorkerRegisterStep5 from "./pages/WorkerRegisterStep5";
+import WorkerRegisterStep6 from "./pages/WorkerRegisterStep6";
 import UserLogin from "./pages/UserLogin";
 import Profile from "./pages/Profile";
 import WorkerDashboard from "./pages/WorkerDashboard";
@@ -95,7 +106,17 @@ const App = () => {
               <Route path="/babysitter" element={<Babysitter />} />
               <Route path="/login" element={<UserLogin />} />
               <Route path="/user/register" element={<UserRegister />} />
-              <Route path="/user/login" element={<UserLogin />} />
+              <Route path="/user/register/step1" element={<UserRegisterStep1 />} />
+              <Route path="/user/register/step2" element={<UserRegisterStep2 />} />
+              <Route path="/user/register/step3" element={<UserRegisterStep3 />} />
+              <Route path="/user/register/step4" element={<UserRegisterStep4 />} />
+              <Route path="/worker/register" element={<WorkerRegister />} />
+              <Route path="/worker/register/step1" element={<WorkerRegisterStep1 />} />
+              <Route path="/worker/register/step2" element={<WorkerRegisterStep2 />} />
+              <Route path="/worker/register/step3" element={<WorkerRegisterStep3 />} />
+              <Route path="/worker/register/step4" element={<WorkerRegisterStep4 />} />
+              <Route path="/worker/register/step5" element={<WorkerRegisterStep5 />} />
+              <Route path="/worker/register/step6" element={<WorkerRegisterStep6 />} />
               <Route path="/search/workers" element={<Search />} />
               <Route path="/worker/:id" element={<WorkerDetail />} />
               <Route path="/cart" element={<Cart />} />

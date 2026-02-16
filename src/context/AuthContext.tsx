@@ -40,6 +40,27 @@ interface AuthContextValue {
   isLoading: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signup: (email: string, password: string, redirectPath?: string) => Promise<{ error: Error | null }>;
+  checkEmailVerified: () => Promise<{ verified: boolean; error: Error | null }>;
+  resendVerificationEmail: () => Promise<{ error: Error | null }>;
+  updateProfileWithDetails: (data: {
+    name: string;
+    phone: string;
+    nid: string;
+    date_of_birth: string;
+    profile_picture?: string;
+    role?: UserRole;
+    // Worker-specific fields (optional)
+    display_name?: string;
+    bio?: string;
+    years_of_experience?: number;
+    category?: string;
+    sub_category?: string;
+    base_price?: number;
+    price_unit?: string;
+    skills?: string[];
+    documents?: Array<{ type: string; url: string; preview: string }>;
+  }) => Promise<{ error: Error | null }>;
   logout: () => Promise<void>;
   updateProfile: (updates: ProfileUpdateData) => Promise<{ error: Error | null }>;
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>;
@@ -126,6 +147,147 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, [setSession]);
+
+  const signup = useCallback(
+    async (email: string, password: string, redirectPath?: string): Promise<{ error: Error | null }> => {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}${redirectPath || '/user/register/step2'}`,
+          },
+        });
+
+        if (error) {
+          console.error("❌ Signup error:", error);
+          return { error: new Error(error.message) };
+        }
+
+        console.log("✅ Signup successful, verification email sent");
+        return { error: null };
+      } catch (e) {
+        console.error("❌ Signup exception:", e);
+        return {
+          error: e instanceof Error ? e : new Error("Signup failed"),
+        };
+      }
+    },
+    [],
+  );
+
+  const checkEmailVerified = useCallback(async (): Promise<{ verified: boolean; error: Error | null }> => {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        return { verified: false, error: new Error(error.message) };
+      }
+
+      const verified = data.user?.email_confirmed_at != null;
+      console.log("📧 Email verification status:", verified);
+      
+      return { verified, error: null };
+    } catch (e) {
+      console.error("❌ Check verification exception:", e);
+      return {
+        verified: false,
+        error: e instanceof Error ? e : new Error("Failed to check verification"),
+      };
+    }
+  }, []);
+
+  const resendVerificationEmail = useCallback(async (): Promise<{ error: Error | null }> => {
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user?.email) {
+        return { error: new Error("No user session found") };
+      }
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: userData.user.email,
+      });
+
+      if (error) {
+        return { error: new Error(error.message) };
+      }
+
+      console.log("✅ Verification email resent");
+      return { error: null };
+    } catch (e) {
+      console.error("❌ Resend verification exception:", e);
+      return {
+        error: e instanceof Error ? e : new Error("Failed to resend verification email"),
+      };
+    }
+  }, []);
+
+  const updateProfileWithDetails = useCallback(
+    async (data: {
+      name: string;
+      phone: string;
+      nid: string;
+      date_of_birth: string;
+      profile_picture?: string;
+      role?: UserRole;
+      // Worker-specific fields (optional)
+      display_name?: string;
+      bio?: string;
+      years_of_experience?: number;
+      category?: string;
+      sub_category?: string;
+      base_price?: number;
+      price_unit?: string;
+      skills?: string[];
+      documents?: Array<{ type: string; url: string; preview: string }>;
+    }): Promise<{ error: Error | null }> => {
+      try {
+        const { data: cur } = await supabase.auth.getUser();
+        if (!cur.user) {
+          return { error: new Error("No user session found") };
+        }
+
+        const existing = (cur.user.user_metadata ?? {}) as Record<string, unknown>;
+        const next = {
+          ...existing,
+          name: data.name,
+          phone: data.phone,
+          nid: data.nid,
+          date_of_birth: data.date_of_birth,
+          profile_picture: data.profile_picture,
+          role: data.role || "client",
+          // Add worker-specific fields if provided
+          ...(data.display_name && { display_name: data.display_name }),
+          ...(data.bio && { bio: data.bio }),
+          ...(data.years_of_experience !== undefined && { years_of_experience: data.years_of_experience }),
+          ...(data.category && { category: data.category }),
+          ...(data.sub_category && { sub_category: data.sub_category }),
+          ...(data.base_price !== undefined && { base_price: data.base_price }),
+          ...(data.price_unit && { price_unit: data.price_unit }),
+          ...(data.skills && { skills: data.skills }),
+          ...(data.documents && { documents: data.documents }),
+        };
+
+        const { error } = await supabase.auth.updateUser({ data: next });
+        if (error) return { error: new Error(error.message) };
+
+        // Update local user state
+        const { data: updatedUser } = await supabase.auth.getUser();
+        setUser(mapUser(updatedUser.user));
+
+        console.log("✅ Profile completed successfully");
+        return { error: null };
+      } catch (e) {
+        console.error("❌ Profile update exception:", e);
+        return {
+          error: e instanceof Error ? e : new Error("Profile update failed"),
+        };
+      }
+    },
+    [],
+  );
 
   const login = useCallback(
     async (email: string, password: string): Promise<{ error: Error | null }> => {
@@ -326,6 +488,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     user,
     login,
+    signup,
+    checkEmailVerified,
+    resendVerificationEmail,
+    updateProfileWithDetails,
     logout,
     updateProfile,
     changePassword,

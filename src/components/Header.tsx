@@ -2,8 +2,6 @@ import { MouseEvent, useEffect, useState, useRef } from "react";
 import { ShoppingCart, User, Menu, X as CloseIcon, Zap, Sparkles, Wind, Heart, UtensilsCrossed, Baby, LogOut, Bell, Loader2 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import LoginDialog from "./LoginDialog";
-import RegisterDialog from "./RegisterDialog";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/hooks/useCart";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -31,12 +29,6 @@ interface Notification {
 const Header = () => {
   const {
     isAuthenticated,
-    loginOpen,
-    registerOpen,
-    openLogin,
-    openRegister,
-    closeLogin,
-    closeRegister,
     logout,
   } = useAuth();
   const { totalItems } = useCart();
@@ -92,7 +84,7 @@ const Header = () => {
       }
     }
     fetchNotifications();
-  }, [axiosPublic, localUser?.id, isAuthenticated, localUser?.role]);
+  }, [axiosPublic, localUser?.id, isAuthenticated, localUser?.role, localUser?.email]);
 
   // Smooth scroll helper that accounts for the fixed header height
   const scrollToSection = (targetId: string) => {
@@ -128,16 +120,6 @@ const Header = () => {
     if (!scrolled) {
       navigate(`/#${targetId}`);
     }
-  };
-
-  const handleSwitchToRegister = () => {
-    openRegister();
-    setMobileOpen(false);
-  };
-
-  const handleSwitchToLogin = () => {
-    openLogin();
-    setMobileOpen(false);
   };
 
   const closeMobile = () => setMobileOpen(false);
@@ -674,7 +656,7 @@ const Header = () => {
                     variant="outline"
                     className="h-10 px-5 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold"
                     type="button"
-                    onClick={openLogin}
+                    onClick={() => navigate("/login")}
                   >
                     Login
                   </Button>
@@ -682,7 +664,7 @@ const Header = () => {
                     variant="default"
                     className="h-10 px-5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/20 transition-all duration-200 font-semibold"
                     type="button"
-                    onClick={openRegister}
+                    onClick={() => navigate("/user/register")}
                   >
                     Sign up
                   </Button>
@@ -911,25 +893,29 @@ const Header = () => {
                   <Button
                     variant="outline"
                     className="w-full h-11 border-border/60 text-foreground/80 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-200 font-semibold"
-                    onClick={() => { openLogin(); closeMobile(); }}
+                    onClick={() => { navigate("/login"); closeMobile(); }}
                   >
                     Login
                   </Button>
                   <Button
                     variant="default"
                     className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                    onClick={() => { openRegister(); closeMobile(); }}
+                    onClick={() => { navigate("/user/register"); closeMobile(); }}
                   >
                     Sign up
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200 font-semibold"
+                    onClick={() => { navigate("/worker/register"); closeMobile(); }}
+                  >
+                    Join as Worker
                   </Button>
                 </div>
               )}
             </div>
           </div>
         </div>
-
-        <LoginDialog open={loginOpen} onOpenChange={(open) => (open ? openLogin() : closeLogin())} onSwitchToRegister={handleSwitchToRegister} />
-        <RegisterDialog open={registerOpen} onOpenChange={(open) => (open ? openRegister() : closeRegister())} onSwitchToLogin={handleSwitchToLogin} />
       </header>
     </>
   );
