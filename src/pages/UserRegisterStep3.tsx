@@ -276,8 +276,6 @@ export default function UserRegisterStep3() {
 
       const response = await axiosPublic.post("/userRoutes/createUser", userData);
 
-      console.log(response);
-
       if (response.status == 201) {
         toast({
           title: "Profile created!",
@@ -447,7 +445,7 @@ export default function UserRegisterStep3() {
                   <SelectContent>
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="others">Other</SelectItem>
+                    <SelectItem value="others">Others</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

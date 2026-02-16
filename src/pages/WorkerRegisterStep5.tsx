@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Layers, Tag, DollarSign, Clock, Plus, X, Loader2, ArrowRight, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -39,6 +40,7 @@ const PRICE_UNITS = [
 export default function WorkerRegisterStep5() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const axiosPublic = useAxiosPublic();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     category: "",
@@ -197,24 +199,55 @@ export default function WorkerRegisterStep5() {
     setLoading(true);
 
     try {
-      localStorage.setItem("worker_registration_step5", JSON.stringify({
+      const storedEmail = localStorage.getItem("worker_registration_email");
+      
+      if (!storedEmail) {
+        toast({
+          title: "Session expired",
+          description: "Please start the registration process again",
+          variant: "destructive",
+        });
+        navigate("/worker/register/step1");
+        return;
+      }
+
+      // Create worker service in database via API
+      const serviceData = {
+        email: storedEmail,
         category: formData.category,
         sub_category: formData.sub_category,
         base_price: parseFloat(formData.base_price),
         price_unit: formData.price_unit,
         skills: skills,
-      }));
+      };
 
-      toast({
-        title: "Progress saved",
-        description: "Moving to document verification",
-      });
+      const response = await axiosPublic.post("/workerRoutes/createWorkerServices", serviceData);
 
-      navigate("/worker/register/step6");
+      if (response.status === 201) {
+        // Store data in localStorage for next step
+        localStorage.setItem("worker_registration_step5", JSON.stringify({
+          category: formData.category,
+          sub_category: formData.sub_category,
+          base_price: parseFloat(formData.base_price),
+          price_unit: formData.price_unit,
+          skills: skills,
+        }));
+
+        toast({
+          title: "Service created!",
+          description: "Moving to document verification",
+        });
+
+        navigate("/worker/register/step6");
+      } else {
+        throw new Error(response.data.error || "Failed to create worker service");
+      }
     } catch (error) {
+      console.error("Worker service creation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -234,9 +267,6 @@ export default function WorkerRegisterStep5() {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Service Details</CardTitle>
-            <CardDescription className="text-center">
-              Step 5 of 6: Set up your service offerings
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

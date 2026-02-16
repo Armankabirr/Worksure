@@ -88,7 +88,7 @@ export default function WorkerRegisterStep1() {
       }
 
       // Proceed with signup if email doesn't exist
-      const { error } = await signup(email, password);
+      const { error } = await signup(email, password, '/worker/register/step2');
 
       if (error) {
         toast({
@@ -133,9 +133,6 @@ export default function WorkerRegisterStep1() {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Join as a Worker</CardTitle>
-            <CardDescription className="text-center">
-              Step 1 of 6: Enter your email and password
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

@@ -78,7 +78,7 @@ export default function UserRegisterStep1() {
     try {
       // Check if email already exists
       const checkResponse = await axiosPublic.get(`/userRoutes/checkEmail/${email.trim()}`);
-      
+
       if (checkResponse.data.exists) {
         toast({
           title: "Email already registered",
@@ -90,7 +90,7 @@ export default function UserRegisterStep1() {
       }
 
       // Proceed with signup if email doesn't exist
-      const { error } = await signup(email, password);
+      const { error } = await signup(email, password, '/user/register/step2');
 
       if (error) {
         toast({
@@ -224,16 +224,19 @@ export default function UserRegisterStep1() {
                     Sign in
                   </button>
                 </div>
-                <div className="pt-2 border-t">
-                  Want to offer services?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/worker/register")}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Join as Worker
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/worker/register")}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 border-orange-500/20 bg-gradient-to-r from-orange-500/5 to-orange-500/10 hover:from-orange-500/10 hover:to-orange-500/15 hover:border-orange-500/40 transition-all duration-200 group"
+                >
+                  <Briefcase className="h-4 w-4 text-orange-500 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Want to offer services?
+                  </span>
+                  <span className="text-sm font-bold text-orange-500">
+                    Join as Worker →
+                  </span>
+                </button>
               </div>
             </form>
           </CardContent>

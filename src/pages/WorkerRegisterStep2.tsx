@@ -127,9 +127,6 @@ export default function WorkerRegisterStep2() {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-center">Verify Your Email</CardTitle>
-            <CardDescription className="text-center">
-              Step 2 of 6: Check your inbox and verify your email
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center text-center space-y-4">

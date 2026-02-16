@@ -40,7 +40,7 @@ interface AuthContextValue {
   isLoading: boolean;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signup: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signup: (email: string, password: string, redirectPath?: string) => Promise<{ error: Error | null }>;
   checkEmailVerified: () => Promise<{ verified: boolean; error: Error | null }>;
   resendVerificationEmail: () => Promise<{ error: Error | null }>;
   updateProfileWithDetails: (data: {
@@ -149,13 +149,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [setSession]);
 
   const signup = useCallback(
-    async (email: string, password: string): Promise<{ error: Error | null }> => {
+    async (email: string, password: string, redirectPath?: string): Promise<{ error: Error | null }> => {
       try {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/user/register/step2`,
+            emailRedirectTo: `${window.location.origin}${redirectPath || '/user/register/step2'}`,
           },
         });
 
