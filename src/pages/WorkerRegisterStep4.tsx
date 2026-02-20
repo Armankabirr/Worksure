@@ -221,7 +221,7 @@ export default function WorkerRegisterStep4() {
                     type="number"
                     min="0"
                     max="50"
-                    placeholder="0"
+                    placeholder="Enter years of experience in your field"
                     value={formData.years_of_experience}
                     onChange={handleInputChange}
                     className="pl-9"
