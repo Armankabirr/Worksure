@@ -419,7 +419,7 @@ export default function WorkerRegisterStep3() {
                     onChange={handleInputChange}
                     className="pl-9"
                     disabled={loading}
-                    max={new Date().toISOString().split("T")[0]}
+                    max={new Date().toUTCString().split("T")[0]}
                     required
                   />
                 </div>

@@ -593,11 +593,11 @@ const HiringCard = ({ hiring, onCancel, onViewPricing, onMakePayment, onReview, 
           <p className="text-muted-foreground mb-2">Work Duration</p>
           <div className="flex items-center gap-2">
             <span className="font-medium text-foreground">
-              {new Date(hiring.work_start).toLocaleString()}
+              {new Date(hiring.work_start).toUTCString()}
             </span>
             <span className="text-muted-foreground">to</span>
             <span className="font-medium text-foreground">
-              {new Date(hiring.work_end).toLocaleString()}
+              {new Date(hiring.work_end).toUTCString()}
             </span>
           </div>
         </div>

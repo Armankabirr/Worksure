@@ -561,12 +561,12 @@ const WorkerDashboard = () => {
       await axiosPublic.patch(`/orderRoutes/acceptWorkRequest/${id}`, {
         workerEmail: user?.email,
       });
-      setServiceRequests((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: "Confirmed" } : r))
-      );
+      setServiceRequests((prev) => prev.filter((r) => r.id !== id));
       setSelectedRequest((prev) =>
-        prev && prev.id === id ? { ...prev, status: "Confirmed" } : prev
+        prev && prev.id === id ? null : prev
       );
+      setDetailsOpen(false);
+      toast({ title: "Success", description: "Request accepted successfully!" });
     } catch (err) {
       console.error("Error accepting request:", err);
       toast({
@@ -642,12 +642,11 @@ const WorkerDashboard = () => {
         workerEmail: user?.email,
         reason: cancelReason.trim(),
       });
-      setServiceRequests((prev) =>
-        prev.map((r) => (r.id === cancelRequestId ? { ...r, status: "Cancelled" } : r))
-      );
+      setServiceRequests((prev) => prev.filter((r) => r.id !== cancelRequestId));
       setSelectedRequest((prev) =>
-        prev && prev.id === cancelRequestId ? { ...prev, status: "Cancelled" } : prev
+        prev && prev.id === cancelRequestId ? null : prev
       );
+      setDetailsOpen(false);
       setWorkHistory((prev) =>
         prev.map((w) => (w.id === cancelRequestId ? { ...w, status: "cancelled" } : w))
       );
@@ -1296,7 +1295,7 @@ const DashboardContent = ({
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Clock className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.start_time ? new Date(work.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
+                              {work.start_time ? new Date(work.start_time).toUTCString() : "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -1394,7 +1393,7 @@ const DashboardContent = ({
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center">
                               <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                              {work.scheduled_date ? new Date(work.scheduled_date).toLocaleString() : "-"}
+                              {work.scheduled_date ? new Date(work.scheduled_date).toUTCString() : "-"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
