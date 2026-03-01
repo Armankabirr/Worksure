@@ -259,7 +259,7 @@ export const HiringPricingDialog = ({
                                                   <Calendar className="h-4 w-4 text-gray-600" />
                                                   <span className="text-gray-600">Created:</span>
                                                   <span className="font-medium">
-                                                       {new Date(awaitingDetails.created_at).toLocaleString()}
+                                                       {new Date(awaitingDetails.created_at).toUTCString()}
                                                   </span>
                                              </div>
                                         </div>
@@ -288,7 +288,7 @@ export const HiringPricingDialog = ({
                                                   <div>
                                                        <h3 className="font-semibold text-gray-900 text-sm">Scheduled Time</h3>
                                                        <p className="text-gray-700 text-sm mt-1">
-                                                            {new Date(awaitingDetails.selected_time).toLocaleString()}
+                                                            {new Date(awaitingDetails.selected_time).toUTCString()}
                                                        </p>
                                                   </div>
                                              </div>
@@ -302,11 +302,11 @@ export const HiringPricingDialog = ({
                                              <div className="grid grid-cols-2 gap-4 text-sm">
                                                   <div>
                                                        <span className="text-gray-600">Started:</span>
-                                                       <p className="font-medium">{new Date(awaitingDetails.work_start).toLocaleString()}</p>
+                                                       <p className="font-medium">{new Date(awaitingDetails.work_start).toUTCString()}</p>
                                                   </div>
                                                   <div>
                                                        <span className="text-gray-600">Completed:</span>
-                                                       <p className="font-medium">{new Date(awaitingDetails.work_end).toLocaleString()}</p>
+                                                       <p className="font-medium">{new Date(awaitingDetails.work_end).toUTCString()}</p>
                                                   </div>
                                              </div>
                                         </div>
@@ -383,7 +383,7 @@ export const HiringPricingDialog = ({
                                                        {/* Verified Status */}
                                                        <div className="flex justify-between items-center mt-1">
                                                             <span className="text-xs text-gray-500">
-                                                                 Added: {new Date(orderItem.created_at).toLocaleString()}
+                                                                 Added: {new Date(orderItem.created_at).toUTCString()}
                                                             </span>
                                                             <span
                                                                  className={`px-2 py-0.5 text-xs rounded-full ${orderItem.verified
@@ -582,9 +582,9 @@ export const HiringPricingDialog = ({
                                                             <p>Method: {payment.payment_method}</p>
                                                             <p>Transaction ID: {payment.trx_id}</p>
                                                             {payment.paid_at && (
-                                                                 <p>Paid at: {new Date(payment.paid_at).toLocaleString()}</p>
+                                                                 <p>Paid at: {new Date(payment.paid_at).toUTCString()}</p>
                                                             )}
-                                                            <p className="text-xs">Created: {new Date(payment.created_at).toLocaleString()}</p>
+                                                            <p className="text-xs">Created: {new Date(payment.created_at).toUTCString()}</p>
                                                        </div>
                                                   </div>
                                              ))}
@@ -637,7 +637,7 @@ export const HiringPricingDialog = ({
                                                                  </div>
                                                                  <p className="text-gray-700 text-sm mb-2">{review.comment}</p>
                                                                  <p className="text-xs text-gray-500">
-                                                                      {new Date(review.created_at).toLocaleString()}
+                                                                      {new Date(review.created_at).toUTCString()}
                                                                  </p>
                                                             </div>
                                                        </div>

@@ -96,7 +96,7 @@ export const RequestDetailsDialog = ({
               <div>
                 <h4 className="text-sm font-medium text-gray-700">Selected Time</h4>
                 <p className="text-sm text-gray-900">
-                  {selectedRequest.selected_time ? new Date(selectedRequest.selected_time).toLocaleString() : "-"}
+                  {selectedRequest.selected_time ? new Date(selectedRequest.selected_time).toUTCString() : "-"}
                 </p>
               </div>
               <div>

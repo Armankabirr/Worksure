@@ -129,7 +129,7 @@ export const ServiceHistoryContent = ({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.selected_time
-                      ? new Date(item.selected_time).toLocaleString()
+                      ? new Date(item.selected_time).toUTCString()
                       : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
